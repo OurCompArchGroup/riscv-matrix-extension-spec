@@ -76,22 +76,6 @@ Executing matrix load or store instructions will result in illegal instruction e
 
 For mla*/mlb*, the destination matrix register is tile register, and the index of md must be 0-3. For mlc*/msc*, the destination matrix register or the source matrix register is accumulation register, and the index of ms3/md must be 4-7.
 
-==== Whole Matrix Load & Store Instructions
-
-Load a whole Tile/Accumulation matrix from memory without considering the tile size.
-
-```
-mlme<8/16/32/64>   md, (rs1), rs2        #  <8/16/32/64>-bit whole tile matrix load
-```
-
-Store a whole Tile/Accumulation matrix register to  memory without considering the tile size.
-
-```
-msme<8/16/32/64>   ms3, (rs1), rs2       #  <8/16/32/64>-bit whole tile matrix store
-```
-
-The destination matrix register or the source matrix register for mlme<8/16/32/64> and msme<8/16/32/64> can be either tile register or accumulation register.
-
 
 NOTE: Whole matrix load and store instructions are usually used for context saving and restoring.
 

@@ -58,14 +58,6 @@
      |msce16	      | 0010   |  01   |  1     | 	rs2	| rs1      |	000     |	01        |	ms3 	|  major opcode
      |msce32	      | 0010   |  01   |  1     | 	rs2	| rs1      |	000     |	10        |	ms3 	|  major opcode
      |msce64	      | 0010   |  01   |  1     | 	rs2	| rs1      |	000     |	11        |	ms3 	|  major opcode
-     |mlme8	          | 0011   |  01   |  0     | 	0000| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlme16	      | 0011   |  01   |  0     | 	0000| rs1      |	000     |	01        |	md	    |  major opcode
-     |mlme32	      | 0011   |  01   |  0     | 	0000| rs1      |	000     |	10        |	md	    |  major opcode
-     |mlme64	      | 0011   |  01   |  0     | 	0000| rs1      |	000     |	11        |	md	    |  major opcode
-     |msme8	          | 0011   |  01   |  1     | 	0000| rs1      |	000     |	00        |	ms3 	|  major opcode
-     |msme16	      | 0011   |  01   |  1     | 	0000| rs1      |	000     |	01        |	ms3 	|  major opcode
-     |msme32	      | 0011   |  01   |  1     | 	0000| rs1      |	000     |	10        |	ms3 	|  major opcode
-     |msme64	      | 0011   |  01   |  1     | 	0000| rs1      |	000     |	11        |	ms3 	|  major opcode
      |mlate8	      | 0100   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
      |mlbte8	      | 0101   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
      |mlcte8	      | 0110   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
