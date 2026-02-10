@@ -1,0 +1,51 @@
+name: Build PDF Documentation
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'spec/**'
+      - '.github/workflows/build-pdf.yml'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - 'spec/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Pull RISC-V Docs container image
+      run: docker pull riscvintl/riscv-docs-base-container-image:latest
+    
+    - name: Build PDF
+      run: |
+        cd spec
+        docker run --rm -v $(pwd):/build riscvintl/riscv-docs-base-container-image:latest \
+          /bin/sh -c 'cd /build && make'
+    
+    - name: Upload PDF artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: riscv-matrix-extension-spec
+        path: spec/*.pdf
+        retention-days: 30
+    
+    - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest-${{ github.sha }}
+        name: Latest Build
+        files: spec/*.pdf
+        draft: false
+        prerelease: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
