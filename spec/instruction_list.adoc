@@ -24,37 +24,6 @@
 .2+^.^| *Format*        |  31 28 | 27  26 | 25      | 24  23      | 22 20 |19   18      | 17  15    |   14  12    |   11  10    |   9  7      |  6    0
                         | *func* | *uop*  |  *ctrl* | *ctrl*      | *ms2* | *s_size*    |  *ms1*    |  *func3*    |  *d_size*   |  *md*       | *opcode*
       | mzero1r	        | 0000	 |  11    |	0       | 00          | 000	  | 00          |  000      |	000       |	00	        |   md	      | major opcode
-      | mmov.mm	        | 0001	 |  11    |	0	    | 00          | 000	  | 00	        |  ms1      |	000       |	00	        |   md	      | major opcode
-      | mmovb.x.m	    | 0010	 |  11    |	0	    | 00          | ms2 2+|  rs1	                | 000	    2+|  rd	                      | major opcode
-      | mmovh.x.m	    | 0010	 |  11    |	0	    | 01          | ms2 2+|  rs1	                | 000	    2+|  rd	                      | major opcode
-      | mmovw.x.m	    | 0010	 |  11    |	0	    | 10          | ms2 2+|  rs1	                | 000	    2+|  rd	                      | major opcode
-      | mmovd.x.m	    | 0010	 |  11    |	0	    | 11          | ms2 2+|  rs1	                | 000	    2+|  rd	                      | major opcode
-      | mmovb.m.x	    | 0011	 |  11    |	1	  2+| rs2               2+|	 rs1	                | 000	      |  00	        | md          |	major opcode
-      | mmovh.m.x	    | 0011	 |  11    |	1	  2+| rs2               2+|	 rs1	                | 000	      |  01	        | md          |	major opcode
-      | mmovw.m.x	    | 0011	 |  11    |	1	  2+| rs2               2+|	 rs1	                | 000	      |  10	        | md          |	major opcode
-      | mmovd.m.x	    | 0011	 |  11    |	1	  2+| rs2               2+|	 rs1	                | 000	      |  11	        | md          |	major opcode
-      | mdupb.m.x	    | 0011	 |  11    |	0	  2+| rs2               2+|	 00000	                | 000	      |  00	        | md          |	major opcode
-      | mduph.m.x	    | 0011	 |  11    |	0	  2+| rs2               2+|	 00000	                | 000	      |  01	        | md          |	major opcode
-      | mdupw.m.x	    | 0011	 |  11    |	0	  2+| rs2               2+|	 00000	                | 000	      |  10	        | md          |	major opcode
-      | mdupd.m.x	    | 0011	 |  11    |	0	  2+| rs2               2+|	 00000	                | 000	      |  11	        | md          |	major opcode
-      | mpack	        | 0100	 |  11    |	0       | 00	      | ms2	  |  00	         | ms1      | 000	      |  00   	    | md	      | major opcode
-      | mpackhl	        | 0100	 |  11    |	0       | 10	      | ms2	  |  00	         | ms1      | 000	      |  00   	    | md	      | major opcode
-      | mpackhh	        | 0100	 |  11    |	0       | 11	      | ms2	  |  00	         | ms1      | 000	      |  00   	    | md	      | major opcode
-      | mrslidedown	    | 0101	 |  11  2+|	uimm3	              | 000	  | 00	         |  ms1	    | 000	      |  00	        | md	      | major opcode
-      | mrslideup	    | 0110	 |  11  2+|	uimm3	              | 000	  | 00	         |  ms1	    | 000	      |  00	        | md	      | major opcode
-      | mcslidedown.b   | 0111	 |  11  2+|	uimm3	              | 000	  | 00	         |  ms1	    | 000	      |  00	        | md	      | major opcode
-      | mcslidedown.h   | 0111	 |  11  2+|	uimm3	              | 000	  | 01	         |  ms1	    | 000	      |  01	        | md	      | major opcode
-      | mcslidedown.w   | 0111	 |  11  2+|	uimm3	              | 000	  | 10	         |  ms1	    | 000	      |  10	        | md	      | major opcode
-      | mcslidedown.d   | 0111	 |  11  2+|	uimm3	              | 000	  | 11	         |  ms1	    | 000	      |  11	        | md	      | major opcode
-      | mcslideup.b	    | 1000	 |  11  2+|	uimm3	              | 000	  | 00	         |  ms1	    | 000	      |  00	        | md	      | major opcode
-      | mcslideup.h	    | 1000	 |  11  2+|	uimm3	              | 000	  | 01	         |  ms1	    | 000	      |  01	        | md	      | major opcode
-      | mcslideup.w	    | 1000	 |  11  2+|	uimm3	              | 000	  | 10	         |  ms1	    | 000	      |  10	        | md	      | major opcode
-      | mcslideup.d	    | 1000	 |  11  2+|	uimm3	              | 000	  | 11	         |  ms1	    | 000	      |  11	        | md	      | major opcode
-      | mrbca.mv.i	    | 1001	 |  11  2+|	uimm3	              | 000	  | 00	         |  ms1	    | 000	      |  00	        | md	      | major opcode
-      | mcbcab.mv.i	    | 1010	 |  11  2+|	uimm3	              | 000	  | 00	         |  ms1	    | 000	      |  00	        | md	      | major opcode
-      | mcbcah.mv.i	    | 1010	 |  11  2+|	uimm3	              | 000	  | 01	         |  ms1	    | 000	      |  01	        | md	      | major opcode
-      | mcbcaw.mv.i	    | 1010	 |  11  2+|	uimm3	              | 000	  | 10	         |  ms1	    | 000	      |  10	        | md	      | major opcode
-      | mcbcad.mv.i	    | 1010	 |  11  2+|	uimm3	              | 000	  | 11	         |  ms1	    | 000	      |  11	        | md	      | major opcode
 
 |===
 
