@@ -1,4 +1,4 @@
-Matrix extension adds eight two-dimensional matrix registers and eight CSRs.
+Matrix extension adds eight two-dimensional matrix registers and nine CSRs.
 [cols="^2,^2,^2,10",options="header"]
 |===
 | Address | Privilege | Name | Description
@@ -10,6 +10,7 @@ Matrix extension adds eight two-dimensional matrix registers and eight CSRs.
 | 0xcc1   |    URO       | xtlenb    | tile register size in byte, ROWNUM*TRLEN/8
 | 0xcc2   |    URO       | xtrlenb   | tile register row size in byte, TRLEN/8
 | 0xcc3   |    URO       | xalenb    | accumulation register size in byte, ROWNUM^2^ * ELEN/8
+| 0xcc4   |    URO       | mtok      | token register count (8/16/32)
 |===
 
 Matrix extention gives seperate CSR address to allow independent access of xmxrm/xmsat/xmfflags/xmfrm/xmsat which is also reflected as a field in xmcsr.
