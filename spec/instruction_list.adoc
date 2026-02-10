@@ -73,13 +73,7 @@
 .2+^.^| *Format*      |  31 28 | 27  26| 25     | 24 20 |19   15   | 14  12     |   11  10    | 9 7      |  6    0
                       | *func* | *uop* |  *ls*  | *rs2* | *rs1*    |  *func3*   |  *d_size*   | *md/ms3* | *opcode*
      |mlae8	          | 0000   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlae16	      | 0000   |  01   |  0     | 	rs2	| rs1      |	000     |	01        |	md	    |  major opcode
-     |mlae32	      | 0000   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode
-     |mlae64	      | 0000   |  01   |  0     | 	rs2	| rs1      |	000     |	11        |	md	    |  major opcode
      |mlbe8	          | 0001   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlbe16	      | 0001   |  01   |  0     | 	rs2	| rs1      |	000     |	01        |	md	    |  major opcode
-     |mlbe32	      | 0001   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode
-     |mlbe64	      | 0001   |  01   |  0     | 	rs2	| rs1      |	000     |	11        |	md	    |  major opcode
      |mlce8	          | 0010   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
      |mlce16	      | 0010   |  01   |  0     | 	rs2	| rs1      |	000     |	01        |	md	    |  major opcode
      |mlce32	      | 0010   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode
@@ -97,13 +91,7 @@
      |msme32	      | 0011   |  01   |  1     | 	0000| rs1      |	000     |	10        |	ms3 	|  major opcode
      |msme64	      | 0011   |  01   |  1     | 	0000| rs1      |	000     |	11        |	ms3 	|  major opcode
      |mlate8	      | 0100   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlate16	      | 0100   |  01   |  0     | 	rs2	| rs1      |	000     |	01        |	md	    |  major opcode
-     |mlate32	      | 0100   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode
-     |mlate64	      | 0100   |  01   |  0     | 	rs2	| rs1      |	000     |	11        |	md	    |  major opcode
      |mlbte8	      | 0101   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlbte16	      | 0101   |  01   |  0     | 	rs2	| rs1      |	000     |	01        |	md	    |  major opcode
-     |mlbte32	      | 0101   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode
-     |mlbte64	      | 0101   |  01   |  0     | 	rs2	| rs1      |	000     |	11        |	md	    |  major opcode
      |mlcte8	      | 0110   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
      |mlcte16	      | 0110   |  01   |  0     | 	rs2	| rs1      |	000     |	01        |	md	    |  major opcode
      |mlcte32	      | 0110   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode

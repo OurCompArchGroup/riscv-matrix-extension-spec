@@ -15,15 +15,9 @@ The shape of the tile that load to or store from matrix register is based on `C 
 
 # For left matrix, A
 mlae8  md, (rs1), rs2         #  8-bit left tile load
-mlae16 md, (rs1), rs2         # 16-bit left tile load
-mlae32 md, (rs1), rs2         # 32-bit left tile load
-mlae64 md, (rs1), rs2         # 64-bit left tile load
 
 # For right matrix, B
 mlbe8  md, (rs1), rs2         #  8-bit right tile load
-mlbe16 md, (rs1), rs2         # 16-bit right tile load
-mlbe32 md, (rs1), rs2         # 32-bit right tile load
-mlbe64 md, (rs1), rs2         # 64-bit right tile load
 
 # For output matrix, C
 mlce8  md, (rs1), rs2         #  8-bit output tile load
@@ -53,15 +47,9 @@ In addition, considering that matrices are stored in memory either in row-major 
 
 # For left matrix, A
 mlate8  md, (rs1), rs2        #  8-bit left tile load
-mlate16 md, (rs1), rs2        # 16-bit left tile load
-mlate32 md, (rs1), rs2        # 32-bit left tile load
-mlate64 md, (rs1), rs2        # 64-bit left tile load
 
 # For right matrix, B
 mlbte8  md, (rs1), rs2        #  8-bit right tile load
-mlbte16 md, (rs1), rs2        # 16-bit right tile load
-mlbte32 md, (rs1), rs2        # 32-bit right tile load
-mlbte64 md, (rs1), rs2        # 64-bit right tile load
 
 # For output matrix, C
 mlcte8  md, (rs1), rs2        #  8-bit output tile load
