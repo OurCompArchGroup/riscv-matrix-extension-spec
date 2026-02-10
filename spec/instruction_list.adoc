@@ -51,8 +51,6 @@
 
 |===
 
-|===
-
 
 
 .Matrix Load/Store Instructions
