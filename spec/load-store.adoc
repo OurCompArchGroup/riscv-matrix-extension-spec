@@ -37,18 +37,6 @@ mlce64 md, (rs1), rs2         # 64-bit output tile load
 ```
 # ms3 store data, rs1 base address, rs2 row byte stride
 
-# For left matrix, A
-msae8  ms3, (rs1), rs2        #  8-bit left tile store
-msae16 ms3, (rs1), rs2        # 16-bit left tile store
-msae32 ms3, (rs1), rs2        # 32-bit left tile store
-msae64 ms3, (rs1), rs2        # 64-bit left tile store
-
-# For right matrix, B
-msbe8  ms3, (rs1), rs2        #  8-bit right tile store
-msbe16 ms3, (rs1), rs2        # 16-bit right tile store
-msbe32 ms3, (rs1), rs2        # 32-bit right tile store
-msbe64 ms3, (rs1), rs2        # 64-bit right tile store
-
 # For output matrix, C
 msce8  ms3, (rs1), rs2        #  8-bit output tile store
 msce16 ms3, (rs1), rs2        # 16-bit output tile store
@@ -88,20 +76,6 @@ mlcte64 md, (rs1), rs2        # 64-bit output tile load
 ```
 # ms3 store data, rs1 base address, rs2 row byte stride
 
-# For left matrix, A
-# tile size = mtilek * mtilem
-msate8  ms3, (rs1), rs2       #  8-bit left tile store
-msate16 ms3, (rs1), rs2       # 16-bit left tile store
-msate32 ms3, (rs1), rs2       # 32-bit left tile store
-msate64 ms3, (rs1), rs2       # 64-bit left tile store
-
-# For right matrix, B
-# tile size = mtilen * mtilek
-msbte8  ms3, (rs1), rs2       #  8-bit right tile store
-msbte16 ms3, (rs1), rs2       # 16-bit right tile store
-msbte32 ms3, (rs1), rs2       # 32-bit right tile store
-msbte64 ms3, (rs1), rs2       # 64-bit right tile store
-
 # For output matrix, C
 # tile size = mtilen * mtilem
 mscte8  ms3, (rs1), rs2       #  8-bit output tile store
@@ -112,7 +86,7 @@ mscte64 ms3, (rs1), rs2       # 64-bit output tile store
 
 Executing matrix load or store instructions will result in illegal instruction exception under unsupported corresponding mtilem/mtilek/mtilen settings.
 
-For mla*/msa*/mlb*/msb*, the destination matrix register or the source matrix register is tile register, and the index of ms3/md must be 0-3. For mlc*/msc*, the destination matrix register or the source matrix register is accumulation register, and the index of ms3/md must be 4-7.
+For mla*/mlb*, the destination matrix register is tile register, and the index of md must be 0-3. For mlc*/msc*, the destination matrix register or the source matrix register is accumulation register, and the index of ms3/md must be 4-7.
 
 ==== Whole Matrix Load & Store Instructions
 
