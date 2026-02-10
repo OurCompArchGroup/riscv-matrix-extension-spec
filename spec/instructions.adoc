@@ -18,6 +18,10 @@ include::matmul_zmabt.adoc[]
 
 include::load-store.adoc[]
 
+=== Matrix Asynchronous Store Instructions
+
+include::async-store.adoc[]
+
 === MISC Instructions
 
 ==== Mzero Instructions
