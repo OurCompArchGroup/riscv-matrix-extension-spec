@@ -35,33 +35,12 @@
 |===
 .2+^.^| *Format*      |  31 28 | 27  26| 25   23      | 22 20 |19   18   | 17  15   |   14  12  | 11 10      | 9 7      |  6    0
                       | *func* | *uop* |  *size_sup*  | *ms2* | *s_size* |  *ms1*   |  *func3*  | *d_size*   | *md/ms3* | *opcode*
-     | mfmacc.h.e5	  | 0000   |  01   |   000  	  |ms2    |	00	     |  ms1  	|  000      | 	01       |	md/ms3  |	major opcode
-     | mfmacc.h.e4	  | 0000   |  01   |   001  	  |ms2    |	00	     |  ms1  	|  000      | 	01       |	md/ms3  |	major opcode
-     | mfmacc.bf16.e5 | 0000   |  01   |   100  	  |ms2    |	00	     |  ms1  	|  000      | 	01       |	md/ms3  |	major opcode
-     | mfmacc.bf16.e4 | 0000   |  01   |   101  	  |ms2    |	00	     |  ms1  	|  000      | 	01       |	md/ms3  |	major opcode
-     | mfmacc.s.e5	  | 0000   |  01   |   000  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mfmacc.s.e4	  | 0000   |  01   |   001  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mfmacc.h	      | 0000   |  01   |   000  	  |ms2    |	01	     |  ms1  	|  000      | 	01       |	md/ms3  |	major opcode
-     | mfmacc.s.h	  | 0000   |  01   |   000  	  |ms2    |	01	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mfmacc.s.bf16  | 0000   |  01   |   001  	  |ms2    |	01	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mfmacc.s.tf32  | 0000   |  01   |   001  	  |ms2    |	10	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mfmacc.s	      | 0000   |  01   |   000  	  |ms2    |	10	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mfmacc.d.s	  | 0000   |  01   |   000  	  |ms2    |	10	     |  ms1  	|  000      | 	11       |	md/ms3  |	major opcode
-     | mfmacc.d	      | 0000   |  01   |   000  	  |ms2    |	11	     |  ms1  	|  000      | 	11       |	md/ms3  |	major opcode
      | mmacc.w.b	  | 0001   |  01   |   011  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
      | mmaccu.w.b	  | 0001   |  01   |   000  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
      | mmaccus.w.b	  | 0001   |  01   |   001  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
      | mmaccsu.w.b	  | 0001   |  01   |   010  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | pmmacc.w.b	  | 0001   |  01   |   111  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | pmmaccu.w.b	  | 0001   |  01   |   100  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | pmmaaccus.w.b  | 0001   |  01   |   101  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | pmmaccsu.w.b	  | 0001   |  01   |   110  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mmacc.d.h	  | 0001   |  01   |   011  	  |ms2    |	01	     |  ms1  	|  000      | 	11       |	md/ms3  |	major opcode
-     | mmaccu.d.h	  | 0001   |  01   |   000  	  |ms2    |	01	     |  ms1  	|  000      | 	11       |	md/ms3  |	major opcode
-     | mmaccus.d.h	  | 0001   |  01   |   001  	  |ms2    |	01	     |  ms1  	|  000      | 	11       |	md/ms3  |	major opcode
-     | mmaccsu.d.h	  | 0001   |  01   |   010  	  |ms2    |	01	     |  ms1  	|  000      | 	11       |	md/ms3  |	major opcode
-     | mmacc.w.bp	  | 0010   |  01   |   011  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mmaccu.w.bp	  | 0010   |  01   |   000  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
+
+|===
 
 |===
 
