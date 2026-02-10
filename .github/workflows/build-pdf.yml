@@ -27,8 +27,15 @@ jobs:
 
       - name: Build PDF
         run: |
-          cd spec
-          docker run --rm -v $(pwd):/build \
+          if [ -f spec/Makefile ]; then
+            SPEC_DIR="spec"
+          elif [ -f Makefile ]; then
+            SPEC_DIR="."
+          else
+            echo "Spec Makefile not found."
+            exit 1
+          fi
+          docker run --rm -v "$(pwd)/${SPEC_DIR}":/build \
             riscvintl/riscv-docs-base-container-image:latest \
             /bin/sh -c 'cd /build && make'
 
