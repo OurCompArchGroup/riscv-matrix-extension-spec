@@ -9,11 +9,3 @@
 	path = hhb
 	url = https://github.com/T-head-Semi/tvm.git
 	branch =  matrix-extension
-[submodule "qemu"]
-	path = qemu
-	url = git@github.com:T-head-Semi/qemu.git
-	branch = thead-open-matrix-v0.3
-[submodule "xuantie-gnu-toolchain"]
-	path = xuantie-gnu-toolchain
-	url = git@github.com:T-head-Semi/xuantie-gnu-toolchain.git
-	branch = xuantie-gnu-toolchain-matrix
