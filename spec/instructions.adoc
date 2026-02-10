@@ -24,7 +24,3 @@ include::load-store.adoc[]
 
 include::mzero.adoc[]
 
-==== Data Move Instructions
-
-include::data_move.adoc[]
-
