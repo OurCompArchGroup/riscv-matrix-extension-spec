@@ -28,12 +28,3 @@ include::mzero.adoc[]
 
 include::data_move.adoc[]
 
-==== Data Broadcast Instructions
-include::broadcast.adoc[]
-
-==== Matrix Pack Instructions
-include::mpack.adoc[]
-
-==== Matrix Slide Instructions
-include::mslide.adoc[]
-
