@@ -23,7 +23,7 @@
 |===
 .2+^.^| *Format*        |  31 28 | 27  26 | 25      | 24  23      | 22 20 |19   18      | 17  15    |   14  12    |   11  10    |   9  7      |  6    0
                         | *func* | *uop*  |  *ctrl* | *ctrl*      | *ms2* | *s_size*    |  *ms1*    |  *func3*    |  *d_size*   |  *md*       | *opcode*
-      | mzero	        | 0000	 |  11  2+|	uimm3	              | 000	  | 00          |  000      |	000       |	00	        |   md	      | major opcode
+      | mzero1r	        | 0000	 |  11    |	0       | 00          | 000	  | 00          |  000      |	000       |	00	        |   md	      | major opcode
       | mmov.mm	        | 0001	 |  11    |	0	    | 00          | 000	  | 00	        |  ms1      |	000       |	00	        |   md	      | major opcode
       | mmovb.x.m	    | 0010	 |  11    |	0	    | 00          | ms2 2+|  rs1	                | 000	    2+|  rd	                      | major opcode
       | mmovh.x.m	    | 0010	 |  11    |	0	    | 01          | ms2 2+|  rs1	                | 000	    2+|  rd	                      | major opcode

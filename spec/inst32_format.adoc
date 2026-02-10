@@ -112,7 +112,7 @@ image::inst_32bit_misc_format.svg[alt="inst_32bit_misc_format", align="center"]
 
 The func3 field of MISC instructions is 000, and the uop field is 11. The func4 field indicates different MISC instruction type.
 
-Format type(1) shows the encoding of MISC instruction only using matrix registers. When the ms1 or ms2 are not used, these fields are set to zero. The imm3 field indicates the row index for row slide/broadcast instructions, the column index for column slide/broadcast, the matrix register index for the mzero instruction.
+Format type(1) shows the encoding of MISC instruction only using matrix registers. When the ms1 or ms2 are not used, these fields are set to zero. For the mzero instruction, the imm3 field is fixed to 000.
 
 Format type(2) shows the encoding of matrix-to-scaler data-move instructions. The func4 field is 0010. The e_size field indicates the element size.
 
