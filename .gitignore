@@ -1,0 +1,5 @@
+# Build artifacts
+*.pdf
+
+# Generated images
+spec/images/stem-*.svg
