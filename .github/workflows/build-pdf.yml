@@ -32,7 +32,7 @@ jobs:
           elif [ -f Makefile ]; then
             SPEC_DIR="."
           else
-            echo "Spec Makefile not found."
+            echo "Makefile not found in spec/ or repository root."
             exit 1
           fi
           docker run --rm -v "$(pwd)/${SPEC_DIR}":/build \
