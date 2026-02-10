@@ -3,7 +3,7 @@ Matrix load instructions load a matrix tile from memory to matrix register. and 
 
 The element data width is in instruction encoding, including 8/16/32/64 bits, other data widths are reserved. The base address is in rs1 and row stride in byte is in rs2, md/ms3 is the register index for destination of matrix load  and source for matrix store.
 
-Due to the difference in matrix tile shapes of matrix A, B, and C, three types of load/store instructions are provided to separately implement memory access operations for matrix A(mla*/msa*), B(mlb*msb*), and C(mlc*/msc*).
+Due to the difference in matrix tile shapes of matrix A, B, and C, three types of load/store instructions are provided to separately implement memory access operations for matrix A(mla*), B(mlb*), and C(mlc*/msc*).
 
 The shape of the tile that load to or store from matrix register is based on `C = A x BT` matrix multiplication mode,  the shape of left matrix A that load to matrix register is `mtilem x mtilek`. the shape of right matrix B that load to matrix register is `mtilen x mtilek`, and  the shape of output matrix C that load to matrix register is `mtilem x mtilen`. 
 
