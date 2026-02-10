@@ -36,9 +36,6 @@
 .2+^.^| *Format*      |  31 28 | 27  26| 25   23      | 22 20 |19   18   | 17  15   |   14  12  | 11 10      | 9 7      |  6    0
                       | *func* | *uop* |  *size_sup*  | *ms2* | *s_size* |  *ms1*   |  *func3*  | *d_size*   | *md/ms3* | *opcode*
      | mmacc.w.b	  | 0001   |  01   |   011  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mmaccu.w.b	  | 0001   |  01   |   000  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mmaccus.w.b	  | 0001   |  01   |   001  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-     | mmaccsu.w.b	  | 0001   |  01   |   010  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
 
 |===
 

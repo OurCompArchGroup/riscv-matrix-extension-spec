@@ -13,16 +13,13 @@ for(int i=0; i<sizeM; i++) {
 
 ==== Integer Matrix Multiplication
 
-The integer matrix multiplication with destination data width is quad-widen that of the source data width. The source operand data width in instruction encoding supported are int8, other data widths are reserved. Both signed/unsigned versions are provided . Thus, the source operand can be both signed/both unsigned/signed-unsigned/unsigned-signed, the result of multiplication is sign-extended before addition  and accumulation. The overflow is processed depends on the msaten mode. If the msaten is 1, the overflow result should be saturated to the maximum number, and if the msaten is 0, the overflow result should be wrap around.
+The integer matrix multiplication with destination data width is quad-widen that of the source data width. The source operand data width is int8. The result of multiplication is sign-extended before addition and accumulation. The overflow is processed depends on the msaten mode. If the msaten is 1, the overflow result should be saturated to the maximum number, and if the msaten is 0, the overflow result should be wrap around.
 
-*  mmaqa.b/mmaqau.b/mmaqaus.b/mmaqasu.b:  int8 quad-widen matrix multiplication, illegal if bit[1] of xmisa register is 0.
+*  mmacc.w.b:  int8 quad-widen matrix multiplication, illegal if bit[1] of xmisa register is 0.
 
 ```
 #8bit data width
 mmacc.w.b   md, ms2, ms1          #signed matrix multiply
-mmaccu.w.b  md, ms2, ms1          #unsigned matrix multiply
-mmaccus.w.b md, ms2, ms1          #unsigned-signed matrix multiply
-mmaccsu.w.b md, ms2, ms1          #signed-unsigned matrix multiply
 
 ```
 For int8 quad-widen  matrix-multiplication, the maximum matrix shape is:
@@ -33,7 +30,7 @@ For int8 quad-widen  matrix-multiplication, the maximum matrix shape is:
 
 Taking TLEN=512, TRLEN=128 as an example, the max matrix shapes are:
 
-*  mmaqa.b/mmaqau.b/mmaqaus.b/mmaqasu.b
+*  mmacc.w.b
 ** matrixA: M = 4, K = 16
 ** matrixB: N = 4, K = 16
 ** matrixC: M = 4, N = 4
