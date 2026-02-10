@@ -1,11 +1,3 @@
-[submodule "shl"]
-	path = shl
-	url = https://github.com/T-head-Semi/csi-nn2.git
-	branch =  matrix-extension
 [submodule "spec/docs-resources"]
 	path = doc/docs-resources
 	url = https://github.com/riscv/docs-resources.git
-[submodule "hhb"]
-	path = hhb
-	url = https://github.com/T-head-Semi/tvm.git
-	branch =  matrix-extension
