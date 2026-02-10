@@ -5,8 +5,8 @@
 ==== Mtilem/n/k Configuration Instructions
 include::config_set.adoc[]
 
-==== Mrelease Instruction
-include::mrelease.adoc[]
+==== Minit Instruction
+include::minit.adoc[]
 
 === Matrix Multiplication Instructions
 
