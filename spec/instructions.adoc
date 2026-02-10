@@ -37,7 +37,3 @@ include::mpack.adoc[]
 ==== Matrix Slide Instructions
 include::mslide.adoc[]
 
-==== Type-Convert Instructions
-
-include::type_convert.adoc[]
-
