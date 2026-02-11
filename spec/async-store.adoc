@@ -1,44 +1,92 @@
-The motivation of Zmasync is to allow matrix operations to be executed in asynchronously with vector operations, which is required by state-of-the-art kernel libraries, such as Flash Attention 3 and DeepGeMM. Take DeepGEMM as an example, each GEMM operation is executed in Tensor Core using WGMMA instructions, then is promoted to full fp32 in CUDA core. Asynchronous WGMMA instructions make it possible to fully utilize the Tensor Core by another GEMM operation when CUDA core is doing promotion.
+The motivation of Zmasync is to allow matrix operations to be executed in asynchronously with
+vector operations,
+which is required by state-of-the-art kernel libraries, such as Flash Attention 3 and DeepGeMM.
 
-To achieve this, the Zmasync extension introduces asynchronous matrix store instructions, which are 1) committed immediately from the pipeline without waiting for the completion, and 2) not guaranteed to be visible to the following vector loads or scalar loads. Commiting immediately from the pipeline allows flexible software pipelining, for example, precision promotion like in DeepGEMM. To ensure the visibility of the store operations, the Zmasync extension introduces a new set of instructions, msyncregreset, mrelease, and macquire.
+Take DeepGEMM as an example,
+each GEMM operation is executed in Tensor Core using WGMMA instructions,
+then is promoted to full fp32 in CUDA core.
+Asynchronous WGMMA instructions make it possible to fully utilize the Tensor Core by
+another GEMM operation when CUDA core is doing promotion.
+
+image::deepgemm.png[alt="DeepGEMM", align="center"]
+
+To achieve this,
+the Zmasync extension introduces asynchronous matrix store instructions,
+which are 1) committed immediately from the pipeline without waiting for the completion, and
+2) not guaranteed to be visible to the following vector loads or scalar loads.
+Commiting immediately from the pipeline allows flexible software pipelining,
+for example, precision promotion like in DeepGEMM.
+To ensure the visibility of the store operations,
+the Zmasync extension introduces a new set of instructions, `msyncregreset`, `mrelease`, and `macquire`.
 
 ==== Token Register File
 
-Traditional fence instructions are coarse-grained and always blocks the processor pipeline, which may cause performance degradation. To allow flexible synchronization and pipelining, the Zmasync extension introduces a new register file, which is used to store the synchronization tokens. Token registers are 64-bit registers. Token register file contains 8/16/32 token registers.
+Traditional `fence` instructions are coarse-grained and always blocks the processor pipeline,
+which may cause performance degradation.
+To allow flexible synchronization and pipelining, the Zmasync extension introduces a new register file,
+which is used to store the synchronization tokens.
+
+Token registers are 64-bit registers.
+Token register file contains 8/16/32 token registers.
 
 ==== Release and Acquire Instructions
 
-msyncregreset resets a token register to 0. mrelease increments a token register by 1. mrelease cannot be committed until all in-flight matrix stores of current thread have been visible to the following vector loads or scalar loads. macquire takes a token register as an source register, and an integer register as another source register. None of vector loads or scalar loads older than macquire can be executed until the token register is equal to or greater than the integer register.
+`msyncregreset` resets a token register to 0.
+`mrelease` increments a token register by 1.
+`mrelease` cannot be committed until all in-flight matrix stores of current thread
+have been visible to the following vector loads or scalar loads.
+`macquire` takes a token register as an source register,
+and an integer register as another source register.
+None of vector loads or scalar loads older than `macquire` can be executed until the token register is equal to or greater than the integer register.
 
 ==== Example: DeepGEMM in AME with Zmasync
 
 ```
-void async_matmul(c); // output matrix c
+void async_matmul(c);  // output matrix c
+
 void promotion(c);
 
 void deepgemm_kernel() {
-  ...
-  tok0 = msyncregreset();
-  async_matmul(c[0]);
-  mrelease(tok0); // tok0 becomes 1
+    ...
 
-  num_iterations = 10;
-  for (i = 0; i < num_iterations; i++) {
-    if (i < num_iterations - 1) {
-      async_matmul(c[i + 1]); // non-blocking
-      mrelease(tok0); // tok0 becomes i + 1
+    msyncregreset(tok0);
+
+    async_matmul(c[0]);
+    mrelease(tok0);  // tok0 becomes 1
+
+    num_iterations = 10;
+    for (i = 0; i < num_iterations; i++) {
+        if (i < num_iterations - 1) {
+            async_matmul(c[i + 1]);  // non-blocking
+            mrelease(tok0);  // tok0 becomes i + 1
+        }
+
+        macquire(tok0, i);  // wait until tok0 >= i
+        promotion(c[i]);
     }
-
-    macquire(tok0, i); // wait until tok0 >= i
-    promotion(c[i]);
-  }
-
-  ...
+    ...
 }
 ```
 
-Above pseudocode gives an example of how to use Zmasync to implement DeepGEMM in AME. The async_matmul function is a non-blocking matrix multiplication function implemented with asynchronous matrix store instructions, which retires from the pipeline without waiting for the completion. After asynchronous matrix store instructions in async_matmul function is finally completed, mrelease will increment the token register by one. The promotion function is always executed after the macquire function. macquire ensures that the promotion function is executed when the token register is old enough.
+Above pseudocode gives an example of how to use Zmasync to implement DeepGEMM in AME.
+The `async_matmul` function is a non-blocking matrix multiplication function
+implemented with asynchronous matrix store instructions,
+which retires from the pipeline without waiting for the completion.
+After asynchronous matrix store instructions in `async_matmul` function is finally completed,
+`mrelease` will increment the token register by one.
+The `promotion` function is always executed after the `macquire` function.
+`macquire` ensures that the `promotion` function is executed when the token register is old enough.
 
-Compared with the traditional fence instructions, token age based synchronization is more flexible. If we replace mrelease with fence in the above pseudocode, promotion will always be executed after the async_matmul function inside the for loop, which prevents the desired pipelining.
+image::deepgemm-in-ame-async.drawio.svg[alt="Resultant pipeline scheduling", align="center"]
 
-Another schedule is also possible, as shown in the following figure, macquire only guarantees current token register is old enough, but does not require an exact match.
+Compared with the traditional fence instructions,
+token age based synchronization is more flexible.
+If we replace `mrelease` with `fence` in the above pseudocode,
+`promotion` will always be executed after the `async_matmul` function inside the for loop,
+which prevents the desired pipelining.
+
+Another schedule is also possible, as shown in the following figure,
+`macquire` only guarantees current token register is old enough,
+but does not require an exact match.
+
+image::deepgemm-in-ame-async-another-schedule.drawio.svg[alt="Another pipeline scheduling result", align="center"]
