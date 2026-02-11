@@ -7,7 +7,7 @@
 |===
 .2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
                       | *func* | *uop* |  *ctrl*  | *rs2* | *rs1*    |  *func3*   |  *nop*       | *opcode*
-      | mrelease  	  | 0000   | 00	   |  0	    2+|      0	         |   000      |	00000        | major opcode
+      | minit  	      | 0000   | 00	   |  0	    2+|      0	         |   000      |	00000        | major opcode
       | msettileki	  | 0001   | 00	   |  0	    2+| uimm10[9:0]      |	 000      |	00000        | major opcode
       | msettilek	  | 0001   | 00	   |  1	      | 00000  | rs1     |	 000      |	00000        | major opcode
       | msettilemi	  | 0010   | 00	   |  0	    2+| uimm10[9:0]      |	 000      |	00000        | major opcode
@@ -79,116 +79,4 @@
      |mscte32	      | 0110   |  01   |  1     | 	rs2	| rs1      |	000     |	10        |	ms3 	|  major opcode
      |mscte64	      | 0110   |  01   |  1     | 	rs2	| rs1      |	000     |	11        |	ms3 	|  major opcode
 
-|===
-
-
-
-
-.Matrix Element-Wise Instructions
-[cols="^5,^3,^2,^2,^2,^2,^2,^2,^2,^4,^5"]
-|===
-.2+^.^| *Format*         |  31 28 | 27  26| 25   23      | 22 20 |19   18   | 17  15   |   14  12  | 11 10      | 9 7      |  6    0
-                         | *func* | *uop* |  *ctrl*      | *ms2* | *s_size* |  *ms1*   |  *func3*  | *d_size*   | *md*     | *opcode*
-      | mfcvtl.h.e4	     | 0000   |  00   |  000         |	000   |	 00      |	ms1     |	001     |	01	     |  md	    | major opcode
-      | mfcvth.h.e4	     | 0000   |  00   |  010         |	000   |	 00      |	ms1     |	001     |	01	     |  md	    | major opcode
-      | mfcvtl.h.e5	     | 0000   |  00   |  001         |	000   |	 00      |	ms1     |	001     |	01	     |  md	    | major opcode
-      | mfcvth.h.e5	     | 0000   |  00   |  011         |	000   |	 00      |	ms1     |	001     |	01	     |  md	    | major opcode
-      | mfcvtl.e4.h	     | 0000   |  00   |  000         |	000   |	 01      |	ms1     |	001     |	00	     |  md	    | major opcode
-      | mfcvth.e4.h	     | 0000   |  00   |  010         |	000   |	 01      |	ms1     |	001     |	00	     |  md	    | major opcode
-      | mfcvtl.e5.h	     | 0000   |  00   |  001         |	000   |	 01      |	ms1     |	001     |	00	     |  md	    | major opcode
-      | mfcvth.e5.h	     | 0000   |  00   |  011         |	000   |	 01      |	ms1     |	001     |	00	     |  md	    | major opcode
-      | mfcvtl.s.h	     | 0000   |  00   |  000         |	000   |	 01      |	ms1     |	001     |	10	     |  md	    | major opcode
-      | mfcvth.s.h	     | 0000   |  00   |  010         |	000   |	 01      |	ms1     |	001     |	10	     |  md	    | major opcode
-      | mfcvtl.s.bf16    |	0000  |  00   |  001	      | 000	  |  01      |	ms1	    |   001	    |   10       | 	md	    | major opcode
-      | mfcvth.s.bf16    |	0000  |  00   |  011	      | 000	  |  01      |	ms1	    |   001	    |   10       | 	md	    | major opcode
-      | mfcvtl.e4.s	     | 0000   |  00   |  000	      | 000	  |  10	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mfcvth.e4.s	     | 0000   |  00   |  010	      | 000	  |  10	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mfcvtl.e5.s	     | 0000   |  00   |  100	      | 000	  |  10	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mfcvth.e5.s	     | 0000   |  00   |  110	      | 000	  |  10	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mfcvtl.h.s	     | 0000   |  00   |  000	      | 000	  |  10	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfcvth.h.s	     | 0000   |  00   |  010	      | 000	  |  10	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfcvtl.bf16.s    | 0000   |  00   |  100	      | 000	  |  10	     |  ms1	    |   001     |	01	     |  md	    | major opcode
-      | mfcvth.bf16.s    | 0000   |  00   |  110	      | 000	  |  10	     |  ms1	    |   001     |	01	     |  md	    | major opcode
-      | mfcvt.tf32.s     | 0000   |  00   |  110	      | 000	  |  10	     |  ms1	    |   001     |	10	     |  md	    | major opcode
-      | mfcvt.s.tf32     | 0000   |  00   |  001	      | 000	  |  10	     |  ms1	    |   001     |	10	     |  md	    | major opcode
-      | mfcvtl.d.s	     | 0000   |  00   |  000	      | 000	  |  10      | 	ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfcvth.d.s	     | 0000   |  00   |  010	      | 000	  |  10      | 	ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfcvtl.s.d	     | 0000   |  00   |  000	      | 000	  |  11      | 	ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfcvth.s.d	     | 0000   |  00   |  010	      | 000	  |  11      | 	ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msfcvtl.h.b	     | 0001   |  00   |  001	      | 000	  |  00      | 	ms1	    |   001	    |   01	     |  md	    | major opcode
-      | msfcvth.h.b	     | 0001   |  00   |  011	      | 000	  |  00      | 	ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mufcvtl.h.b	     | 0001   |  00   |  000	      | 000	  |  00      | 	ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mufcvth.h.b	     | 0001   |  00   |  010	      | 000	  |  00      | 	ms1	    |   001	    |   01	     |  md	    | major opcode
-      | msfcvt.s.w	     | 0001   |  00   |  001	      | 000	  |  10      | 	ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mufcvt.s.w	     | 0001   |  00   |  000	      | 000	  |  10      | 	ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfscvt.w.s	     | 0001   |  00   |  101	      | 000	  |  10      | 	ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfucvt.w.s	     | 0001   |  00   |  100	      | 000	  |  10      | 	ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfucvtl.b.h	     | 0001   |  00   |  100	      | 000	  |  01      | 	ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mfucvth.b.h	     | 0001   |  00   |  110	      | 000	  |  01      | 	ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mfscvtl.b.h	     | 0001   |  00   |  101	      | 000	  |  01      | 	ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mfscvth.b.h	     | 0001   |  00   |  111	      | 000	  |  01      | 	ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mn4clipl.w.mm	 | 0010	  |  00	  |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mn4clipl.w.mv.i	 | 0010	  |  00	  |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mn4cliph.w.mm	 | 0011	  |  00	  |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode  
-      | mn4cliph.w.mv.i	 | 0011	  |  00	  |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mn4cliplu.w.mm	 | 0100	  |  00	  |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mn4cliplu.w.mv.i | 0100	  |  00   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mn4cliphu.w.mm	 | 0101	  |  00   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mn4cliphu.w.mv.i | 0101	  |  00   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mscvtl.b.p	     | 0110	  |  00   |  001	      | 000	  |  00	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mscvth.b.p	     | 0110	  |  00   |  011	      | 000	  |  00	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mucvtl.b.p	     | 0110	  |  00   |  000	      | 000	  |  00	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | mucvth.b.p	     | 0110	  |  00   |  010	      | 000	  |  00	     |  ms1	    |   001	    |   00	     |  md	    | major opcode
-      | madd.w.mm	     | 0000	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | madd.w.mv.i	     | 0000	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msub.w.mm	     | 0001	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msub.w.mv.i	     | 0001	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmul.w.mm	     | 0010	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmul.w.mv.i	     | 0010	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmulh.w.mm	     | 0011	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmulh.w.mv.i	 | 0011	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmax.w.mm	     | 0100	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmax.w.mv.i	     | 0100	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mumax.w.mm	     | 0101	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mumax.w.mv.i	 | 0101	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmin.w.mm	     | 0110	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mmin.w.mv.i	     | 0110	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mumin.w.mm	     | 0111	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mumin.w.mv.i	 | 0111	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msrl.w.mm	     | 1000	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msrl.w.mv.i	     | 1000	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msll.w.mm	     | 1001	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msll.w.mv.i	     | 1001	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msra.w.mm	     | 1010	  |  01   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | msra.w.mv.i	     | 1010	  |  01   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfadd.h.mm	     | 0000	  |  10   |  111	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfadd.h.mv.i	 | 0000	  |  10   |  uimm3	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfadd.s.mm	     | 0000	  |  10   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfadd.s.mv.i	 | 0000	  |  10   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfadd.d.mm	     | 0000	  |  10   |  111	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfadd.d.mv.i	 | 0000	  |  10   |  uimm3	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfsub.h.mm	     | 0001	  |  10   |  111	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfsub.h.mv.i	 | 0001	  |  10   |  uimm3	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfsub.s.mm	     | 0001	  |  10   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfsub.s.mv.i	 | 0001	  |  10   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfsub.d.mm	     | 0001	  |  10   |  111	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfsub.d.mv.i	 | 0001	  |  10   |  uimm3	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfmul.h.mm	     | 0010	  |  10   |  111	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfmul.h.mv.i	 | 0010	  |  10   |  uimm3	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfmul.s.mm	     | 0010	  |  10   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfmul.s.mv.i	 | 0010	  |  10   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfmul.d.mm	     | 0010	  |  10   |  111	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfmul.d.mv.i	 | 0010	  |  10   |  uimm3	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfmax.h.mm	     | 0011	  |  10   |  111	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfmax.h.mv.i	 | 0011	  |  10   |  uimm3	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfmax.s.mm	     | 0011	  |  10   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfmax.s.mv.i	 | 0011	  |  10   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfmax.d.mm	     | 0011	  |  10   |  111	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfmax.d.mv.i	 | 0011	  |  10   |  uimm3	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfmin.s.mm	     | 0100	  |  10   |  111	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfmin.s.mv.i	 | 0100	  |  10   |  uimm3	      | ms2	  |  01	     |  ms1	    |   001	    |   01	     |  md	    | major opcode
-      | mfmin.h.mm	     | 0100	  |  10   |  111	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfmin.h.mv.i	 | 0100	  |  10   |  uimm3	      | ms2	  |  10	     |  ms1	    |   001	    |   10	     |  md	    | major opcode
-      | mfmin.d.mm	     | 0100	  |  10   |  111	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
-      | mfmin.d.mv.i	 | 0100	  |  10   |  uimm3	      | ms2	  |  11	     |  ms1	    |   001	    |   11	     |  md	    | major opcode
 |===
