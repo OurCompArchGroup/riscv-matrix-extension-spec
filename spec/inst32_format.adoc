@@ -45,7 +45,7 @@ The following figure shows the encoding format for the Configuration instruction
 
 image::inst_32bit_config_format.svg[alt="inst_32bit_config_format", align="center"]
 
-The func3 field of Configuration instructions is 000, and the uop field is 00. Except for the major opcode, func3, and uop fields, the rest fields of mrelease instruction are all zero. For mcfg{m/n/k}[i] instructions, the func4 field distinguishes m/n/k, and inst[25] indicates the configuration parameters is from imm10 fields or rs1 register. 
+The func3 field of Configuration instructions is 000, and the uop field is 00. The func4 field distinguishes m/n/k configuration, and inst[25] indicates the configuration parameters is from imm10 fields or rs1 register. 
 
 ==== Asynchronous Store Synchronization Instructions (Zmasync)
 
