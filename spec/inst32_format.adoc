@@ -47,6 +47,14 @@ image::inst_32bit_config_format.svg[alt="inst_32bit_config_format", align="cente
 
 The func3 field of Configuration instructions is 000, and the uop field is 00. Except for the major opcode, func3, and uop fields, the rest fields of mrelease instruction are all zero. For mcfg{m/n/k}[i] instructions, the func4 field distinguishes m/n/k, and inst[25] indicates the configuration parameters is from imm10 fields or rs1 register. 
 
+==== Asynchronous Store Synchronization Instructions (Zmasync)
+
+The following figure shows the encoding format for the Zmasync instructions.
+
+image::inst_32bit_config_format.svg[alt="inst_32bit_config_format", align="center"]
+
+The func3 field of Zmasync instructions is 000, and the uop field is 00. The func4 field distinguishes different synchronization operations: 1000 for msyncregreset, 1001 for mrelease, and 1010 for macquire. The tok field (inst[24:20]) specifies the token register index. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
+
 ==== Load/Store Instructions
 
 The following figure shows the encoding format for the Load/Store instructions.
