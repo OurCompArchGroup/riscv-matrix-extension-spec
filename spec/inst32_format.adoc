@@ -130,6 +130,14 @@ The following figure shows the encoding format for the Load/Store instructions.
 
 The func3 field of Load/Store instructions is 000, and the uop field is 01. Inst[25] is the ls field, which means the load/store direction. The d_size field indicates the element size of Load/Store instructions. The func4 field defines load/store types, like A/B/C matrix type, transpose type and whole register load/store.
 
+.Load/Store Direction (ls field)
+[cols="^2,^3,^8"]
+|===
+| *ls (inst[25])* | *Direction* | *Instructions*
+| 0 | Load | mlae8, mlbe8, mlce{8,16,32,64}, mlate8, mlbte8, mlcte{8,16,32,64}
+| 1 | Store | msce{8,16,32,64}, mscte{8,16,32,64}
+|===
+
 ==== Matrix Multiplication Instructions
 
 The following figure shows the encoding format for the Matrix Multiplication instructions.
