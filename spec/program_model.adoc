@@ -126,7 +126,7 @@ Conversion from all other values first applies rounding to reduce the mantissa b
 
 A 2-bit matrix context status field, MS, should be added to mstatus and shadowed in sstatus. It is defined analogously to the vector context status field, VS.
 
-The MS field is located at bits [14:13] in both mstatus and sstatus registers.
+The MS field is located at bits [??:??] in both mstatus and sstatus registers.
 
 .mstatus register layout (RV64)
 [wavedrom, ,svg]
@@ -186,7 +186,7 @@ The misa CSR is a WARL read-write register reporting the ISA supported by the ha
   {bits: 26, name: 'Extensions[25:0] (WARL)', type: 4},
   {bits: 36, name: 'WLRL', type: 8},
   {bits: 2,  name: 'MXL[1:0] (WARL)', type: 5}
-], config: {lanes: 1, hspace: 1024}}
+], config: {lanes: 2, hspace: 1024}}
 ....
 
 .Standard ISA Extension Encoding in misa.Extensions
