@@ -6,6 +6,8 @@ include::csr.adoc[]
 
 include::tilereg.adoc[]
 
+include::tokenreg.adoc[]
+
 === Matrix ISA Register, misa
 
 The read-only XLEN-wide CSR, `misa`, specifying the supported matrix arithmetic feature of the current hardware implementation. 
