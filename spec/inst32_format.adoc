@@ -1,18 +1,6 @@
 The 32-bit instruction format fit under the custom-1(0101011) major opcode. There are three main types of instruction formats, as illustrated below.
 
-All matrix instructions use func3 = 000. The uop field distinguishes different instruction categories, and the func4 field further differentiates specific instructions within each category.
-
-.Instruction Category Encoding
-[cols="^2,^8"]
-|===
-| *uop* | *Instruction Category*
-| 00    | Configuration and Zmasync instructions
-| 01    | Load/Store instructions
-| 10    | Matrix Multiplication instructions
-| 11    | MISC instructions
-|===
-
-Within each category, the func4 field specifies the particular instruction type. See the detailed encoding tables in each instruction category section below.
+All matrix instructions use func3 = 000. The uop field distinguishes different instruction categories. Within each category, additional fields further differentiate specific instructions as shown in the tables below.
 
 [wavedrom, ,svg]
 ....
@@ -91,15 +79,6 @@ The md/ms1/ms2 fields are 3-bit width to index the four tile registers and four 
 
 For matrix multiplication instructions, ms1/ms2 should be 000-011 for tile registers, and md should be 100-111 for accumulation registers. For matrix misc instructions, md/ms1/ms2 can be 000-111, according to the specific misc instruction.
 
-.Three Matrix Register Instructions Encoding
-[cols="^2,^2,^3,^8"]
-|===
-| *uop* | *ctrl (inst[25:23])* | *Instruction Type* | *Description*
-| 10    | 011                  | Matrix Multiplication | mmacc.w.b (int8 × int8 → int32)
-| 11    | 000                  | MISC                  | mzero1r (clear single register)
-|===
-
-
 The element sizes of d_size and s_size are as follows:
 
 [cols="^1,1"]
@@ -116,51 +95,83 @@ For the matrix instructions with GPR operand, rd/rs1/rs2 fields indicate the sca
 
 For the matrix instructions with IMM10, imm10 fields indicates the 10-bit width immediate, usually used in configuration instruction.
 
+.Instruction Category Encoding (uop field)
+[cols="^2,^8"]
+|===
+| *uop* | *Instruction Category*
+| 00    | Configuration and Zmasync instructions
+| 01    | Load/Store instructions
+| 10    | Matrix Multiplication instructions
+| 11    | MISC instructions
+|===
 
 ==== Configuration Instructions
 
-The following figure shows the encoding format for the Configuration instructions. 
+The func4 field distinguishes m/n/k configuration, and inst[25] indicates whether the configuration parameter is from imm10 field (inst[25]=0) or rs1 register (inst[25]=1).
 
-The uop field is 00. The func4 field distinguishes m/n/k configuration, and inst[25] indicates the configuration parameters is from imm10 fields or rs1 register. 
+.Configuration Instructions (uop=00)
+[cols="^2,^2,^8"]
+|===
+| *func4* | *inst[25]* | *Instruction*
+| 0000    | 0          | minit
+| 0001    | 0          | msettileki (immediate)
+| 0010    | 0          | msettilemi (immediate)
+| 0011    | 0          | msettileni (immediate)
+| 0001    | 1          | msettilek (register)
+| 0010    | 1          | msettilem (register)
+| 0011    | 1          | msettilen (register)
+|===
 
 ==== Asynchronous Store Synchronization Instructions (Zmasync)
 
-The following figure shows the encoding format for the Zmasync instructions.
+The func4 field distinguishes different synchronization operations. The tok field (inst[24:20]) specifies the token register index. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
 
-The uop field is 00. The func4 field distinguishes different synchronization operations: 1000 for msyncregreset, 1001 for mrelease, and 1010 for macquire. The tok field (inst[24:20]) specifies the token register index. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
+.Zmasync Instructions (uop=00)
+[cols="^2,^8"]
+|===
+| *func4* | *Instruction*
+| 1000    | msyncregreset
+| 1001    | mrelease
+| 1010    | macquire
+|===
 
 ==== Load/Store Instructions
 
-The following figure shows the encoding format for the Load/Store instructions.
+The func4 field defines load/store types (A/B/C matrix type, transpose type). Inst[25] is the ls field indicating load/store direction: 0=Load, 1=Store. The d_size field indicates the element size (8/16/32/64 bits).
 
-The uop field is 01. Inst[25] is the ls field, which means the load/store direction. The d_size field indicates the element size of Load/Store instructions. The func4 field defines load/store types, like A/B/C matrix type, transpose type and whole register load/store.
-
-.Load/Store Direction (ls field)
-[cols="^2,^3,^8"]
+.Load/Store Instructions (uop=01)
+[cols="^2,^2,^8"]
 |===
-| *ls (inst[25])* | *Direction* | *Instructions*
-| 0 | Load | mlae8, mlbe8, mlce{8,16,32,64}, mlate8, mlbte8, mlcte{8,16,32,64}
-| 1 | Store | msce{8,16,32,64}, mscte{8,16,32,64}
+| *func4* | *inst[25] (ls)* | *Instruction*
+| 0000    | 0               | mlae8 (load A matrix)
+| 0001    | 0               | mlbe8 (load B matrix)
+| 0010    | 0               | mlce{8,16,32,64} (load C matrix)
+| 0010    | 1               | msce{8,16,32,64} (store C matrix)
+| 0100    | 0               | mlate8 (load A matrix transpose)
+| 0101    | 0               | mlbte8 (load B matrix transpose)
+| 0110    | 0               | mlcte{8,16,32,64} (load C matrix transpose)
+| 0110    | 1               | mscte{8,16,32,64} (store C matrix transpose)
 |===
 
 ==== Matrix Multiplication Instructions
 
-The following figure shows the encoding format for the Matrix Multiplication instructions.
+The A/B/C matrices come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix (d_size=10 for 32-bit). The s_size indicates the element size of A/B matrix (s_size=00 for 8-bit). The func4 is 0001 for integer matrix multiplication. For the current simplified specification, only signed int8 × int8 → int32 matrix multiplication is supported, where ctrl (inst[25:23]) = 011.
 
-The uop field is 10. The A/B/C matrix come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix. The s_size indicates the element size of A/B matrix. The func4 is 0001 for integer matrix multiplication.
-
-For integer matrix multiplication, inst[24:23] indicates source operands are signed/unsigned. For the current simplified specification, only signed int8 × int8 → int32 matrix multiplication (mmacc.w.b) is supported, where inst[25:23] = 011, s_size = 00, and d_size = 10.
-
+.Matrix Multiplication Instructions (uop=10)
+[cols="^2,^8"]
+|===
+| *ctrl (inst[25:23])* | *Instruction*
+| 011                  | mmacc.w.b (int8 × int8 → int32)
+|===
 
 ==== MISC Instructions
 
-The following figure shows the encoding format for the MISC instructions.
+The func4 field is 0000 for mzero instruction. When ms1 or ms2 are not used, these fields are set to zero. For the mzero instruction, the imm3 field (inst[25:23]) is fixed to 000.
 
-The uop field is 11. The func4 field indicates different MISC instruction type.
-
-Format type(1) shows the encoding of MISC instruction only using matrix registers. When the ms1 or ms2 are not used, these fields are set to zero. For the mzero instruction, the imm3 field is fixed to 000.
-
-Format type(2) shows the encoding of matrix-to-scaler data-move instructions. The func4 field is 0010. The e_size field indicates the element size.
-
-Format type(3) shows the encoding of scaler-to-matrix data-move instructions. The func4 field is 0011. When inst[25]=1, the instruction is mmov<b/h/w/d>.m.x.   When inst[25]=0, the instruction is mdup<b/h/w/d>, and the rs1 fields ties to zero.
+.MISC Instructions (uop=11)
+[cols="^2,^8"]
+|===
+| *ctrl (inst[25:23])* | *Instruction*
+| 000                  | mzero1r (clear single register)
+|===
 
