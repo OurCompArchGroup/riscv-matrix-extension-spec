@@ -1,6 +1,19 @@
 The 32-bit instruction format fit under the custom-1(0101011) major opcode. There are three main types of instruction formats, as illustrated below.
 
-image::inst_32bit_format.svg[alt="inst_32bit_format", align="center"]
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'md/rd', type: 2},
+  {bits: 2,  name: 'func3', type: 5},
+  {bits: 3,  name: 'ms1/rs1', type: 3},
+  {bits: 3,  name: 'ms2/rs2', type: 4},
+  {bits: 2,  name: 'uop', type: 5},
+  {bits: 6,  name: 'inst[25:20]', type: 6},
+  {bits: 2,  name: 'd_size/s_size', type: 7},
+  {bits: 4,  name: 'func4', type: 5}
+], config: {lanes: 2, hspace: 1000}}
+....
 
 For the matrix instructions only with matrix register, md/ms1/ms2 fields indicate the matrix register indexes for the dest(src3)/src1/src2 matrix operands, d_size field indicates the destination operand size, s_size field indicates the source operand size, imm3/ctrl field indicates the immediate index of matrix row/column or more operation information, and uop field indicates the different micro-operation types.
 
@@ -43,7 +56,19 @@ For the matrix instructions with IMM10, imm10 fields indicates the 10-bit width 
 
 The following figure shows the encoding format for the Configuration instructions. 
 
-image::inst_32bit_config_format.svg[alt="inst_32bit_config_format", align="center"]
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'rd', attr: '0', type: 2},
+  {bits: 2,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'rs1', type: 3},
+  {bits: 10, name: 'imm10', type: 4},
+  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 1,  name: 'inst[25]', type: 5},
+  {bits: 4,  name: 'func4', type: 6}
+], config: {lanes: 2, hspace: 1000}}
+....
 
 The func3 field of Configuration instructions is 000, and the uop field is 00. The func4 field distinguishes m/n/k configuration, and inst[25] indicates the configuration parameters is from imm10 fields or rs1 register. 
 
@@ -51,7 +76,20 @@ The func3 field of Configuration instructions is 000, and the uop field is 00. T
 
 The following figure shows the encoding format for the Zmasync instructions.
 
-image::inst_32bit_config_format.svg[alt="inst_32bit_config_format", align="center"]
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'rd', type: 2},
+  {bits: 2,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'rs1', type: 3},
+  {bits: 5,  name: 'tok', type: 4},
+  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 1,  name: '0', attr: '0', type: 8},
+  {bits: 4,  name: 'func4', type: 5},
+  {bits: 5,  name: 'imm5', type: 6}
+], config: {lanes: 2, hspace: 1000}}
+....
 
 The func3 field of Zmasync instructions is 000, and the uop field is 00. The func4 field distinguishes different synchronization operations: 1000 for msyncregreset, 1001 for mrelease, and 1010 for macquire. The tok field (inst[24:20]) specifies the token register index. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
 
@@ -59,7 +97,21 @@ The func3 field of Zmasync instructions is 000, and the uop field is 00. The fun
 
 The following figure shows the encoding format for the Load/Store instructions.
 
-image::inst_32bit_ls_format.svg[alt="inst_32bit_ls_format", align="center"]
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'md', type: 2},
+  {bits: 2,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'rs1', type: 3},
+  {bits: 3,  name: 'ms2', type: 4},
+  {bits: 2,  name: 'uop', attr: '01', type: 8},
+  {bits: 1,  name: 'ls', type: 5},
+  {bits: 5,  name: 'inst[24:20]', type: 6},
+  {bits: 2,  name: 'd_size', type: 7},
+  {bits: 4,  name: 'func4', type: 5}
+], config: {lanes: 2, hspace: 1000}}
+....
 
 The func3 field of Load/Store instructions is 000, and the uop field is 01. Inst[25] is the ls field, which means the load/store direction. The d_size field indicates the element size of Load/Store instructions. The func4 field defines load/store types, like A/B/C matrix type, transpose type and whole register load/store.
 
@@ -67,7 +119,22 @@ The func3 field of Load/Store instructions is 000, and the uop field is 01. Inst
 
 The following figure shows the encoding format for the Matrix Multiplication instructions.
 
-image::inst_32bit_mm_format.svg[alt="inst_32bit_mm_format", align="center"]
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'md', type: 2},
+  {bits: 2,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'ms1', type: 3},
+  {bits: 3,  name: 'ms2', type: 4},
+  {bits: 2,  name: 'uop', attr: '10', type: 8},
+  {bits: 3,  name: 'inst[25:23]', type: 5},
+  {bits: 2,  name: 's_size', type: 6},
+  {bits: 2,  name: 'd_size', type: 7},
+  {bits: 4,  name: 'func4', attr: '0001', type: 8},
+  {bits: 1,  name: '0', attr: '0', type: 8}
+], config: {lanes: 2, hspace: 1000}}
+....
 
 The func3 field of Matrix Multiplication instructions is 000, and the uop field is 10. The A/B/C matrix come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix. The s_size indicates the element size of A/B matrix. The func4 is 0001 for integer matrix multiplication.
 
@@ -78,7 +145,22 @@ For integer matrix multiplication, inst[24:23] indicates source operands are sig
 
 The following figure shows the encoding format for the MISC instructions.
 
-image::inst_32bit_misc_format.svg[alt="inst_32bit_misc_format", align="center"]
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'md/rd', type: 2},
+  {bits: 2,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'ms1/rs1', type: 3},
+  {bits: 3,  name: 'ms2/rs2', type: 4},
+  {bits: 2,  name: 'uop', attr: '11', type: 8},
+  {bits: 3,  name: 'imm3/inst[25:23]', type: 5},
+  {bits: 2,  name: 'e_size', type: 6},
+  {bits: 2,  name: 'd_size/s_size', type: 7},
+  {bits: 4,  name: 'func4', type: 5},
+  {bits: 1,  name: 'inst[31]', type: 6}
+], config: {lanes: 2, hspace: 1000}}
+....
 
 The func3 field of MISC instructions is 000, and the uop field is 11. The func4 field indicates different MISC instruction type.
 
