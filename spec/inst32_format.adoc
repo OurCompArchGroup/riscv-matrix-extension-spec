@@ -1,6 +1,18 @@
 The 32-bit instruction format fit under the custom-1(0101011) major opcode. There are three main types of instruction formats, as illustrated below.
 
-All matrix instructions use func3 = 000.
+All matrix instructions use func3 = 000. The uop field distinguishes different instruction categories, and the func4 field further differentiates specific instructions within each category.
+
+.Instruction Category Encoding
+[cols="^2,^8"]
+|===
+| *uop* | *Instruction Category*
+| 00    | Configuration and Zmasync instructions
+| 01    | Load/Store instructions
+| 10    | Matrix Multiplication instructions
+| 11    | MISC instructions
+|===
+
+Within each category, the func4 field specifies the particular instruction type. See the detailed encoding tables in each instruction category section below.
 
 [wavedrom, ,svg]
 ....
