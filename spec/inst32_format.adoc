@@ -1,5 +1,7 @@
 The 32-bit instruction format fit under the custom-1(0101011) major opcode. There are three main types of instruction formats, as illustrated below.
 
+All matrix instructions use func3 = 000.
+
 [wavedrom, ,svg]
 ....
 {reg: [
@@ -107,19 +109,19 @@ For the matrix instructions with IMM10, imm10 fields indicates the 10-bit width 
 
 The following figure shows the encoding format for the Configuration instructions. 
 
-The func3 field of Configuration instructions is 000, and the uop field is 00. The func4 field distinguishes m/n/k configuration, and inst[25] indicates the configuration parameters is from imm10 fields or rs1 register. 
+The uop field is 00. The func4 field distinguishes m/n/k configuration, and inst[25] indicates the configuration parameters is from imm10 fields or rs1 register. 
 
 ==== Asynchronous Store Synchronization Instructions (Zmasync)
 
 The following figure shows the encoding format for the Zmasync instructions.
 
-The func3 field of Zmasync instructions is 000, and the uop field is 00. The func4 field distinguishes different synchronization operations: 1000 for msyncregreset, 1001 for mrelease, and 1010 for macquire. The tok field (inst[24:20]) specifies the token register index. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
+The uop field is 00. The func4 field distinguishes different synchronization operations: 1000 for msyncregreset, 1001 for mrelease, and 1010 for macquire. The tok field (inst[24:20]) specifies the token register index. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
 
 ==== Load/Store Instructions
 
 The following figure shows the encoding format for the Load/Store instructions.
 
-The func3 field of Load/Store instructions is 000, and the uop field is 01. Inst[25] is the ls field, which means the load/store direction. The d_size field indicates the element size of Load/Store instructions. The func4 field defines load/store types, like A/B/C matrix type, transpose type and whole register load/store.
+The uop field is 01. Inst[25] is the ls field, which means the load/store direction. The d_size field indicates the element size of Load/Store instructions. The func4 field defines load/store types, like A/B/C matrix type, transpose type and whole register load/store.
 
 .Load/Store Direction (ls field)
 [cols="^2,^3,^8"]
@@ -133,7 +135,7 @@ The func3 field of Load/Store instructions is 000, and the uop field is 01. Inst
 
 The following figure shows the encoding format for the Matrix Multiplication instructions.
 
-The func3 field of Matrix Multiplication instructions is 000, and the uop field is 10. The A/B/C matrix come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix. The s_size indicates the element size of A/B matrix. The func4 is 0001 for integer matrix multiplication.
+The uop field is 10. The A/B/C matrix come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix. The s_size indicates the element size of A/B matrix. The func4 is 0001 for integer matrix multiplication.
 
 For integer matrix multiplication, inst[24:23] indicates source operands are signed/unsigned. For the current simplified specification, only signed int8 × int8 → int32 matrix multiplication (mmacc.w.b) is supported, where inst[25:23] = 011, s_size = 00, and d_size = 10.
 
@@ -142,7 +144,7 @@ For integer matrix multiplication, inst[24:23] indicates source operands are sig
 
 The following figure shows the encoding format for the MISC instructions.
 
-The func3 field of MISC instructions is 000, and the uop field is 11. The func4 field indicates different MISC instruction type.
+The uop field is 11. The func4 field indicates different MISC instruction type.
 
 Format type(1) shows the encoding of MISC instruction only using matrix registers. When the ms1 or ms2 are not used, these fields are set to zero. For the mzero instruction, the imm3 field is fixed to 000.
 
