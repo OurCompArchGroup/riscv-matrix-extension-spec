@@ -71,7 +71,7 @@ The 32-bit instruction format fit under the custom-1(0101011) major opcode. Ther
   {bits: 3,  name: 'imm3/func3', type: 6},
   {bits: 2,  name: 'uop', type: 5},
   {bits: 4,  name: 'func4', type: 5},
-], config: {lanes: 1, hspace: 1200}}
+], config: {lanes: 1, hspace: 1000}}
 ....
 
 
