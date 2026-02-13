@@ -3,3 +3,5 @@
 === 32-bit instruction
 
 include::inst32_format.adoc[]
+
+include::encoding_summary.adoc[]
