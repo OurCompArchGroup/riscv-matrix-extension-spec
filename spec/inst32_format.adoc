@@ -95,6 +95,8 @@ For the matrix instructions with GPR operand, rd/rs1/rs2 fields indicate the sca
 
 For the matrix instructions with IMM10, imm10 fields indicates the 10-bit width immediate, usually used in configuration instruction.
 
+The uop field (inst[27:26]) is the primary classifier that determines the instruction category. All instructions are first categorized by their uop value, then further differentiated within each category using additional encoding fields.
+
 .Instruction Category Encoding (uop field)
 [cols="^2,^8"]
 |===
