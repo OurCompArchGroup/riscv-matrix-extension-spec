@@ -77,6 +77,14 @@ The md/ms1/ms2 fields are 3-bit width to index the four tile registers and four 
 
 For matrix multiplication instructions, ms1/ms2 should be 000-011 for tile registers, and md should be 100-111 for accumulation registers. For matrix misc instructions, md/ms1/ms2 can be 000-111, according to the specific misc instruction.
 
+.Three Matrix Register Instructions Encoding
+[cols="^2,^2,^3,^8"]
+|===
+| *uop* | *ctrl (inst[25:23])* | *Instruction Type* | *Description*
+| 10    | 011                  | Matrix Multiplication | mmacc.w.b (int8 × int8 → int32)
+| 11    | 000                  | MISC                  | mzero1r (clear single register)
+|===
+
 
 The element sizes of d_size and s_size are as follows:
 
