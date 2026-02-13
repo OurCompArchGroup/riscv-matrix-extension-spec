@@ -17,17 +17,20 @@ which are 1) committed immediately from the pipeline without waiting for the com
 Commiting immediately from the pipeline allows flexible software pipelining,
 for example, precision promotion like in DeepGEMM.
 To ensure the visibility of the store operations,
-the Zmasync extension introduces a new set of instructions, `msyncregreset`, `mrelease`, and `macquire`.
+the Zmasync extension introduces a new set of synchronization instructions.
 
-==== Release and Acquire Instructions
+==== Reset, Release and Acquire Instructions
 
-`msyncregreset` resets a token register to 0.
-`mrelease` increments a token register by 1.
-`mrelease` cannot be committed until all in-flight matrix stores of current thread
-have been visible to the following vector loads or scalar loads.
-`macquire` takes a token register as an source register,
-and an integer register as another source register.
-None of vector loads or scalar loads older than `macquire` can be executed until the token register is equal to or greater than the integer register.
+```
+msyncregreset tok0           # Reset token register tok0 to 0
+
+mrelease      tok0           # Increment tok0 by 1,
+                             # and `mrelease` cannot be committed until all in-flight matrix stores of current thread
+                             # have been visible to the following vector loads or scalar loads.
+
+macquire      tok0, t0       # Block until tok0 >= t0
+                             # Takes a token register as an source register, and an integer register as another source register.
+                             # None of vector loads or scalar loads older than `macquire` can be executed until the token register is equal to or greater than the integer register.
 
 ==== Example: DeepGEMM in AME with Zmasync
 
