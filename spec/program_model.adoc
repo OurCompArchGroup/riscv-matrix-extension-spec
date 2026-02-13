@@ -6,6 +6,8 @@ include::csr.adoc[]
 
 include::tilereg.adoc[]
 
+=== Token Registers
+
 include::tokenreg.adoc[]
 
 === Matrix ISA Register, misa

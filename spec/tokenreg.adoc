@@ -1,45 +1,4 @@
-==== Token Register File
+Traditional `fence` instructions are coarse-grained and always block the processor pipeline, which may cause performance degradation. To allow flexible synchronization and pipelining, the Zmasync extension introduces a new register file, which is used to store the synchronization tokens.
 
-The Zmasync extension introduces a token register file for flexible synchronization between asynchronous matrix operations and vector/scalar operations.
+Token registers are 64-bit registers. Token register file contains 8/16/32 token registers. The number of token registers is indicated by the `mtok` CSR (address 0xCC4). Token registers are indexed using a 5-bit field (tok[4:0]) in the instruction encoding.
 
-Token registers are 64-bit registers. The token register file contains 8/16/32 token registers, depending on the implementation. The number of token registers is indicated by the `mtok` CSR (address 0xCC4).
-
-===== Purpose
-
-Token registers are used to track the completion status of asynchronous matrix store operations. Each token register maintains a counter that can be incremented by `mrelease` instructions and checked by `macquire` instructions, enabling fine-grained synchronization without blocking the entire pipeline like traditional `fence` instructions.
-
-Traditional `fence` instructions are coarse-grained and always block the processor pipeline, which may cause performance degradation. Token-based synchronization allows flexible software pipelining, such as overlapping matrix computation with precision promotion operations (e.g., DeepGEMM).
-
-===== Token Register Operations
-
-Token registers support the following operations:
-
-* **msyncregreset**: Resets a token register to 0
-* **mrelease**: Increments a token register by 1 after all in-flight matrix stores are visible
-* **macquire**: Blocks vector/scalar loads until the token register reaches a specified threshold
-
-===== Token Register Indexing
-
-Token registers are indexed using a 5-bit field (tok[4:0]) in the instruction encoding, allowing up to 32 token registers. The actual number of implemented token registers (8, 16, or 32) is implementation-defined and reported by the `mtok` CSR.
-
-[cols="^2,^8"]
-|===
-| *Token Count* | *Implementation*
-| 8             | Minimal implementation
-| 16            | Standard implementation
-| 32            | Extended implementation
-|===
-
-===== Usage Model
-
-Token registers enable producer-consumer synchronization patterns:
-
-1. **Producer** (matrix store operations):
-   - Execute asynchronous matrix store instructions
-   - Call `mrelease(tok)` to increment the token counter when stores complete
-
-2. **Consumer** (vector/scalar load operations):
-   - Call `macquire(tok, threshold)` to wait until `tok >= threshold`
-   - Proceed with loads once synchronization is satisfied
-
-This model allows multiple outstanding asynchronous operations with precise ordering control, enabling efficient pipelining of matrix computations with subsequent processing stages.
