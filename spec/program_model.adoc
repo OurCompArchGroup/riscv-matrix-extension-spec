@@ -158,7 +158,7 @@ The MS field is located at bits [14:13] in both mstatus and sstatus registers.
   {bits: 1,  name: 'MBE', attr: '[37]', type: 5},
   {bits: 25, name: '0', attr: '[62:38]', type: 8},
   {bits: 1,  name: 'SD', attr: '63', type: 4}
-], config: {lanes: 2, hspace: 1000}}
+], config: {lanes: 4, hspace: 1000}}
 ....
 
 .MS field values
