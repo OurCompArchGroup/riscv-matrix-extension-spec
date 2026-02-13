@@ -32,6 +32,8 @@ macquire      tok0, t0       # Block until tok0 >= t0
                              # Takes a token register as an source register, and an integer register as another source register.
                              # None of vector loads or scalar loads older than `macquire` can be executed until the token register is equal to or greater than the integer register.
 
+```
+
 ==== Example: DeepGEMM in AME with Zmasync
 
 ```
@@ -42,7 +44,7 @@ void promotion(c);
 void deepgemm_kernel() {
     ...
 
-    msyncregreset(tok0);
+    tok0 = msyncregreset();
 
     async_matmul(c[0]);
     mrelease(tok0);  // tok0 becomes 1
