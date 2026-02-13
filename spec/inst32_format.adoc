@@ -31,7 +31,7 @@ The 32-bit instruction format fit under the custom-1(0101011) major opcode. Ther
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 3,  name: 'md', type: 2},
+  {bits: 3,  name: 'md/ms3', type: 2},
   {bits: 2,  name: 'd_size', type: 7},
   {bits: 3,  name: 'func3', type: 5},
   {bits: 5,  name: 'rs1', type: 3},
@@ -52,28 +52,11 @@ The 32-bit instruction format fit under the custom-1(0101011) major opcode. Ther
   {bits: 3,  name: 'ms1', type: 3},
   {bits: 2,  name: 's_size', type: 7},
   {bits: 3,  name: 'ms2', type: 4},
-  {bits: 3,  name: 'size_sup', type: 6},
+  {bits: 3,  name: 'imm3/ctrl', type: 6},
   {bits: 2,  name: 'uop', type: 5},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
-
-[wavedrom, ,svg]
-....
-{reg: [
-  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 3,  name: 'md', type: 2},
-  {bits: 2,  name: 'd_size', type: 7},
-  {bits: 3,  name: 'func3', type: 5},
-  {bits: 3,  name: 'ms1', type: 3},
-  {bits: 2,  name: 's_size', type: 7},
-  {bits: 3,  name: 'ms2', type: 4},
-  {bits: 3,  name: 'imm3/func3', type: 6},
-  {bits: 2,  name: 'uop', type: 5},
-  {bits: 4,  name: 'func4', type: 5},
-], config: {lanes: 1, hspace: 1000}}
-....
-
 
 For the matrix instructions only with matrix register, md/ms1/ms2 fields indicate the matrix register indexes for the dest(src3)/src1/src2 matrix operands, d_size field indicates the destination operand size, s_size field indicates the source operand size, imm3/ctrl field indicates the immediate index of matrix row/column or more operation information, and uop field indicates the different micro-operation types.
 
