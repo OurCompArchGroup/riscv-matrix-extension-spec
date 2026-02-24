@@ -4,7 +4,7 @@ This RISC-V specification proposal has been contributed to directly or indirectl
 
 [%hardbreaks]
 
-ZhaoJiang, WenmengZhang, WenganShao, ZhiweiLiu, XianmiaoQu, JingQiu, MingxinZhao, YunhaiShang, XiaoyanXiang, ChenChen
+XuanTie (ZhaoJiang, WenmengZhang, WenganShao, ZhiweiLiu, XianmiaoQu, JingQiu, MingxinZhao, YunhaiShang, XiaoyanXiang, ChenChen)
 
 Others are welcome to help improve the specification.
 
