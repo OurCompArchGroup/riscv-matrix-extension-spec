@@ -2,7 +2,7 @@
 :description: RISC-V Matrix Specification Proposal
 :company: RISC-V.org
 :revdate: 12/2024
-:revnumber: 0.6.0 (simplified)
+:revnumber: v0.6.0 (simplified v0.1)
 :revremark: This document is in development.
 :url-riscv: http://riscv.org
 :doctype: book
