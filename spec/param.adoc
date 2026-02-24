@@ -10,7 +10,7 @@ Each hart supporting a matrix extension defines three parameters:
 The following parameters can be derived from the above fundamental parameters:
 
 . ROWNUM: The number of rows of a tile register, equals to TLEN/TRLEN, which must be a power of 2. For the matrix multiplication stem:[C += A \times B^T], the tile register stores input matrix A (M×K), and the accumulation register stores output matrix C (M×N). Since A and C share the M dimension, the accumulation register has the same row count (ROWNUM) as the tile register. For example, when TLEN=512 and TRLEN=128, ROWNUM=4, meaning both tile registers and accumulation registers have 4 rows, and the maximum M dimension is 4.
-. ARLEN: The number of bits in a row of a single matrix accumulation register, ARLEN, which must be a power of 2, and must be no greater than 2^16^. ARLEN = TLEN/TRLEN * ELEN.
+. ARLEN: The number of bits in a single row of an accumulation register, ARLEN = ROWNUM * ELEN, which must be a power of 2, and must be no greater than 2^16^.
 . ALEN: The number of bits in a single matrix accumulation register, ALEN, which must be a power of 2, and must be no greater than 2^32^, ALEN = ARLEN * ROWNUM.
 
 
