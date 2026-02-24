@@ -4,7 +4,7 @@ A **Tile Register** has a fixed TLEN bits of state, where each row has TRLEN bit
 
 An **Accumulation Register** has a fixed ALEN bits of state, where each row has ARLEN bits. As a result, there are ALEN / ARLEN, which is equal to TLEN/TRLEN rows for each acculation register in logic. 
 
-The ARLEN is derived by TLEN/TRLEN * ELEN, which means the element size of accumulation registers should not be bigger than ELEN.
+The ARLEN is derived by ROWNUM * ELEN. The element size of accumulation registers should not be bigger than ELEN. When the output element width equals ELEN, each row of the accumulation register holds exactly ROWNUM elements, making the maximum N dimension equal to ROWNUM, same as the maximum M dimension. Operations with element width exceeding ELEN will raise an illegal instruction exception.
 
 image::register.svg[register, align=center]
 
