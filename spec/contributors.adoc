@@ -5,6 +5,7 @@ This RISC-V specification proposal has been contributed to directly or indirectl
 [%hardbreaks]
 
 XuanTie (ZhaoJiang, WenmengZhang, WenganShao, ZhiweiLiu, XianmiaoQu, JingQiu, MingxinZhao, YunhaiShang, XiaoyanXiang, ChenChen)
+BOSC XSAI Team (Jia Xiaoyu, Sun Jiru, Yue Guochun, Wang Huizhe, Cai Luoshan, Chen Xi, Li Qianruo, Zhang Hanle, Liu Tianyi)
 
 Others are welcome to help improve the specification.
 
