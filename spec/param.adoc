@@ -17,8 +17,8 @@ The following parameters can be derived from the above fundamental parameters:
 image::parameter_explanation.svg[alt="parameter explanation", align="center"]
 
 
-The picture show examples for the tile register shape and the `C += A x BT` matrix multiplication operation. For a tile register, when TLEN is 512bit and TRLEN is 128bit, ROWNUM is 4.
+The picture show examples for the tile register shape and the stem:[C += A \times B^T] matrix multiplication operation. For a tile register, when TLEN is 512bit and TRLEN is 128bit, stem:[ROWNUM = TLEN / TRLEN = 512 / 128 = 4].
 
 
-For `C += A x BT`, A matrix is stored in tile register 0 in normal format(M*K), and B matrix are stored in tile register 1 in transposed format(N*K). The shape of C matrix is M*N. When the ELEN is 32bit, ARLEN = TLEN/TRLEN * ELEN = 512/128 * 32 = 128, and ALEN = ARLEN * ROWNUM = 128*4 = 512.
+For stem:[C += A \times B^T], A matrix is stored in tile register 0 in normal format (stem:[M \times K]), and B matrix are stored in tile register 1 in transposed format (stem:[N \times K]). The shape of C matrix is stem:[M \times N]. When the ELEN is 32bit, stem:[ARLEN = ROWNUM \times ELEN = 4 \times 32 = 128], and stem:[ALEN = ARLEN \times ROWNUM = 128 \times 4 = 512].
 
