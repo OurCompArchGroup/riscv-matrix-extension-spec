@@ -7,27 +7,3 @@ An **Accumulation Register** has a fixed ALEN bits of state, where each row has 
 The ARLEN is derived by ROWNUM * ELEN. The element size of accumulation registers should not be bigger than ELEN. When the output element width equals ELEN, each row of the accumulation register holds exactly ROWNUM elements, making the maximum N dimension equal to ROWNUM, same as the maximum M dimension. Operations with element width exceeding ELEN will raise an illegal instruction exception.
 
 image::register.svg[register, align=center]
-
-The size of the matrix registers varies as following when ELEN is 32bit and TLEN is 512bit.
-
-[cols="^4, ^4,^4,^4,^4,^4,^6",options="header"]
-|===
-| SOURCE | TLEN | TRLEN    | ALEN      | M/NxK        | MxN        | Notes
-|  32bit | 512  | 32       | 8192      | 16x1         | 16x16      | Outer Product
-|  32bit | 512  | 64       | 2048      |  8x2         |  8x8       |
-|  32bit | 512  | 128      | 512       |  4x4         |  4x4       |
-|  32bit | 512  | 256      | 128       |  2x8         |  2x2       |
-|  32bit | 512  | 512      | 32        |  1x16        |  1x1       | Inner Product
-|  16bit | 512  | 32       | 8192      | 16x2         | 16x16      |
-|  16bit | 512  | 64       | 2048      |  8x4         |  8x8       |
-|  16bit | 512  | 128      | 512       |  4x8         |  4x4       |
-|  16bit | 512  | 256      | 128       |  2x16        |  2x2       |
-|  16bit | 512  | 512      | 32        |  1x32        |  1x1       | 
-|  8bit  | 512  | 32       | 8192      | 16x4         | 16x16      |
-|  8bit  | 512  | 64       | 2048      |  8x8         |  8x8       |
-|  8bit  | 512  | 128      | 512       |  4x16        |  4x4       |
-|  8bit  | 512  | 256      | 128       |  2x32        |  2x2       |
-|  8bit  | 512  | 512      | 32        |  1x64        |  1x1       | 
-|===
-
-// Introducing of AMUL is to address the mismatched widths issue between input and output matrix of matrix multiplication instructions. The choice of AMUL is based on both the supported matrix multiplication mode and the maximum widening ratio of the supported widening instruction. For certain specific hardware configurations, accumulation registers' width can be narrower or wider than the tile registers' width, which leads to AMUL having a corresponding fractional or integer value. Further details about AMUL will be discussed in next chapter.
