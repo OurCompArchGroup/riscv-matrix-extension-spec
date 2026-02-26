@@ -18,22 +18,25 @@ The matrix extension introduces three categories of architectural state:
 | acc0-acc3  | 0x4-0x7 | - | Accumulation registers (ALEN bits each), store output matrix C
 2+| _Total: 8 matrix registers_ 2+|
 
-.15+| CSRs
+.10+| CSRs
 | xmcsr      | 0x802 | URW | Matrix control and status register
 | mtilem     | 0x803 | URW | Tile length in m direction
 | mtilen     | 0x804 | URW | Tile length in n direction
 | mtilek     | 0x805 | URW | Tile length in k direction
-| xmxrm      | 0x806 | URW | Fixed-point rounding mode
-| xmsat      | 0x807 | URW | Fixed-point accrued saturation flag
-| xmfflags   | 0x808 | URW | Float-point accrued exception flags
-| xmfrm      | 0x809 | URW | Float-point rounding mode
-| xmsaten    | 0x80a | URW | Saturation mode enable
 | xmisa      | 0xcc0 | URO | Supported matrix instruction subsets
 | xtlenb     | 0xcc1 | URO | Tile register size, TLEN bits
 | xtrlenb    | 0xcc2 | URO | Tile register row size, TRLEN bits
 | xalenb     | 0xcc3 | URO | Accumulation register size, ALEN bits
 | mtok       | 0xcc4 | URO | Token register count
-2+| _Total: 9 CSRs (+5 sub-field CSRs in xmcsr)_ 2+|
+2+| _Total: 9 CSRs_ 2+|
+
+.6+| xmcsr Sub-field CSRs
+| xmxrm      | 0x806 | URW | Fixed-point rounding mode
+| xmsat      | 0x807 | URW | Fixed-point accrued saturation flag
+| xmfflags   | 0x808 | URW | Float-point accrued exception flags
+| xmfrm      | 0x809 | URW | Float-point rounding mode
+| xmsaten    | 0x80a | URW | Saturation mode enable
+2+| _Total: 5 sub-field CSRs (also reflected as fields in xmcsr)_ 2+|
 
 | Token Registers
 | tok0-tok7/15/31 | 0x0-0x7/0xf/0x1f | - | 64-bit synchronization tokens for Zmasync (count reported by mtok)
