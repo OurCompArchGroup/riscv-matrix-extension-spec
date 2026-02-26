@@ -42,34 +42,23 @@ The matrix extension introduces three categories of architectural state:
 | tok0-tok7/15/31 | 0x0-0x7/0xf/0x1f | - | 64-bit synchronization tokens for Zmasync (count reported by mtok)
 |===
 
-The following diagram illustrates the tile register and accumulation register structure. Each tile register has ROWNUM rows with TRLEN bits per row. Each accumulation register has ROWNUM rows with ARLEN bits per row.
-
-image::register.svg[register, align=center]
-
-The relationship between matrix registers and the stem:[C += A \times B^T] operation: tile registers hold input matrices A (stem:[M \times K]) and B (stem:[N \times K]), while accumulation registers hold the output matrix C (stem:[M \times N]). The CSRs `mtilem`, `mtilek`, and `mtilen` configure the active tile dimensions M, K, and N respectively.
-
-include::csr.adoc[]
-
 === Matrix Registers
 
 include::tilereg.adoc[]
 
-=== Token Registers
+=== CSR Registers
 
-include::tokenreg.adoc[]
-
-=== Matrix ISA Register, misa
+==== Matrix ISA Register, xmisa
 
 The read-only XLEN-wide CSR, `misa`, specifying the supported matrix arithmetic feature of the current hardware implementation. 
 
 include::misa.adoc[]
 
-
-=== Matrix Tile Size Registers, mtilem/mtilek/mtilen
+==== Matrix Tile Size Registers, mtilem/mtilek/mtilen
 
 The XLEN-bit-wide read-only `mtilem/mtilek/mtilen` CSRs can only be updated by the `msettile{m|k|n}{i}` instructions. The registers holds 3 unsigned integers specifying the tile shapes for tiled matrix.
 
-=== Matrix Control and Status Register, mcsr
+==== Matrix Control and Status Register, xmcsr
 
 The `xmcsr` CSR is a WARL read-write register. Bits[XLEN-1:12] are reserved and should be written with zero. 
 The `mcsr` register has 5 fields. The xmxrm, xmsat, xmfflags, xmfrm, xmsaten separate CSRs can also be accessed via fields in the matrix control and status CSR, xmcsr.
@@ -85,6 +74,8 @@ The `mcsr` register has 5 fields. The xmxrm, xmsat, xmfflags, xmfrm, xmsaten sep
 |        2 | xmsat      | Fixed-point arithmetic instruction accrued saturation flag.
 |      1:0 | xmxrm      | Fixed-point arithmetic instruction rounding mode.
 |===
+
+=== xmcsr Sub-field CSRs
 
 ==== Matrix Fixed-Point Rounding Mode, xmxrm
 
@@ -174,6 +165,10 @@ Conversion from all other values first applies rounding to reduce the mantissa b
         mmacc operations: ignore the overflow and wrap around the result       
         integer arithmetic operations: ignore the overflow and wrap around the result       
 
+
+=== Token Registers
+
+include::tokenreg.adoc[]
 
 === Matrix Context Status in mstatus and sstatus
 
