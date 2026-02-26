@@ -29,7 +29,7 @@ The matrix extension introduces the following architectural state:
 | xtlenb     | 0xcc1 | URO | Tile register size, TLEN bits
 | xtrlenb    | 0xcc2 | URO | Tile register row size, TRLEN bits
 | xalenb     | 0xcc3 | URO | Accumulation register size, ALEN bits
-| mtok       | 0xcc4 | URO | Token register count
+| mtok       | 0xcc4 | URO | Token register count (e.g. 8 default, 16/32 optional)
 2+| _Total: 9 CSRs_ 2+|
 
 .6+| xmcsr Sub-field CSRs
