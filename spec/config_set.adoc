@@ -9,6 +9,37 @@ A set of instructions is provided to allow rapid configuration of the values in 
 
 The msettile{m|k|n}[i] instructions set the mtilem/mtilek/mtilen CSRs based on their arguments.
 
+===== Immediate Format (msettile{m|k|n}i)
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 10, name: 'uimm10[9:0]', type: 4},
+  {bits: 1,  name: '0', attr: '0', type: 8},
+  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', type: 5},
+], config: {lanes: 1, hspace: 1000}}
+....
+
+===== Register Format (msettile{m|k|n})
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 5,  name: 'rs1', type: 3},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 1,  name: '1', attr: '1', type: 8},
+  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', type: 5},
+], config: {lanes: 1, hspace: 1000}}
+....
+
 ```
 msettilemi imm  # imm = new mtilem
 msettilem  rs1  # rs1 = new mtilem
