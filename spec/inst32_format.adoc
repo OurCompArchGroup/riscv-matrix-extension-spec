@@ -200,6 +200,21 @@ The func4 field distinguishes different synchronization operations. The tok fiel
 
 The func4 field defines load/store types (A/B/C matrix type, transpose type). Inst[25] is the ls field indicating load/store direction: 0=Load, 1=Store. The d_size field indicates the element size (8/16/32/64 bits).
 
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'md/ms3', type: 2},
+  {bits: 2,  name: 'd_size', type: 7},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 5,  name: 'rs1', type: 3},
+  {bits: 5,  name: 'rs2', type: 4},
+  {bits: 1,  name: 'l/s', type: 6},
+  {bits: 2,  name: 'uop', attr: '01', type: 8},
+  {bits: 4,  name: 'func4', type: 5},
+], config: {lanes: 1, hspace: 1000}}
+....
+
 .Load/Store Instructions (uop=01)
 [cols="^2,^2,^8"]
 |===
