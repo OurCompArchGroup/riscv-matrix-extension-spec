@@ -13,12 +13,12 @@ The matrix extension introduces three categories of architectural state:
 |===
 | Category | Name | Count | Description
 
-.4+| Matrix Registers
+.3+| Matrix Registers
 | tr0-tr3    | 4 | Tile registers (TLEN bits each), store input matrices A and B
 | acc0-acc3  | 4 | Accumulation registers (ALEN bits each), store output matrix C
 2+| _Total: 8 matrix registers_ |
 
-.9+| CSRs
+.8+| CSRs
 | mtilem/mtilen/mtilek | 3 | Tile dimension configuration (read-write)
 | xmcsr      | 1 | Matrix control and status register (read-write)
 | xmisa      | 1 | Supported matrix instruction subsets (read-only)
