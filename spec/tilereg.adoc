@@ -1,6 +1,6 @@
 The matrix extension adds 4 architectural **Tile Registers** (tr0-tr3) for input tile matrices and 4 architectural *Accumulation Registers* (acc0-acc3) for output accumulation matrices.
 
-A **Tile Register** has a fixed TLEN bits of state, where each row has TRLEN bits. As a result, there are stem:[TLEN / TRLEN] rows for each tile register in logic. Each tile register comprises stem:[M \times K] elements, stem:[K = TRLEN / \text{element width}].
+A **Tile Register** has a fixed TLEN bits of state, where each row has TRLEN bits. As a result, there are stem:[TLEN / TRLEN] rows for each tile register in logic. When used for matrix A, the tile register holds stem:[M \times K] elements; when used for matrix B, it holds stem:[N \times K] elements, where stem:[K = TRLEN / EW] (EW is the element width in bits).
 
 An **Accumulation Register** has a fixed ALEN bits of state, where each row has ARLEN bits. As a result, there are stem:[ALEN / ARLEN], which is equal to stem:[TLEN/TRLEN] rows for each acculation register in logic. 
 
