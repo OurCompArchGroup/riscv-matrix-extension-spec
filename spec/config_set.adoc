@@ -7,7 +7,7 @@ For each iteration, most of the matrix multiplication can fully use the input ti
 A set of instructions is provided to allow rapid configuration of the values in mtile* to match application needs.
 
 
-The msettile{m|k|n}[i] instructions set the mtilem/mtilek/mtilen CSRs based on their arguments.
+The msettile{m|k|n}[i] instructions set the mtilem/mtilek/mtilen CSRs based on their arguments. The two formats are distinguished by inst[25]: when inst[25]=0, the tile size is encoded as a 10-bit unsigned immediate (uimm10) in the instruction, which is suitable for compile-time known constant tile sizes; when inst[25]=1, the tile size is read from the general-purpose register rs1, which is used when the tile size is computed at runtime, such as handling the tail iterations of a tiling loop.
 
 ===== Immediate Format (msettile{m|k|n}i)
 
