@@ -260,6 +260,22 @@ The A/B/C matrices come from ms1/ms2/ms3 fields. The d_size field indicates the 
 
 The func4 field is 0000 for mzero instruction. When ms1 or ms2 are not used, these fields are set to zero. For the mzero instruction, the imm3 field (inst[25:23]) is fixed to 000.
 
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 3,  name: 'md/ms3', type: 2},
+  {bits: 2,  name: 'd_size', type: 7},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'ms1', type: 3},
+  {bits: 2,  name: 's_size', type: 7},
+  {bits: 3,  name: 'ms2', type: 4},
+  {bits: 3,  name: 'imm3/ctrl', type: 6},
+  {bits: 2,  name: 'uop', attr: '11', type: 8},
+  {bits: 4,  name: 'func4', type: 5},
+], config: {lanes: 1, hspace: 1000}}
+....
+
 .MISC Instructions (uop=11)
 [cols="^2,^8"]
 |===
