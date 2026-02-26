@@ -1,12 +1,14 @@
 == Programmer's Model
 
-The matrix extension introduces three categories of architectural state:
+The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
 * **CSRs (Control and Status Registers)**: Nine CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
 * **Token Registers (Zmasync)**: 8/16/32 64-bit token registers for asynchronous store synchronization, enabling fine-grained pipelining between matrix store operations and subsequent loads.
+
+* **Modified Standard CSRs**: The matrix extension modifies two standard RISC-V CSRs: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector), and `misa` uses the Extensions field to indicate matrix extension support.
 
 .Matrix Extension Architectural State Summary
 [cols="^2,^2,^2,^2,^6",options="header"]
