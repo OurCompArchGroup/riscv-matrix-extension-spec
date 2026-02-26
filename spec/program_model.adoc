@@ -1,5 +1,43 @@
 == Programmer's Model
 
+The matrix extension introduces three categories of architectural state:
+
+* **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
+
+* **CSRs (Control and Status Registers)**: Nine CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
+
+* **Token Registers (Zmasync)**: 8/16/32 64-bit token registers for asynchronous store synchronization, enabling fine-grained pipelining between matrix store operations and subsequent loads.
+
+.Matrix Extension Architectural State Summary
+[cols="^2,^2,^2,^6",options="header"]
+|===
+| Category | Name | Count | Description
+
+.4+| Matrix Registers
+| tr0-tr3    | 4 | Tile registers (TLEN bits each), store input matrices A and B
+| acc0-acc3  | 4 | Accumulation registers (ALEN bits each), store output matrix C
+2+| _Total: 8 matrix registers_ |
+
+.9+| CSRs
+| mtilem/mtilen/mtilek | 3 | Tile dimension configuration (read-write)
+| xmcsr      | 1 | Matrix control and status register (read-write)
+| xmisa      | 1 | Supported matrix instruction subsets (read-only)
+| xtlenb     | 1 | Tile register size in bits, TLEN (read-only)
+| xtrlenb    | 1 | Tile register row size in bits, TRLEN (read-only)
+| xalenb     | 1 | Accumulation register size in bits, ALEN (read-only)
+| mtok       | 1 | Token register count (read-only)
+2+| _Total: 9 CSRs (+5 sub-field CSRs in xmcsr)_ |
+
+| Token Registers
+| tok0-tok31 | 8/16/32 | 64-bit synchronization tokens for Zmasync (count reported by mtok)
+|===
+
+The following diagram illustrates the tile register and accumulation register structure. Each tile register has ROWNUM rows with TRLEN bits per row. Each accumulation register has ROWNUM rows with ARLEN bits per row.
+
+image::register.svg[register, align=center]
+
+The relationship between matrix registers and the stem:[C += A \times B^T] operation: tile registers hold input matrices A (stem:[M \times K]) and B (stem:[N \times K]), while accumulation registers hold the output matrix C (stem:[M \times N]). The CSRs `mtilem`, `mtilek`, and `mtilen` configure the active tile dimensions M, K, and N respectively.
+
 include::csr.adoc[]
 
 === Matrix Registers
