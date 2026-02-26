@@ -60,6 +60,20 @@ All matrix instructions use func3 = 000. The uop field distinguishes different i
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: '0', type: 8},
+  {bits: 3,  name: 'func3', type: 5},
+  {bits: 5,  name: 'rs1', type: 3},
+  {bits: 5,  name: 'tok', type: 4},
+  {bits: 1,  name: 'ctrl', type: 6},
+  {bits: 2,  name: 'uop', type: 5},
+  {bits: 4,  name: 'func4', type: 5},
+], config: {lanes: 1, hspace: 1000}}
+....
+
 For the matrix instructions only with matrix register, md/ms1/ms2 fields indicate the matrix register indexes for the dest(src3)/src1/src2 matrix operands, d_size field indicates the destination operand size, s_size field indicates the source operand size, imm3/ctrl field indicates the immediate index of matrix row/column or more operation information, and uop field indicates the different micro-operation types.
 
 The md/ms1/ms2 fields are 3-bit width to index the four tile registers and four accumulation registers.
