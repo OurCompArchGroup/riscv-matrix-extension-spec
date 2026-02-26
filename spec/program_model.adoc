@@ -40,22 +40,27 @@ The `mcsr` register has 5 fields. The xmxrm, xmsat, xmfflags, xmfrm, xmsaten sep
 
 ==== Matrix Fixed-Point Rounding Mode, xmxrm
 
-`xmrm` field indicates the rounding mode of fixed-point instructions. Suppose the pre-rounding result is v, and d bits of that result are to be rounded off. Then the rounded result is (v >> d) + r, where r depends on the rounding mode as specified in the following table.
+`xmrm` field indicates the rounding mode of fixed-point instructions. Suppose the pre-rounding result is v, and d bits of that result are to be rounded off. Then the rounded result is stem:[(v >> d) + r], where r depends on the rounding mode as specified in the following table.
 
 [cols="^2,^4,^9,7"]
 |===
 |  mrm  |  Mnemonic  |  meaning                                      |  Rounding Increment r
 
-|  00   |  RNU       |  round-to-nearest-up (add +0.5 LSB)           |  v[d-1]
-|  01   |  RNE       |  round-to-nearest-even                        |  v[d-1] & (v[d-2:0] != 0 \| v[d])
+|  00   |  RNU       |  round-to-nearest-up (add +0.5 LSB)           |  stem:[v[d-1\]]
+|  01   |  RNE       |  round-to-nearest-even                        |  stem:[v[d-1\] \& (v[d-2:0\] \neq 0 \| v[d\])]
 |  10   |  RDN       |  round-down (truncate)                        |  0
-|  11   |  ROD       |  round-to-odd (OR bits into LSB)              |  !v[d] & v[d-1:0] != 0
+|  11   |  ROD       |  round-to-odd (OR bits into LSB)              |  stem:[\neg v[d\] \& v[d-1:0\] \neq 0]
 |===
 
 The rounding functions are used to represent this operation in the instruction descriptions below:
 
-        roundoff_unsigned(v, d) = (unsigned(v) >> d) + r
-        roundoff_signed(v, d)   = (signed(v) >> d) + r
+[stem]
+++++
+\begin{align}
+roundoff\_unsigned(v, d) &= (unsigned(v) >> d) + r \\
+roundoff\_signed(v, d) &= (signed(v) >> d) + r
+\end{align}
+++++
 
 ==== Matrix Fixed-Point Saturation Flag, xmsat
 
