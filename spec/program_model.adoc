@@ -91,10 +91,10 @@ The `mcsr` register has 5 fields. The xmxrm, xmsat, xmfflags, xmfrm, xmsaten sep
 |===
 |  mrm  |  Mnemonic  |  meaning                                      |  Rounding Increment r
 
-|  00   |  RNU       |  round-to-nearest-up (add +0.5 LSB)           |  stem:[v[d-1\]]
-|  01   |  RNE       |  round-to-nearest-even                        |  stem:[v[d-1\] \& (v[d-2:0\] \neq 0 \| v[d\])]
+|  00   |  RNU       |  round-to-nearest-up (add +0.5 LSB)           |  `v[d-1]`
+|  01   |  RNE       |  round-to-nearest-even                        |  `v[d-1] & (v[d-2:0]!=0 \| v[d])`
 |  10   |  RDN       |  round-down (truncate)                        |  0
-|  11   |  ROD       |  round-to-odd (OR bits into LSB)              |  stem:[\neg v[d\] \& v[d-1:0\] \neq 0]
+|  11   |  ROD       |  round-to-odd (OR bits into LSB)              |  `!v[d] & v[d-1:0]!=0`
 |===
 
 The rounding functions are used to represent this operation in the instruction descriptions below:
