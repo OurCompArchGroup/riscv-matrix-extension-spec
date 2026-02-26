@@ -37,7 +37,7 @@ The matrix extension introduces the following architectural state:
 | xmsat      | 0x807 | URW | Fixed-point accrued saturation flag
 | xmfflags   | 0x808 | URW | Float-point accrued exception flags
 | xmfrm      | 0x809 | URW | Float-point rounding mode
-| xmsaten    | 0x80a | URW | Saturation mode enable
+| xmsaten    | 0x80a | URW | Saturation mode enable for fp8 or integer matrix multiplication instructions
 2+| _Total: 5 sub-field CSRs (also reflected as fields in xmcsr)_ 2+|
 
 | Token Registers
