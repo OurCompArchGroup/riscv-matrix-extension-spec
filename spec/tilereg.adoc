@@ -1,8 +1,8 @@
 The matrix extension adds 4 architectural **Tile Registers** (tr0-tr3) for input tile matrices and 4 architectural *Accumulation Registers* (acc0-acc3) for output accumulation matrices.
 
-A **Tile Register** has a fixed TLEN bits of state, where each row has TRLEN bits. As a result, there are stem:[TLEN / TRLEN] rows for each tile register in logic. When used for matrix A, the tile register holds stem:[M \times K] elements; when used for matrix B, it holds stem:[N \times K] elements, where stem:[K = TRLEN / EW] (EW is the element width in bits).
+A **Tile Register** has a fixed TLEN bits of state, where each row has TRLEN bits, giving stem:[ROWNUM = TLEN / TRLEN] rows. The active tile dimensions are configured at runtime by `mtilem/mtilek/mtilen`. When used for matrix A, the active region is stem:[M \times K]; when used for matrix B, it is stem:[N \times K]. The maximum dimensions are stem:[M \le ROWNUM], stem:[N \le ROWNUM], and stem:[K \le TRLEN / EW] (EW is the element width in bits).
 
-An **Accumulation Register** has a fixed ALEN bits of state, where each row has ARLEN bits. As a result, there are stem:[ALEN / ARLEN], which is equal to stem:[TLEN/TRLEN] rows for each acculation register in logic. 
+An **Accumulation Register** has a fixed ALEN bits of state, where each row has ARLEN bits, giving the same stem:[ROWNUM] rows as tile registers. The accumulation register stores the output matrix C, with active region stem:[M \times N]. The maximum dimensions are stem:[M \le ROWNUM] and stem:[N \le ARLEN / EW].
 
 The ARLEN is derived by stem:[ROWNUM \times ELEN]. The element size of accumulation registers should not be bigger than ELEN. When the output element width equals ELEN, each row of the accumulation register holds exactly ROWNUM elements, making the maximum N dimension equal to ROWNUM, same as the maximum M dimension. Operations with element width exceeding ELEN will raise an illegal instruction exception.
 
