@@ -109,7 +109,38 @@ The uop field (inst[27:26]) is the primary classifier that determines the instru
 
 ==== Configuration Instructions
 
-The func4 field distinguishes m/n/k configuration, and inst[25] indicates whether the configuration parameter is from imm10 field (inst[25]=0) or rs1 register (inst[25]=1).
+The func4 field distinguishes m/n/k configuration, and inst[25] indicates whether the configuration parameter is from imm10 field (inst[25]=0) or rs1 register (inst[25]=1). When inst[25]=0, the tile size is encoded as a 10-bit unsigned immediate (uimm10) in the instruction, which is suitable for compile-time known constant tile sizes; when inst[25]=1, the tile size is read from the general-purpose register rs1, which is used when the tile size is computed at runtime, such as handling the tail iterations of a tiling loop.
+
+===== Immediate Format (msettile{m|k|n}i)
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 10, name: 'uimm10[9:0]', type: 4},
+  {bits: 1,  name: '0', attr: '0', type: 8},
+  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', type: 5},
+], config: {lanes: 1, hspace: 1000}}
+....
+
+===== Register Format (msettile{m|k|n})
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 5,  name: 'rs1', type: 3},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 1,  name: '1', attr: '1', type: 8},
+  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', type: 5},
+], config: {lanes: 1, hspace: 1000}}
+....
 
 .Configuration Instructions (uop=00)
 [cols="^2,^2,^8"]
