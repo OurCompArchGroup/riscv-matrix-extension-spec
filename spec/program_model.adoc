@@ -40,6 +40,10 @@ The matrix extension introduces three categories of architectural state:
 
 | Token Registers
 | tok0-tok7/15/31 | 0x0-0x7/0xf/0x1f | - | 64-bit synchronization tokens for Zmasync (count reported by mtok)
+
+.2+| Modified Standard CSRs
+| mstatus/sstatus | 0x300/0x100 | MRW/SRW | Added MS[1:0] field for matrix context status
+| misa            | 0x301       | MRW     | Matrix extension indicated in Extensions field
 |===
 
 === Matrix Registers
