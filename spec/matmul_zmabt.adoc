@@ -1,4 +1,4 @@
-The function description of `C = A x BT` is as follows:
+The function description of stem:[C = A \times B^T] is as follows:
 ```
 #A[i,k] means the i row and j column element of ms1
 #B[j,k]  means the j row and k columns element of ms2
