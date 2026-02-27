@@ -14,7 +14,7 @@ The following parameters can be derived from the above fundamental parameters:
 . ALEN: The number of bits in a single matrix accumulation register, ALEN, which must be a power of 2, and must be no greater than 2^32^, stem:[ALEN = ARLEN \times ROWNUM].
 
 
-image::parameter_explanation.svg[alt="parameter explanation", align="center"]
+image::parameter_explanation.png[alt="parameter explanation", align="center"]
 
 
 The picture show examples for the tile register shape and the stem:[C += A \times B^T] matrix multiplication operation. For a tile register, when TLEN is 512bit and TRLEN is 128bit, stem:[ROWNUM = TLEN / TRLEN = 512 / 128 = 4].
