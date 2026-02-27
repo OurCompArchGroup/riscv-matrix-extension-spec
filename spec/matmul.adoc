@@ -2,7 +2,7 @@ Matrix multiplication operations take two matrix tiles, matrixA and matrixB, fro
 
 If the accumulation register is larger than the output matrix tile(matrixC) in bits, only the lower columns are updated and the higher parts are set by zeros.
 
-This simplified specification supports only signed int8 × int8 → int32 matrix multiplication.
+This simplified specification supports only signed `int8 x int8 -> int32` matrix multiplication.
 
 [cols="^2,^3,^3,^3"]
 |===

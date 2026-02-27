@@ -231,7 +231,7 @@ The func4 field defines load/store types (A/B/C matrix type, transpose type). In
 
 ==== Matrix Multiplication Instructions
 
-The A/B/C matrices come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix (d_size=10 for 32-bit). The s_size indicates the element size of A/B matrix (s_size=00 for 8-bit). The func4 is 0001 for integer matrix multiplication. For the current simplified specification, only signed int8 × int8 → int32 matrix multiplication is supported, where ctrl (inst[25:23]) = 011.
+The A/B/C matrices come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix (d_size=10 for 32-bit). The s_size indicates the element size of A/B matrix (s_size=00 for 8-bit). The func4 is 0001 for integer matrix multiplication. For the current simplified specification, only signed `int8 x int8 -> int32` matrix multiplication is supported, where ctrl (inst[25:23]) = 011.
 
 [wavedrom, ,svg]
 ....
@@ -253,7 +253,7 @@ The A/B/C matrices come from ms1/ms2/ms3 fields. The d_size field indicates the 
 [cols="^2,^8"]
 |===
 | *ctrl (inst[25:23])* | *Instruction*
-| 011                  | mmacc.w.b (int8 × int8 → int32)
+| 011                  | mmacc.w.b (int8 x int8 -> int32)
 |===
 
 ==== MISC Instructions
