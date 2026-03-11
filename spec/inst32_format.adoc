@@ -180,12 +180,12 @@ The func4 field defines load/store types (A/B/C matrix type, transpose type). In
 | *func4* | *inst[25] (ls)* | *Instruction*
 | 0000    | 0               | mlae8 (load A matrix)
 | 0001    | 0               | mlbe8 (load B matrix)
-| 0010    | 0               | mlce{8,16,32,64} (load C matrix)
-| 0010    | 1               | msce{8,16,32,64} (store C matrix)
+| 0010    | 0               | mlce{8,32} (load C matrix)
+| 0010    | 1               | msce{8,32} (store C matrix)
 | 0100    | 0               | mlate8 (load A matrix transpose)
 | 0101    | 0               | mlbte8 (load B matrix transpose)
-| 0110    | 0               | mlcte{8,16,32,64} (load C matrix transpose)
-| 0110    | 1               | mscte{8,16,32,64} (store C matrix transpose)
+| 0110    | 0               | mlcte{8,32} (load C matrix transpose)
+| 0110    | 1               | mscte{8,32} (store C matrix transpose)
 |===
 
 ==== Matrix Multiplication Instructions

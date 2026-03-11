@@ -21,9 +21,7 @@ mlbe8  md, (rs1), rs2         #  8-bit right tile load
 
 # For output matrix, C
 mlce8  md, (rs1), rs2         #  8-bit output tile load
-mlce16 md, (rs1), rs2         # 16-bit output tile load
 mlce32 md, (rs1), rs2         # 32-bit output tile load
-mlce64 md, (rs1), rs2         # 64-bit output tile load
 
 ```
 ==== Store Instructions
@@ -33,9 +31,7 @@ mlce64 md, (rs1), rs2         # 64-bit output tile load
 
 # For output matrix, C
 msce8  ms3, (rs1), rs2        #  8-bit output tile store
-msce16 ms3, (rs1), rs2        # 16-bit output tile store
 msce32 ms3, (rs1), rs2        # 32-bit output tile store
-msce64 ms3, (rs1), rs2        # 64-bit output tile store
 
 ```
 
@@ -53,9 +49,7 @@ mlbte8  md, (rs1), rs2        #  8-bit right tile load
 
 # For output matrix, C
 mlcte8  md, (rs1), rs2        #  8-bit output tile load
-mlcte16 md, (rs1), rs2        # 16-bit output tile load
 mlcte32 md, (rs1), rs2        # 32-bit output tile load
-mlcte64 md, (rs1), rs2        # 64-bit output tile load
 
 ```
 
@@ -67,9 +61,7 @@ mlcte64 md, (rs1), rs2        # 64-bit output tile load
 # For output matrix, C
 # tile size = mtilen * mtilem
 mscte8  ms3, (rs1), rs2       #  8-bit output tile store
-mscte16 ms3, (rs1), rs2       # 16-bit output tile store
 mscte32 ms3, (rs1), rs2       # 32-bit output tile store
-mscte64 ms3, (rs1), rs2       # 64-bit output tile store
 ```
 
 Executing matrix load or store instructions will result in illegal instruction exception under unsupported corresponding mtilem/mtilek/mtilen settings.

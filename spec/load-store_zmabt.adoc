@@ -3,8 +3,8 @@ The legal matrix shapes of load/store instructions are:
 
 *  mlae8: matrixA, mtilem stem:[\le] TLEN/TRLEN, mtilek stem:[\le] TRLEN/8
 *  mlbe8: matrixB, mtilen stem:[\le] TLEN/TRLEN, mtilek stem:[\le] TRLEN/8
-*  mlce<8/16/32/64>: matrixC, mtilem stem:[\le] TLEN/TRLEN, mtilen stem:[\le] ARLEN/<8/16/32/64>
-*  msce<8/16/32/64>: matrixC, mtilem stem:[\le] TLEN/TRLEN, mtilen stem:[\le] ARLEN/<8/16/32/64>
+*  mlce<8/32>: matrixC, mtilem stem:[\le] TLEN/TRLEN, mtilen stem:[\le] ARLEN/<8/32>
+*  msce<8/32>: matrixC, mtilem stem:[\le] TLEN/TRLEN, mtilen stem:[\le] ARLEN/<8/32>
 
 NOTE: Load A/B matrices only support 8-bit element width. There are no store instructions for A/B matrices.
 
@@ -12,7 +12,7 @@ The matrix tile loading to tile register is X rows and Y colunms elements.
 
 *  ml<a/at>e8: X = mtilem, Y = mtilek
 *  ml<b/bt>e8: X = mtilen, Y = mtilek
-*  ml<c/ct>e<8/16/32/64>: X = mtilem, Y = mtilen
+*  ml<c/ct>e<8/32>: X = mtilem, Y = mtilen
 
 
 Taking TLEN=512, TRLEN=128 , ELEN=32 and ALEN=512 as an example, the max matrix shapes are:
@@ -24,14 +24,8 @@ Taking TLEN=512, TRLEN=128 , ELEN=32 and ALEN=512 as an example, the max matrix 
 *  mlce8 / msce8
 ** matrixC: M = 4, N = 16
 
-*  mlce16 / msce16
-** matrixC: M = 4, N = 8
-
 *  mlce32 / msce32
 ** matrixC: M = 4, N = 4
-
-*  mlce64 / msce64
-** matrixC: M = 4, N = 2
 
 The  memory layout and matrix register layout is shown below:
 
