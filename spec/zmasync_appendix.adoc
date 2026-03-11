@@ -4,17 +4,17 @@
 
 include::async-store.adoc[]
 
-=== Token Registers
+=== Sync Registers
 
 include::tokenreg.adoc[]
 
-=== Token Register Count CSR, mtok
+=== Sync Register Count CSR, msync
 
-The read-only `mtok` CSR (address 0xCC4) reports the number of token registers in the implementation (e.g. 8 default, 16/32 optional).
+The read-only `msync` CSR (address 0xCC4) reports the number of sync registers in the implementation (e.g. 8 default, 16/32 optional).
 
 === Instruction Format
 
-The func4 field distinguishes different synchronization operations. The tok field (inst[24:20]) specifies the token register index. The ctrl field (inst[25]) is set to 0. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
+The func4 field distinguishes different synchronization operations. The tok field (inst[24:20]) specifies the sync register index. The ctrl field (inst[25]) is set to 0. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
 
 [wavedrom, ,svg]
 ....

@@ -22,15 +22,15 @@ the Zmasync extension introduces a new set of synchronization instructions.
 ==== Reset, Release and Acquire Instructions
 
 ```
-msyncregreset tok0           # Reset token register tok0 to 0
+msyncregreset tok0           # Reset sync register tok0 to 0
 
 mrelease      tok0           # Increment tok0 by 1,
                              # and `mrelease` cannot be committed until all in-flight matrix stores of current thread
                              # have been visible to the following vector loads or scalar loads.
 
 macquire      tok0, t0       # Block until tok0 >= t0
-                             # Takes a token register as an source register, and an integer register as another source register.
-                             # None of vector loads or scalar loads older than `macquire` can be executed until the token register is equal to or greater than the integer register.
+                             # Takes a sync register as an source register, and an integer register as another source register.
+                             # None of vector loads or scalar loads older than `macquire` can be executed until the sync register is equal to or greater than the integer register.
 
 ```
 
@@ -68,9 +68,9 @@ The `async_matmul` function is a non-blocking matrix multiplication function
 implemented with asynchronous matrix store instructions,
 which retires from the pipeline without waiting for the completion.
 After asynchronous matrix store instructions in `async_matmul` function is finally completed,
-`mrelease` will increment the token register by one.
+`mrelease` will increment the sync register by one.
 The `promotion` function is always executed after the `macquire` function.
-`macquire` ensures that the `promotion` function is executed when the token register is old enough.
+`macquire` ensures that the `promotion` function is executed when the sync register is old enough.
 
 image::deepgemm-in-ame-async.drawio.svg[alt="Resultant pipeline scheduling", align="center"]
 
@@ -81,7 +81,7 @@ If we replace `mrelease` with `fence` in the above pseudocode,
 which prevents the desired pipelining.
 
 Another schedule is also possible, as shown in the following figure,
-`macquire` only guarantees current token register is old enough,
+`macquire` only guarantees current sync register is old enough,
 but does not require an exact match.
 
 image::deepgemm-in-ame-async-another-schedule.drawio.svg[alt="Another pipeline scheduling result", align="center"]
