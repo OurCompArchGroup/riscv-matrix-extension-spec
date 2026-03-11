@@ -1,6 +1,6 @@
 The motivation of Zmasync is to allow matrix operations to be executed in asynchronously with
 vector operations,
-which is required by state-of-the-art kernel libraries, such as Flash Attention 3 and DeepGeMM.
+which is required by state-of-the-art kernel libraries, such as Flash Attention 3 and DeepGEMM.
 
 Take DeepGEMM as an example,
 each GEMM operation is executed in Tensor Core using WGMMA instructions,
