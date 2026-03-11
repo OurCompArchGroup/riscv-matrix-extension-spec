@@ -6,8 +6,6 @@ The matrix extension introduces the following architectural state:
 
 * **CSRs (Control and Status Registers)**: Nine CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
-* **Token Registers (Zmasync)**: 8/16/32 64-bit token registers for asynchronous store synchronization, enabling fine-grained pipelining between matrix store operations and subsequent loads.
-
 * **Modified Standard CSRs**: The matrix extension modifies two standard RISC-V CSRs: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector), and `misa` uses the Extensions field to indicate matrix extension support.
 
 .Matrix Extension Architectural State Summary
@@ -20,7 +18,7 @@ The matrix extension introduces the following architectural state:
 | acc0-acc3  | 0x4-0x7 | - | Accumulation registers (ALEN bits each), store output matrix C
 2+| _Total: 8 matrix registers_ 2+|
 
-.10+| CSRs
+.9+| CSRs
 | xmcsr      | 0x802 | URW | Matrix control and status register
 | mtilem     | 0x803 | URW | Tile length in m direction
 | mtilen     | 0x804 | URW | Tile length in n direction
@@ -29,8 +27,7 @@ The matrix extension introduces the following architectural state:
 | xtlenb     | 0xcc1 | URO | Tile register size, TLEN bits
 | xtrlenb    | 0xcc2 | URO | Tile register row size, TRLEN bits
 | xalenb     | 0xcc3 | URO | Accumulation register size, ALEN bits
-| mtok       | 0xcc4 | URO | Token register count (e.g. 8 default, 16/32 optional)
-2+| _Total: 9 CSRs_ 2+|
+2+| _Total: 8 CSRs_ 2+|
 
 .6+| xmcsr Sub-field CSRs
 | xmxrm      | 0x806 | URW | Fixed-point rounding mode
@@ -39,9 +36,6 @@ The matrix extension introduces the following architectural state:
 | xmfrm      | 0x809 | URW | Float-point rounding mode
 | xmsaten    | 0x80a | URW | Saturation mode enable for fp8 or integer matrix multiplication instructions
 2+| _Total: 5 sub-field CSRs (also reflected as fields in xmcsr)_ 2+|
-
-| Token Registers
-| tok0-tok7/15/31 | 0x0-0x7/0xf/0x1f | - | 64-bit synchronization tokens for Zmasync (count reported by mtok)
 
 .2+| Modified Standard CSRs
 | mstatus/sstatus | 0x300/0x100 | MRW/SRW | Added MS[1:0] field for matrix context status
@@ -168,10 +162,6 @@ Conversion from all other values first applies rounding to reduce the mantissa b
         mmacc operations: ignore the overflow and wrap around the result       
         integer arithmetic operations: ignore the overflow and wrap around the result       
 
-
-=== Token Registers
-
-include::tokenreg.adoc[]
 
 === Matrix Context Status in mstatus and sstatus
 

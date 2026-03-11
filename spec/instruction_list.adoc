@@ -18,18 +18,6 @@
 |===
 
 
-.Matrix Asynchronous Store Synchronization Instructions (Zmasync)
-[cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
-|===
-.2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
-                      | *func* | *uop* |  *ctrl*  | *tok* | *rs1*    |  *func3*   |  *nop*       | *opcode*
-      | msyncregreset | 1000   | 00	   |  0	      | tok   | 00000    |   000      |	00000        | major opcode
-      | mrelease  	  | 1001   | 00	   |  0	      | tok   | 00000    |   000      |	00000        | major opcode
-      | macquire	  | 1010   | 00	   |  0	      | tok   | rs1      |	 000      |	00000        | major opcode
-
-|===
-
-
 .Matrix MISC Instructions
 [cols="^5,^3,^2,^2,^2,^2,^2,^2,^2,^2,^2,^5"]
 |===
