@@ -2,7 +2,7 @@
 
 Each hart supporting a matrix extension defines three parameters:
 
-. ELEN: The maximum size in bits of a matrix element that any operation can produce or consume, stem:[\rm{ELEN} \ge 8], which must be a power of 2.
+. ELEN: The maximum size in bits of a matrix element that any operation can produce or consume, which must be a power of 2.
 . TRLEN: The number of bits in a row of a single matrix tile register, TRLEN, which must be a power of 2, and must be no greater than 2^16^.
 . TLEN: The number of bits in a single matrix tile register, TLEN, which must be a power of 2, and must be no greater than 2^32^.
 
