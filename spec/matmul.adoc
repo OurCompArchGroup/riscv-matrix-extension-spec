@@ -10,7 +10,7 @@ This simplified specification supports only signed `int8 x int8 -> int32` matrix
 |     Int    |   mmacc.w.b              |    int8                 |  int32
 |===
 
-The mmacc.w.b is int8 matrix multiplication operation. If `xmsaten` equals 1, the output should be saturated. Otherwise, the mmacc operations ignore the overflow and wrap around the result.
+The mmacc.w.b is int8 matrix multiplication operation. If `msaten` equals 1, the output should be saturated. Otherwise, the mmacc operations ignore the overflow and wrap around the result.
 
 ```
 # integer matrix multiplication and add, md = md + ms1 * ms2.
