@@ -3,3 +3,18 @@
 
 # Generated images
 spec/images/stem-*.svg
+
+# Environment and editor files
+.envrc
+*.kiro
+*.kiro.bak
+
+# Planning and draft files
+draft.md
+plan.md
+
+# Claude Code configuration
+CLAUDE.md
+
+# Humanize loop state
+.humanize/
