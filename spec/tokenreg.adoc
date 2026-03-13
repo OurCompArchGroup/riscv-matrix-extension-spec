@@ -1,4 +1,4 @@
 Traditional `fence` instructions are coarse-grained and always block the processor pipeline, which may cause performance degradation. To allow flexible synchronization and pipelining, the Zmasync extension introduces a new register file, which is used to store the synchronization tokens.
 
-Sync registers are 64-bit registers. Sync register file contains 8/16/32 sync registers. The number of sync registers is indicated by the `msync` CSR (address 0xCC4). Sync registers are indexed using a 5-bit field (tok[4:0]) in the instruction encoding.
+Sync registers are 64-bit registers. Sync register file contains 8/16/32 sync registers. The number of sync registers is indicated by the `msync` CSR (address 0xCC7). Sync registers are indexed using a 5-bit field (tok[4:0]) in the instruction encoding.
 
