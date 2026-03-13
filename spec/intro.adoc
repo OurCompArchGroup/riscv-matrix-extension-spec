@@ -2,4 +2,4 @@
 
 This document is a matrix extension proposal for RISC-V. 
 
-The extension chooses a decoupled architecture from the vector extension for the flexibility and implementation considerations. This extension defines extra matrix registers and instructions. The instructions include matrix configuration instructions (`msettile{m|k|n}[i]`), matrix multiplication instructions (stem:[C += A \times B^T]), matrix load/store instructions, and matrix misc instructions.
+The extension chooses a decoupled architecture from the vector extension for the flexibility and implementation considerations. This extension defines extra matrix registers and instructions. The instructions include matrix configuration instructions, matrix multiplication instructions (stem:[C += A \times B^T]), matrix load/store instructions, and matrix misc instructions.
