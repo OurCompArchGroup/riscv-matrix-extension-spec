@@ -4,9 +4,9 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
-* **CSRs (Control and Status Registers)**: Nine CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
+* **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
-* **Modified Standard CSRs**: The matrix extension modifies two standard RISC-V CSRs: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector), and `misa` uses the Extensions field to indicate matrix extension support.
+* **Modified Standard CSRs**: The matrix extension modifies one standard RISC-V CSR: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector). The `misa` CSR is not modified; the Zames extension is reported via device tree.
 
 .Matrix Extension Architectural State Summary
 [cols="^2,^2,^2,^2,^6",options="header"]
@@ -19,27 +19,28 @@ The matrix extension introduces the following architectural state:
 2+| _Total: 8 matrix registers_ 2+|
 
 .9+| CSRs
-| xmcsr      | 0x802 | URW | Matrix control and status register
-| mtilem     | 0x803 | URW | Tile length in m direction
-| mtilen     | 0x804 | URW | Tile length in n direction
-| mtilek     | 0x805 | URW | Tile length in k direction
-| xmisa      | 0xcc0 | URO | Supported matrix instruction subsets
-| xtlenb     | 0xcc1 | URO | Tile register size, TLEN bits
-| xtrlenb    | 0xcc2 | URO | Tile register row size, TRLEN bits
-| xalenb     | 0xcc3 | URO | Accumulation register size, ALEN bits
-2+| _Total: 8 CSRs_ 2+|
+| mcsr      | 0x802 | URW | Matrix control and status register
+| mtilem     | 0xcc4 | URO | Tile length in m direction
+| mtilen     | 0xcc5 | URO | Tile length in n direction
+| mtilek     | 0xcc6 | URO | Tile length in k direction
+| tlenb     | 0xcc1 | URO | Tile register size, TLEN bits
+| trlenb    | 0xcc2 | URO | Tile register row size, TRLEN bits
+| alenb     | 0xcc3 | URO | Accumulation register size, ALEN bits
+2+| _Total: 7 CSRs_ 2+|
 
-.6+| xmcsr Sub-field CSRs
-| xmxrm      | 0x806 | URW | Fixed-point rounding mode
-| xmsat      | 0x807 | URW | Fixed-point accrued saturation flag
-| xmfflags   | 0x808 | URW | Float-point accrued exception flags
-| xmfrm      | 0x809 | URW | Float-point rounding mode
-| xmsaten    | 0x80a | URW | Saturation mode enable for fp8 or integer matrix multiplication instructions
-2+| _Total: 5 sub-field CSRs (also reflected as fields in xmcsr)_ 2+|
+.6+| mcsr Sub-field CSRs
+| mxrm      | 0x806 | URW | Fixed-point rounding mode
+| msat      | 0x807 | URW | Fixed-point accrued saturation flag
+| mfflags   | 0x808 | URW | Float-point accrued exception flags
+| mfrm      | 0x809 | URW | Float-point rounding mode
+| msaten    | 0x80a | URW | Saturation mode enable for fp8 or integer matrix multiplication instructions
+2+| _Total: 5 sub-field CSRs (also reflected as fields in mcsr)_ 2+|
 
-.2+| Modified Standard CSRs
+.2+| Modified Standard CSR
 | mstatus/sstatus | 0x300/0x100 | MRW/SRW | Added MS[1:0] field for matrix context status
-| misa            | 0x301       | MRW     | Matrix extension indicated in Extensions field
+
+| Standard CSR (not modified)
+| misa            | 0x301       | MRW     | Not modified (Zames reported via device tree)
 |===
 
 === Matrix Registers
@@ -48,38 +49,57 @@ include::tilereg.adoc[]
 
 === CSR Registers
 
-==== Matrix ISA Register, xmisa
+==== Matrix ISA Capabilities (Device Tree)
 
-The read-only XLEN-wide CSR, `misa`, specifying the supported matrix arithmetic feature of the current hardware implementation. 
+Matrix ISA capabilities are reported via the device tree rather than through a dedicated CSR. The `/cpus/cpu@X` node in the device tree includes a `riscv,matrix-isa-caps` property that specifies the supported matrix operation types using a notation similar to NVIDIA's format: `<input_type_a><input_type_b><output_type_c>`.
 
-include::misa.adoc[]
+For example, `i8i8i32` indicates support for int8 × int8 → int32 matrix multiplication.
+
+Conversion-only operations use the format `<input_type><output_type>cvt` (e.g., `bf16scvt` for BF16↔FP32 conversions).
+
+Type abbreviations: `i8`=int8, `i32`=int32, `bf16`=bfloat16, `h`=fp16, `s`=fp32 (single), `e5`=fp8-E5M2, `e4`=fp8-E4M3, `fp8`=any fp8 format (covers both E5M2 and E4M3).
+
+Note: Instructions that support both fp16 and bf16 output formats with the same inputs should advertise both capability strings (e.g., an instruction supporting fp8-E5M2×fp8-E5M2→fp16/bf16 should advertise both `e5e5h` and `e5e5bf16`).
+
+.Device Tree Example
+[source,dts]
+----
+cpus {
+    cpu@0 {
+        compatible = "riscv";
+        riscv,isa = "rv64imafdcv";
+        riscv,isa-extensions = "zames";
+        riscv,matrix-isa-caps = "i8i8i32";
+    };
+};
+----
 
 ==== Matrix Tile Size Registers, mtilem/mtilek/mtilen
 
 The XLEN-bit-wide read-only `mtilem/mtilek/mtilen` CSRs can only be updated by the `msettile{m|k|n}{i}` instructions. The registers holds 3 unsigned integers specifying the tile shapes for tiled matrix.
 
-==== Matrix Control and Status Register, xmcsr
+==== Matrix Control and Status Register, mcsr
 
-The `xmcsr` CSR is a WARL read-write register. Bits[XLEN-1:12] are reserved and should be written with zero. 
-The `mcsr` register has 5 fields. The xmxrm, xmsat, xmfflags, xmfrm, xmsaten separate CSRs can also be accessed via fields in the matrix control and status CSR, xmcsr.
+The `mcsr` CSR is a WARL read-write register. Bits[XLEN-1:12] are reserved and should be written with zero. 
+The `mcsr` register has 5 fields. The mxrm, msat, mfflags, mfrm, msaten separate CSRs can also be accessed via fields in the matrix control and status CSR, mcsr.
 
-.`xmcsr` register layout
+.`mcsr` register layout
 [cols="^2,^2,8"]
 |===
 |     Bits | Name       | Description
 | XLEN-1:12| 0          | Reserved if non-zero.
-|       11 | xmsaten    | integer and fp8 saturation mode.
-|     10:8 | xmfrm      | Float-point arithmetic instruction rounding mode.
-|      7:3 | xmfflags	| Float-point arithmetic instruction accrued exception flags
-|        2 | xmsat      | Fixed-point arithmetic instruction accrued saturation flag.
-|      1:0 | xmxrm      | Fixed-point arithmetic instruction rounding mode.
+|       11 | msaten    | integer and fp8 saturation mode.
+|     10:8 | mfrm      | Float-point arithmetic instruction rounding mode.
+|      7:3 | mfflags	| Float-point arithmetic instruction accrued exception flags
+|        2 | msat      | Fixed-point arithmetic instruction accrued saturation flag.
+|      1:0 | mxrm      | Fixed-point arithmetic instruction rounding mode.
 |===
 
-=== xmcsr Sub-field CSRs
+=== mcsr Sub-field CSRs
 
-==== Matrix Fixed-Point Rounding Mode, xmxrm
+==== Matrix Fixed-Point Rounding Mode, mxrm
 
-`xmrm` field indicates the rounding mode of fixed-point instructions. Suppose the pre-rounding result is v, and d bits of that result are to be rounded off. Then the rounded result is `(v >> d) + r`, where r depends on the rounding mode as specified in the following table.
+`mxrm` field indicates the rounding mode of fixed-point instructions. Suppose the pre-rounding result is v, and d bits of that result are to be rounded off. Then the rounded result is `(v >> d) + r`, where r depends on the rounding mode as specified in the following table.
 
 [cols="^2,^4,^9,7"]
 |===
@@ -98,15 +118,15 @@ roundoff_unsigned(v, d) = (unsigned(v) >> d) + r
 roundoff_signed(v, d)   = (signed(v) >> d) + r
 ```
 
-==== Matrix Fixed-Point Saturation Flag, xmsat
+==== Matrix Fixed-Point Saturation Flag, msat
 
-The matrix fixed-point saturation flag `xmxsat` holds a single read-write least-significant bit(`xmxsat[0]`) that indicates if a fixed-point instruction has had to saturate an output value to fit into a destination format. The upper bits, `xmxsat[XLEN-1:1]`, should be written as zeros.
-The matrix fixed-point saturation flag(xmxsat)  is given a separate CSR address to allow independent access, but is also reflected as a field in xmcsr.
+The matrix fixed-point saturation flag `msat` holds a single read-write least-significant bit(`msat[0]`) that indicates if a fixed-point instruction has had to saturate an output value to fit into a destination format. The upper bits, `msat[XLEN-1:1]`, should be written as zeros.
+The matrix fixed-point saturation flag(msat)  is given a separate CSR address to allow independent access, but is also reflected as a field in mcsr.
 
-==== Matrix Float-Point Exception Flags, xmfflags
-The matrix float-point exception flags(`xmfflags`) holds a five-bit read-write fields in the least-significant bits(`xmfflags[4:0]`). The upper bits, `xmfflags[XLEN-1:5]`, should be written as zeros.
-The matrix float-point exception flags(xmfflags)  is given a separate CSR address to allow independent access, but is also reflected as a field in xmcsr.
-The float matrix multiplication and float pointwise instructions update accrued exception fflags in xmfflags.
+==== Matrix Float-Point Exception Flags, mfflags
+The matrix float-point exception flags(`mfflags`) holds a five-bit read-write fields in the least-significant bits(`mfflags[4:0]`). The upper bits, `mfflags[XLEN-1:5]`, should be written as zeros.
+The matrix float-point exception flags(mfflags)  is given a separate CSR address to allow independent access, but is also reflected as a field in mcsr.
+The float matrix multiplication and float pointwise instructions update accrued exception fflags in mfflags.
 [cols="^2,^5"]
 |===
 |  bits     |  Meaning      
@@ -118,10 +138,10 @@ The float matrix multiplication and float pointwise instructions update accrued 
 |  4        |  NV
 |===
 
-==== Matrix Float-Point Rounding Mode, xmfrm
+==== Matrix Float-Point Rounding Mode, mfrm
 
-The matrix float-point rounding mode `xmfrm` holds a three-bit read-write fiels in the least-significant bits(`xmfrm[2:0]`). The upper bits, `xmfrm[XLEN-1:3]`, should be written as zeros.
-The matrix float-point rounding mode `xmfrm` is given a separate CSR address to allow independent access, but is also reflected as a field in xmcsr.
+The matrix float-point rounding mode `mfrm` holds a three-bit read-write fiels in the least-significant bits(`mfrm[2:0]`). The upper bits, `mfrm[XLEN-1:3]`, should be written as zeros.
+The matrix float-point rounding mode `mfrm` is given a separate CSR address to allow independent access, but is also reflected as a field in mcsr.
 
 [cols="^1,^1,<4"]
 |===
@@ -136,11 +156,11 @@ The matrix float-point rounding mode `xmfrm` is given a separate CSR address to 
 |  111  |            | Invalid
 |===
 
-If `xmfrm` is set to an invalid value (101-111), any subsequent attempt to execute a floating-point operation with a dynamic rounding mode will cause an illegal instruction exception. 
+If `mfrm` is set to an invalid value (101-111), any subsequent attempt to execute a floating-point operation with a dynamic rounding mode will cause an illegal instruction exception. 
 
-==== Matrix Saturation Mode Enable, xmsaten
-The matrix saturation mode `xmsaten` holds a single read-write least-significant bit(`xmsaten[0]`) that defines the saturation mode when the operation result is fp8 or integer. The upper bits, `xmfp8sat[XLEN-1:1]`, should be written as zeros.
-The matrix saturation mode(xmsaten)  is given a separate CSR address to allow independent access, but is also reflected as a field in xmcsr.
+==== Matrix Saturation Mode Enable, msaten
+The matrix saturation mode `msaten` holds a single read-write least-significant bit(`msaten[0]`) that defines the saturation mode when the operation result is fp8 or integer. The upper bits, `msaten[XLEN-1:1]`, should be written as zeros.
+The matrix saturation mode(msaten)  is given a separate CSR address to allow independent access, but is also reflected as a field in mcsr.
 
 [cols="^2,^5"]
 |===
@@ -167,7 +187,7 @@ Conversion from all other values first applies rounding to reduce the mantissa b
 
 A 2-bit matrix context status field, MS, should be added to mstatus and shadowed in sstatus. It is defined analogously to the vector context status field, VS.
 
-The MS field is located at bits [??:??] in both mstatus and sstatus registers.
+The MS field is located at bits [26:25] in both mstatus and sstatus registers.
 
 .mstatus register layout (RV64)
 [wavedrom, ,svg]
@@ -192,7 +212,9 @@ The MS field is located at bits [??:??] in both mstatus and sstatus registers.
   {bits: 1,  name: 'TVM', attr: '20', type: 4},
   {bits: 1,  name: 'TW', attr: '21', type: 4},
   {bits: 1,  name: 'TSR', attr: '22', type: 4},
-  {bits: 9,  name: '0', attr: '[31:23]', type: 8},
+  {bits: 2,  name: '0', attr: '[24:23]', type: 8},
+  {bits: 2,  name: 'MS', attr: '[26:25]', type: 5},
+  {bits: 5,  name: '0', attr: '[31:27]', type: 8},
   {bits: 2,  name: 'UXL', attr: '[33:32]', type: 5},
   {bits: 2,  name: 'SXL', attr: '[35:34]', type: 5},
   {bits: 1,  name: 'SBE', attr: '[36]', type: 5},
@@ -261,4 +283,6 @@ The misa CSR is a WARL read-write register reporting the ISA supported by the ha
 | 24 | Y | Reserved
 | 25 | Z | Reserved
 |===
+
+The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node. Software can discover the presence of Zames by checking for the string "zames" in this property.
 
