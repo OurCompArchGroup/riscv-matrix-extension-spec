@@ -6,7 +6,7 @@ The matrix extension introduces the following architectural state:
 
 * **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
-* **Modified Standard CSRs**: The matrix extension modifies one standard RISC-V CSR: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector). The `misa` CSR is not modified; the Zames extension is reported via device tree.
+* **Modified Standard CSRs**: The matrix extension modifies one standard RISC-V CSR: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector). The Zames extension is not indicated in the `misa` Extensions field; it is reported via device tree.
 
 .Matrix Extension Architectural State Summary
 [cols="^2,^2,^2,^2,^6",options="header"]
@@ -18,7 +18,7 @@ The matrix extension introduces the following architectural state:
 | acc0-acc3  | 0x4-0x7 | - | Accumulation registers (ALEN bits each), store output matrix C
 2+| _Total: 8 matrix registers_ 2+|
 
-.9+| CSRs
+.8+| CSRs
 | mcsr      | 0x802 | URW | Matrix control and status register
 | mtilem     | 0xcc4 | URO | Tile length in m direction
 | mtilen     | 0xcc5 | URO | Tile length in n direction
@@ -36,11 +36,9 @@ The matrix extension introduces the following architectural state:
 | msaten    | 0x80a | URW | Saturation mode enable for fp8 or integer matrix multiplication instructions
 2+| _Total: 5 sub-field CSRs (also reflected as fields in mcsr)_ 2+|
 
-.2+| Modified Standard CSR
+.2+| Modified Standard CSRs
 | mstatus/sstatus | 0x300/0x100 | MRW/SRW | Added MS[1:0] field for matrix context status
-
-| Standard CSR (not modified)
-| misa            | 0x301       | MRW     | Not modified (Zames reported via device tree)
+| misa            | 0x301       | MRW     | Zames is not indicated in Extensions field (reported via device tree)
 |===
 
 === Matrix Registers
