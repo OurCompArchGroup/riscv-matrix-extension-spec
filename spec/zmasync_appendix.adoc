@@ -2,15 +2,55 @@
 
 === Overview
 
-include::async-store.adoc[]
+The Zmasync extension enables asynchronous execution of matrix operations within a single core. The term "asynchronous" in this context specifically refers to asynchrony between different functional units within a single core (not multi-core or multi-hart asynchrony). This allows matrix operations to overlap with other operations, such as vector or scalar computations, within the same hart.
 
-=== Sync Registers
+When the Zmasync extension is implemented together with the AME (Attached Matrix Extension) or its simplified variant, the behavior of matrix load/store/mma/mzero instructions changes: these instructions become non-blocking without any modification to their instruction encoding. This behavioral change enables flexible software pipelining and improved utilization of hardware resources.
+
+The motivation of Zmasync is to allow matrix operations to be executed in asynchronously with
+vector operations,
+which is required by state-of-the-art kernel libraries, such as Flash Attention 3 and DeepGEMM.
+
+Take DeepGEMM as an example,
+each GEMM operation is executed in Tensor Core using WGMMA instructions,
+then is promoted to full fp32 in CUDA core.
+Asynchronous WGMMA instructions make it possible to fully utilize the Tensor Core by
+another GEMM operation when CUDA core is doing promotion.
+
+image::deepgemm.png[alt="DeepGEMM", align="center"]
+
+To achieve this,
+the Zmasync extension introduces asynchronous matrix store instructions,
+which are 1) committed immediately from the pipeline without waiting for the completion, and
+2) not guaranteed to be visible to the following vector loads or scalar loads.
+Commiting immediately from the pipeline allows flexible software pipelining,
+for example, precision promotion like in DeepGEMM.
+To ensure the visibility of the store operations,
+the Zmasync extension introduces a new set of synchronization instructions.
+
+=== Programmer's Model
+
+==== Sync Registers
 
 include::tokenreg.adoc[]
 
-=== Sync Register Count CSR, msync
+==== Sync Register Count CSR, msync
 
-The read-only `msync` CSR (address 0xCC4) reports the number of sync registers in the implementation (e.g. 8 default, 16/32 optional).
+The read-only `msync` CSR (address 0xCC7) reports the number of sync registers in the implementation (e.g. 8 default, 16/32 optional).
+
+==== Reset, Release and Acquire Instructions
+
+```
+msyncregreset tok0           # Reset sync register tok0 to 0
+
+mrelease      tok0           # Increment tok0 by 1,
+                             # and `mrelease` cannot be committed until all in-flight matrix stores of current thread
+                             # have been visible to the following vector loads or scalar loads.
+
+macquire      tok0, t0       # Block until tok0 >= t0
+                             # Takes a sync register as an source register, and an integer register as another source register.
+                             # None of vector loads or scalar loads older than `macquire` can be executed until the sync register is equal to or greater than the integer register.
+
+```
 
 === Instruction Format
 
@@ -39,8 +79,6 @@ The func4 field distinguishes different synchronization operations. The tok fiel
 | 1010    | macquire
 |===
 
-=== Instruction Encoding
-
 .Matrix Asynchronous Store Synchronization Instructions (Zmasync)
 [cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
 |===
@@ -50,3 +88,89 @@ The func4 field distinguishes different synchronization operations. The tok fiel
       | mrelease  	  | 1001   | 00	   |  0	      | tok   | 00000    |   000      |	00000        | major opcode
       | macquire	  | 1010   | 00	   |  0	      | tok   | rs1      |	 000      |	00000        | major opcode
 |===
+
+=== Instructions
+
+==== Non-Blocking Behavior of Matrix Operations
+
+When Zmasync is implemented with AME, the matrix load, store, mma (matrix multiply-accumulate), and mzero instructions exhibit non-blocking behavior. Each instruction performs a single virtual-to-physical address translation at dispatch time (before instruction commit). Once the physical address is resolved, the instruction accesses memory using this physical address without performing further address translations during the asynchronous execution phase.
+
+This address translation strategy has important implications:
+
+1. **No Deadlock with Async Instructions**: Address translation completes before the instruction commits and before any asynchronous memory operations begin. This ensures that page table walks do not interfere with or block on the completion of asynchronous matrix operations.
+
+2. **Physical Page Contiguity Requirement**: The accessed matrix region must occupy physically contiguous pages. Since address translation occurs only once at dispatch, the hardware assumes that subsequent accesses within the matrix can be computed using simple offset arithmetic from the initial physical base address.
+
+==== Address Calculation
+
+For a row-major matrix with element size `esize` bytes, the virtual and physical addresses of element at position (row, col) are calculated as follows:
+
+**Virtual Address:**
+```
+vaddr(row, col) = base_vaddr + row * row_stride_bytes + col * esize
+```
+
+Where `row_stride_bytes` is the number of bytes per row as specified by the matrix dimensions.
+
+**Physical Address:**
+```
+paddr(row, col) = phys_base + (vaddr(row, col) - virt_base)
+```
+
+This formula is valid only when the matrix region occupies physically contiguous pages. Here, `phys_base` is the physical address corresponding to `virt_base` (the virtual base address of the matrix), computed as:
+
+```
+phys_base = phys_page_of(base_vaddr) + page_offset(base_vaddr)
+```
+
+==== Usage Example: DeepGEMM in AME with Zmasync
+
+```
+void async_matmul(c);  // output matrix c
+
+void promotion(c);
+
+void deepgemm_kernel() {
+    ...
+
+    tok0 = msyncregreset();
+
+    async_matmul(c[0]);
+    mrelease(tok0);  // tok0 becomes 1
+
+    num_iterations = 10;
+    for (i = 0; i < num_iterations; i++) {
+        if (i < num_iterations - 1) {
+            async_matmul(c[i + 1]);  // non-blocking
+            mrelease(tok0);  // tok0 becomes i + 1
+        }
+
+        macquire(tok0, i);  // wait until tok0 >= i
+        promotion(c[i]);
+    }
+    ...
+}
+```
+
+Above pseudocode gives an example of how to use Zmasync to implement DeepGEMM in AME.
+The `async_matmul` function is a non-blocking matrix multiplication function
+implemented with asynchronous matrix store instructions,
+which retires from the pipeline without waiting for the completion.
+After asynchronous matrix store instructions in `async_matmul` function is finally completed,
+`mrelease` will increment the sync register by one.
+The `promotion` function is always executed after the `macquire` function.
+`macquire` ensures that the `promotion` function is executed when the sync register is old enough.
+
+image::deepgemm-in-ame-async.drawio.svg[alt="Resultant pipeline scheduling", align="center"]
+
+Compared with the traditional fence instructions,
+token age based synchronization is more flexible.
+If we replace `mrelease` with `fence` in the above pseudocode,
+`promotion` will always be executed after the `async_matmul` function inside the for loop,
+which prevents the desired pipelining.
+
+Another schedule is also possible, as shown in the following figure,
+`macquire` only guarantees current sync register is old enough,
+but does not require an exact match.
+
+image::deepgemm-in-ame-async-another-schedule.drawio.svg[alt="Another pipeline scheduling result", align="center"]
