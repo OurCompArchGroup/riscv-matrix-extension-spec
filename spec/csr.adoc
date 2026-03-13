@@ -1,24 +1,23 @@
-Matrix extension adds eight two-dimensional matrix registers and eight CSRs.
+Matrix extension adds eight two-dimensional matrix registers and seven CSRs.
 [cols="^2,^2,^2,10",options="header"]
 |===
 | Address | Privilege | Name | Description
-| 0x802   |    URW       | xmcsr     | matrix control and status register
-| 0x803   |    URW       | mtilem    | Tile length in m direction.
-| 0x804   |    URW       | mtilen    | Tile length in n direction.
-| 0x805   |    URW       | mtilek    | Tile length in k direction.
-| 0xcc0   |    URO       | xmisa     | matrix instruction subset
-| 0xcc1   |    URO       | xtlenb    | tile register size, TLEN bits
-| 0xcc2   |    URO       | xtrlenb   | tile register row size, TRLEN bits
-| 0xcc3   |    URO       | xalenb    | accumulation register size, ALEN bits
+| 0x802   |    URW       | mcsr     | matrix control and status register
+| 0xcc4   |    URO       | mtilem    | Tile length in m direction.
+| 0xcc5   |    URO       | mtilen    | Tile length in n direction.
+| 0xcc6   |    URO       | mtilek    | Tile length in k direction.
+| 0xcc1   |    URO       | tlenb    | tile register size, TLEN bits
+| 0xcc2   |    URO       | trlenb   | tile register row size, TRLEN bits
+| 0xcc3   |    URO       | alenb    | accumulation register size, ALEN bits
 |===
 
-Matrix extention gives seperate CSR address to allow independent access of xmxrm/xmsat/xmfflags/xmfrm/xmsat which is also reflected as a field in xmcsr.
+Matrix extention gives seperate CSR address to allow independent access of mxrm/msat/mfflags/mfrm/msat which is also reflected as a field in mcsr.
 [cols="^2,^2,^2,10",options="header"]
 |===
 | Address | Privilege | Name | Description
-| 0x806   |    URW       | xmxrm     | Fixed-point rounding mode
-| 0x807   |    URW       | xmsat     | Fixed-point accrued saturation flag
-| 0x808   |    URW       | xmfflags  | float-point accrued exception flags
-| 0x809   |    URW       | xmfrm     | float-point rounding mode
-| 0x80a   |    URW       | xmsaten   | saturation  mode enable for fp8 or integer matrix multiplication instructions 
+| 0x806   |    URW       | mxrm     | Fixed-point rounding mode
+| 0x807   |    URW       | msat     | Fixed-point accrued saturation flag
+| 0x808   |    URW       | mfflags  | float-point accrued exception flags
+| 0x809   |    URW       | mfrm     | float-point rounding mode
+| 0x80a   |    URW       | msaten   | saturation  mode enable for fp8 or integer matrix multiplication instructions 
 |===
