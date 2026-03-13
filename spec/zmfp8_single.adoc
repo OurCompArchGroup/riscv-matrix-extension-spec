@@ -1,4 +1,4 @@
-For mfmacc.s.<e5/e4> instruction, the source is E5M2/E4M3 8-bit floating-point, and the result is fp32 result, these instructions are illegal if bit[9]  of xmisa register is 0.
+For mfmacc.s.<e5/e4> instruction, the source is E5M2/E4M3 8-bit floating-point, and the result is fp32 result, these instructions require `e5e5s` (for E5M2) or `e4e4s` (for E4M3) in device-tree `riscv,matrix-isa-caps` property.
 
 The legal matrix shape of  mfmacc.s.<e5/e4> is:
 
@@ -15,7 +15,7 @@ The mfmacc.s.<e5/e4> instructions requires ELEN>=32.
  mfmacc.s.e4 md, ms2, ms1
 ```
 
-For conversion between fp8 and fp32,  legal if bit[XLEN-2] and bit[9] of xmisa register are both set to 1, illegal in all other cases.
+For conversion between fp8 and fp32, requires `fp8scvt` in device-tree `riscv,matrix-isa-caps` property.
 
 The mfcvt<l/h>.<e5/e4>.s instructions are used to convert a single float-point source into a 4x narrower destination. The mfcvtl.<e5/e4>.s write back to the first quater of md and the mfcvth.<e5/e4>.s write back to the second quater of md, the rest parts of md are kept undisturbed.  The matrix size configurations are ignored for mfcvt<l/h>.<e5/e4>.s instructions. 
 
