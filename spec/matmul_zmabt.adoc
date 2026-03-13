@@ -15,7 +15,7 @@ for(int i=0; i<sizeM; i++) {
 
 The integer matrix multiplication with destination data width is quad-widen that of the source data width. The source operand data width is int8. The result of multiplication is sign-extended before addition and accumulation. The overflow is processed depends on the msaten mode. If the msaten is 1, the overflow result should be saturated to the maximum number, and if the msaten is 0, the overflow result should be wrap around.
 
-*  mmacc.w.b:  int8 quad-widen matrix multiplication, illegal if bit[1] of xmisa register is 0.
+*  mmacc.w.b:  int8 quad-widen matrix multiplication, requires `i8i8i32` in device-tree `riscv,matrix-isa-caps` property.
 
 ```
 #8bit data width
