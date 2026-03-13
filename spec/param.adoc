@@ -3,14 +3,14 @@
 Each hart supporting a matrix extension defines three parameters:
 
 . ELEN: The maximum size in bits of a matrix element that any operation can produce or consume, which must be a power of 2.
-. TRLEN: The number of bits in a row of a single matrix tile register, which defines the maximum number of elements per row of the supported matrix (i.e., the maximum K dimension). TRLEN must be a power of 2, and must be no greater than 2^16^.
+. TRLEN: The number of bits in a row of a single matrix tile register, which defines the maximum number of bits per row of the supported matrix (i.e., the maximum K dimension in bits, stem:[k \times element\_size]). TRLEN must be a power of 2, and must be no greater than 2^16^.
 . TLEN: The number of bits in a single matrix tile register, TLEN, which must be a power of 2, and must be no greater than 2^32^.
 
 
 The following parameters can be derived from the above fundamental parameters:
 
 . ROWNUM: The number of rows of a tile register, equals to stem:[TLEN/TRLEN], which must be a power of 2. For the matrix multiplication stem:[C += A \times B^T], the tile register stores input matrix A (stem:[M \times K]), and the accumulation register stores output matrix C (stem:[M \times N]). Since A and C share the M dimension, the accumulation register has the same row count (ROWNUM) as the tile register. For example, when TLEN=512 and TRLEN=128, ROWNUM=4, meaning both tile registers and accumulation registers have 4 rows, and the maximum M dimension is 4.
-. ARLEN: The number of bits in a single row of an accumulation register, which defines the maximum number of elements per row of the output matrix (i.e., the maximum N dimension). stem:[ARLEN = ROWNUM \times ELEN], which must be a power of 2, and must be no greater than 2^16^.
+. ARLEN: The number of bits in a single row of an accumulation register, which defines the maximum N dimension of the output matrix (i.e., stem:[N_{max} = ARLEN / ELEN]). stem:[ARLEN = ROWNUM \times ELEN], which must be a power of 2, and must be no greater than 2^16^.
 . ALEN: The number of bits in a single matrix accumulation register, ALEN, which must be a power of 2, and must be no greater than 2^32^, stem:[ALEN = ARLEN \times ROWNUM].
 
 
