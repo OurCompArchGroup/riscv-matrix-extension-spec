@@ -6,26 +6,9 @@ The Zmasync extension enables asynchronous execution of matrix operations within
 
 When the Zmasync extension is implemented together with the AME (Attached Matrix Extension) or its simplified variant, the behavior of matrix load/store/mma/mzero instructions changes: these instructions become non-blocking without any modification to their instruction encoding. This behavioral change enables flexible software pipelining and improved utilization of hardware resources.
 
-The motivation of Zmasync is to allow matrix operations to be executed in asynchronously with
-vector operations,
-which is required by state-of-the-art kernel libraries, such as Flash Attention 3 and DeepGEMM.
+The motivation of Zmasync is to allow matrix operations to be pipelined with vector operations, which is required by state-of-the-art kernel libraries such as Flash Attention 3 and DeepGEMM, where matrix multiplication results need post-processing (e.g., precision promotion) that can overlap with the next matrix operation.
 
-Take DeepGEMM as an example,
-each GEMM operation is executed in Tensor Core using WGMMA instructions,
-then is promoted to full fp32 in CUDA core.
-Asynchronous WGMMA instructions make it possible to fully utilize the Tensor Core by
-another GEMM operation when CUDA core is doing promotion.
-
-image::deepgemm.png[alt="DeepGEMM", align="center"]
-
-To achieve this,
-the Zmasync extension introduces asynchronous matrix store instructions,
-which are 1) committed immediately from the pipeline without waiting for the completion, and
-2) not guaranteed to be visible to the following vector loads or scalar loads.
-Commiting immediately from the pipeline allows flexible software pipelining,
-for example, precision promotion like in DeepGEMM.
-To ensure the visibility of the store operations,
-the Zmasync extension introduces a new set of synchronization instructions.
+To achieve this, the Zmasync extension introduces asynchronous matrix store instructions, which are 1) committed immediately from the pipeline without waiting for the completion, and 2) not guaranteed to be visible to the following vector loads or scalar loads. To ensure the visibility of the store operations, the Zmasync extension introduces a new set of synchronization instructions.
 
 === Programmer's Model
 
@@ -79,16 +62,6 @@ The func4 field distinguishes different synchronization operations. The tok fiel
 | 1010    | macquire
 |===
 
-.Matrix Asynchronous Store Synchronization Instructions (Zmasync)
-[cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
-|===
-.2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
-                      | *func* | *uop* |  *ctrl*  | *tok* | *rs1*    |  *func3*   |  *nop*       | *opcode*
-      | msyncregreset | 1000   | 00	   |  0	      | tok   | 00000    |   000      |	00000        | major opcode
-      | mrelease  	  | 1001   | 00	   |  0	      | tok   | 00000    |   000      |	00000        | major opcode
-      | macquire	  | 1010   | 00	   |  0	      | tok   | rs1      |	 000      |	00000        | major opcode
-|===
-
 === Instructions
 
 ==== Non-Blocking Behavior of Matrix Operations
@@ -124,6 +97,8 @@ phys_base = phys_page_of(base_vaddr) + page_offset(base_vaddr)
 ```
 
 ==== Usage Example: DeepGEMM in AME with Zmasync
+
+In DeepGEMM, each GEMM result is promoted from low-precision to full fp32. Asynchronous matrix operations allow the next GEMM to execute while the previous result is being promoted.
 
 ```
 void async_matmul(c);  // output matrix c
@@ -174,3 +149,15 @@ Another schedule is also possible, as shown in the following figure,
 but does not require an exact match.
 
 image::deepgemm-in-ame-async-another-schedule.drawio.svg[alt="Another pipeline scheduling result", align="center"]
+
+=== Instruction Encoding
+
+.Matrix Asynchronous Store Synchronization Instructions (Zmasync)
+[cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
+|===
+.2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
+                      | *func* | *uop* |  *ctrl*  | *tok* | *rs1*    |  *func3*   |  *nop*       | *opcode*
+      | msyncregreset | 1000   | 00	   |  0	      | tok   | 00000    |   000      |	00000        | major opcode
+      | mrelease  	  | 1001   | 00	   |  0	      | tok   | 00000    |   000      |	00000        | major opcode
+      | macquire	  | 1010   | 00	   |  0	      | tok   | rs1      |	 000      |	00000        | major opcode
+|===
