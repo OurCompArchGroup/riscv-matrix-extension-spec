@@ -76,25 +76,33 @@ This address translation strategy has important implications:
 
 ==== Address Calculation
 
-For a row-major matrix with element size `esize` bytes, the virtual and physical addresses of element at position (row, col) are calculated as follows:
+Matrix load/store instructions access a tile-sized sub-region within a larger matrix. The tile dimensions are determined by `msettile{m|k|n}` CSRs. For example, loading matrix A accesses `mtilem` rows and `mtilek` columns.
 
-**Virtual Address:**
-```
-vaddr(row, col) = base_vaddr + row * row_stride_bytes + col * esize
-```
+image::tile-address-calculation.svg[alt="Tile address calculation within a large matrix", align="center"]
 
-Where `row_stride_bytes` is the number of bytes per row as specified by the matrix dimensions.
-
-**Physical Address:**
-```
-paddr(row, col) = phys_base + (vaddr(row, col) - virt_base)
-```
-
-This formula is valid only when the matrix region occupies physically contiguous pages. Here, `phys_base` is the physical address corresponding to `virt_base` (the virtual base address of the matrix), computed as:
+**Software side** — compute the virtual base address of the tile from the large matrix:
 
 ```
-phys_base = phys_page_of(base_vaddr) + page_offset(base_vaddr)
+# base_address: start of the large matrix in memory
+# stride: row stride of the large matrix in bytes
+# (R, C): row and column position of the tile's top-left element
+vaddr = base_address + R * stride + C * e_size
 ```
+
+Software passes `vaddr` and `stride` as operands to the load/store instruction. Each element within the tile is accessed at an offset from `vaddr` (taking matrix A as an example, with `m_i ∈ [0, mtilem)` and `k_i ∈ [0, mtilek)`):
+
+```
+offset(m_i, k_i) = m_i * stride + k_i * e_size
+```
+
+**Physical address during asynchronous execution** — the hardware performs a single virtual-to-physical address translation on `vaddr` at dispatch time, then computes physical addresses using offset arithmetic:
+
+```
+paddr_base = translate(vaddr)
+paddr(m_i, k_i) = paddr_base + offset(m_i, k_i)
+```
+
+This offset-based physical address calculation is valid only when the entire tile region occupies physically contiguous memory, as stated in the physical page contiguity requirement above.
 
 ==== Usage Example: DeepGEMM in AME with Zmasync
 
