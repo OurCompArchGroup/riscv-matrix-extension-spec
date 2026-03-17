@@ -144,19 +144,62 @@ After asynchronous matrix store instructions in `async_matmul` function is final
 The `promotion` function is always executed after the `macquire` function.
 `macquire` ensures that the `promotion` function is executed when the sync register is old enough.
 
-image::deepgemm-in-ame-async.drawio.svg[alt="Resultant pipeline scheduling", align="center"]
+[wavedrom, ,svg]
+....
+{signal: [
+  {name: 'Matrix Core',
+   wave: '2..x...4..x...2..x...4..',
+   data: ['GEMM[0]', 'GEMM[1]', 'GEMM[2]', 'GEMM[3]']},
+  {name: 'Async Store',
+   wave: 'x..3.3.x..3.3.x..3.3.x..',
+   data: ['Store[0]', 'release L0', 'Store[1]', 'release L1', 'Store[2]', 'release L2']},
+  {name: 'Control flow',
+   wave: 'x....3.x....3.x....3.x..',
+   data: ['acquire L0', 'acquire L1', 'acquire L2']},
+  {name: 'Vector Core',
+   wave: '.....x.4..x...2..x...4..',
+   data: ['Promo[0]', 'Promo[1]', 'Promo[2]']},
+], head: {text: 'Zmasync: Pipelined GEMM with Token Sync', tick: 0}
+}
+....
+
+Without Zmasync, all operations execute sequentially on the core, with no overlap between GEMM and promotion:
+
+[wavedrom, ,svg]
+....
+{signal: [
+  {name: 'Core',
+   wave: '2..3.4..2..3.4..',
+   data: ['GEMM[0]', 'Store[0]', 'Promo[0]', 'GEMM[1]', 'Store[1]', 'Promo[1]']},
+], head: {text: 'Sequential Execution (without Zmasync)', tick: 0}
+}
+....
 
 Compared with the traditional fence instructions,
 token age based synchronization is more flexible.
 If we replace `mrelease` with `fence` in the above pseudocode,
 `promotion` will always be executed after the `async_matmul` function inside the for loop,
-which prevents the desired pipelining.
+which prevents the desired pipelining:
 
-Another schedule is also possible, as shown in the following figure,
+[wavedrom, ,svg]
+....
+{signal: [
+  {name: 'Matrix Core',
+   wave: '2..x...x...2..x...x...',
+   data: ['GEMM[0]', 'GEMM[1]']},
+  {name: 'Async Store',
+   wave: 'x..3.3.x...x..3.3.x...',
+   data: ['Store[0]', 'fence', 'Store[1]', 'fence']},
+  {name: 'Vector Core',
+   wave: 'x......4..xx......4..x',
+   data: ['Promo[0]', 'Promo[1]']},
+], head: {text: 'Fence-based Sync (no pipelining)', tick: 0}
+}
+....
+
+Another schedule is also possible,
 `macquire` only guarantees current sync register is old enough,
 but does not require an exact match.
-
-image::deepgemm-in-ame-async-another-schedule.drawio.svg[alt="Another pipeline scheduling result", align="center"]
 
 === Instruction Encoding
 
