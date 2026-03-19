@@ -55,6 +55,8 @@ For example, `i8i8i32` indicates support for int8 × int8 → int32 matrix multi
 
 Conversion-only operations use the format `<input_type><output_type>cvt` (e.g., `bf16scvt` for BF16↔FP32 conversions).
 
+Element-wise extension support is indicated by standalone capability strings: `iew` for integer element-wise operations and `few` for floating-point element-wise operations (including arithmetic and conversion instructions).
+
 Type abbreviations: `i8`=int8, `i32`=int32, `bf16`=bfloat16, `h`=fp16, `s`=fp32 (single), `e5`=fp8-E5M2, `e4`=fp8-E4M3, `fp8`=any fp8 format (covers both E5M2 and E4M3).
 
 Note: Instructions that support both fp16 and bf16 output formats with the same inputs should advertise both capability strings (e.g., an instruction supporting fp8-E5M2×fp8-E5M2→fp16/bf16 should advertise both `e5e5h` and `e5e5bf16`).
@@ -67,7 +69,7 @@ cpus {
         compatible = "riscv";
         riscv,isa = "rv64imafdcv";
         riscv,isa-extensions = "zames", "zmasync";
-        riscv,matrix-isa-caps = "i8i8i32", "bf16bf16s";
+        riscv,matrix-isa-caps = "i8i8i32", "bf16bf16s", "iew", "few";
     };
 };
 ----
