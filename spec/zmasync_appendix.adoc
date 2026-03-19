@@ -108,18 +108,21 @@ After asynchronous matrix store instructions in `async_matmul` function is final
 ....
 {signal: [
   {name: 'Matrix Core',
-   wave: '2..x...4..x...2..x...4..',
-   data: ['GEMM[0]', 'GEMM[1]', 'GEMM[2]', 'GEMM[3]']},
+   wave: '2.4.2.4.2.4.2.',
+   data: ['GEMM[0]', 'GEMM[1]', 'GEMM[2]', 'GEMM[3]', 'GEMM[4]', 'GEMM[5]', 'GEMM[6]']},
+  {name: 'Async Load',
+   wave: '4.2.4.2.4.2.4.',
+   data: ['Load[1]', 'Load[2]', 'Load[3]', 'Load[4]', 'Load[5]', 'Load[6]', 'Load[7]']},
   {name: 'Async Store',
-   wave: 'x..3.3.x..3.3.x..3.3.x..',
-   data: ['Store[0]', 'release L0', 'Store[1]', 'release L1', 'Store[2]', 'release L2']},
+   wave: 'x.2.4.2.4.2.4.',
+   data: ['Store[0]', 'Store[1]', 'Store[2]', 'Store[3]', 'Store[4]', 'Store[5]']},
   {name: 'Control flow',
-   wave: 'x....3.x....3.x....3.x..',
-   data: ['acquire L0', 'acquire L1', 'acquire L2']},
+   wave: 'x..2x2x2x2x2x2',
+   data: ['r0 a0', 'r1 a1', 'r2 a2', 'r3 a3', 'r4 a4', 'r5 a5']},
   {name: 'Vector Core',
-   wave: '.....x.4..x...2..x...4..',
-   data: ['Promo[0]', 'Promo[1]', 'Promo[2]']},
-], head: {text: 'Zmasync: Pipelined GEMM with Token Sync', tick: 0}
+   wave: 'x...2.2.2.2.2.',
+   data: ['Promo[0]', 'Promo[1]', 'Promo[2]', 'Promo[3]', 'Promo[4]']},
+], head: {text: 'msync-based Sync (pipelining)', tick: 0}
 }
 ....
 
