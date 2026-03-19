@@ -102,8 +102,7 @@ implemented with asynchronous matrix store instructions,
 which retires from the pipeline without waiting for the completion.
 After asynchronous matrix store instructions in `async_matmul` function is finally completed,
 `mrelease` will increment the sync register by one.
-The `promotion` function is always executed after the `macquire` function.
-`macquire` ensures that the `promotion` function is executed when the sync register is old enough.
+`macquire` blocks until the sync register value reaches or exceeds the given threshold (i.e., `tok >= threshold`), ensuring that the corresponding stores have completed before promotion begins. Note that an exact match is not required — if the sync register has advanced beyond the threshold, `macquire` still proceeds immediately. Without Zmasync, all operations would execute sequentially on the core, with no overlap between GEMM and promotion.
 
 [wavedrom, ,svg]
 ....
@@ -123,12 +122,6 @@ The `promotion` function is always executed after the `macquire` function.
 ], head: {text: 'Zmasync: Pipelined GEMM with Token Sync', tick: 0}
 }
 ....
-
-Without Zmasync, all operations execute sequentially on the core, with no overlap between GEMM and promotion.
-
-Compared with the traditional fence instructions, token age based synchronization is more flexible. If `mrelease` were replaced with `fence`, `promotion` would always execute after `async_matmul` completes inside the for loop, preventing pipelining.
-
-`macquire` only guarantees the sync register is old enough; it does not require an exact match.
 
 === Instruction Encoding
 
