@@ -11,7 +11,7 @@ spec/images/stem-*.svg
 
 # Planning and draft files
 draft.md
-plan.md
+*plan*md
 
 # Claude Code configuration
 CLAUDE.md
