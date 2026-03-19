@@ -2,13 +2,13 @@
 
 === Overview
 
-The Zmasync extension enables asynchronous execution of matrix operations within a single core. The term "asynchronous" in this context specifically refers to asynchrony between different functional units within a single core (not multi-core or multi-hart asynchrony). This allows matrix operations to overlap with other operations, such as vector or scalar computations, within the same hart.
-
-When the Zmasync extension is implemented together with the AME (Attached Matrix Extension) or its simplified variant, the behavior of matrix load/store/mma/mzero instructions changes: these instructions become non-blocking without any modification to their instruction encoding. This behavioral change enables flexible software pipelining and improved utilization of hardware resources.
-
 The motivation of Zmasync is to allow matrix operations to be pipelined with vector operations, which is required by state-of-the-art kernel libraries such as Flash Attention 3 and DeepGEMM, where matrix multiplication results need post-processing (e.g., precision promotion) that can overlap with the next matrix operation.
 
-To achieve this, the Zmasync extension introduces asynchronous matrix store instructions, which are 1) committed immediately from the pipeline without waiting for the completion, and 2) not guaranteed to be visible to the following vector loads or scalar loads. To ensure the visibility of the store operations, the Zmasync extension introduces a new set of synchronization instructions.
+The Zmasync extension enables asynchronous execution of matrix operations within a single core. The term "asynchronous" in this context specifically refers to asynchrony between different functional units within a single core (not multi-core or multi-hart asynchrony). This allows matrix operations to overlap with other operations, such as vector or scalar computations, within the same hart.
+
+When the Zmasync extension is implemented together with the AME (Attached Matrix Extension) or its simplified variant, the behavior of matrix load/store/mma/mzero instructions changes: these instructions become non-blocking without any modification to their instruction encoding, and are committed immediately from the pipeline without waiting for completion. However, store results are not guaranteed to be visible to subsequent vector or scalar loads immediately. To ensure the visibility of the store operations, the Zmasync extension introduces a new set of synchronization instructions.
+
+NOTE: The `mcsr` register and its sub-registers (e.g., `mfflags`, `msat`) reflect the results of asynchronous matrix operations only after a corresponding `macquire` instruction is executed. Reading `mcsr` or its sub-registers before `macquire` following an asynchronous matrix operation yields undefined behavior.
 
 === Programmer's Model
 
@@ -18,22 +18,7 @@ include::tokenreg.adoc[]
 
 ==== Sync Register Count CSR, msync
 
-The read-only `msync` CSR (address 0xCC7) reports the number of sync registers in the implementation (e.g. 8 default, 16/32 optional).
-
-==== Reset, Release and Acquire Instructions
-
-```
-msyncregreset tok0           # Reset sync register tok0 to 0
-
-mrelease      tok0           # Increment tok0 by 1,
-                             # and `mrelease` cannot be committed until all in-flight matrix stores of current thread
-                             # have been visible to the following vector loads or scalar loads.
-
-macquire      tok0, t0       # Block until tok0 >= t0
-                             # Takes a sync register as an source register, and an integer register as another source register.
-                             # None of vector loads or scalar loads older than `macquire` can be executed until the sync register is equal to or greater than the integer register.
-
-```
+The read-only `msync` CSR (address 0xCC7) reports the number of sync registers in the implementation. The number of sync registers is fixed at 16.
 
 === Instruction Format
 
@@ -63,6 +48,27 @@ The func4 field distinguishes different synchronization operations. The tok fiel
 |===
 
 === Instructions
+
+==== Reset, Release and Acquire
+
+```
+msyncregreset tok0           # Reset sync register tok0 to 0.
+
+mrelease      tok0           # Increment tok0 by 1.
+                             # Cannot commit until all in-flight matrix stores
+                             # have been made visible to subsequent vector/scalar loads.
+
+macquire      tok0, t0       # Block until tok0 >= t0.
+                             # Takes a sync register and an integer register as source operands.
+                             # No vector/scalar load older than macquire can execute
+                             # until the sync register value meets or exceeds the threshold.
+```
+
+`msyncregreset` resets the specified sync register to zero, clearing any previously accumulated release count.
+
+`mrelease` increments the sync register by one. It does not commit until all in-flight matrix store instructions from the current thread have been made visible to subsequent vector and scalar loads, ensuring that memory written by those stores is observable before the release count advances.
+
+`macquire` blocks until the sync register value is greater than or equal to the threshold supplied in an integer register. This guarantees that the memory written by matrix store instructions associated with prior `mrelease` operations is visible to other functional units (vector and scalar loads) before any instruction following `macquire` proceeds.
 
 ==== Non-Blocking Behavior of Matrix Operations
 
@@ -165,15 +171,6 @@ The `promotion` function is always executed after the `macquire` function.
 
 Without Zmasync, all operations execute sequentially on the core, with no overlap between GEMM and promotion:
 
-[wavedrom, ,svg]
-....
-{signal: [
-  {name: 'Core',
-   wave: '2..3.4..2..3.4..',
-   data: ['GEMM[0]', 'Store[0]', 'Promo[0]', 'GEMM[1]', 'Store[1]', 'Promo[1]']},
-], head: {text: 'Sequential Execution (without Zmasync)', tick: 0}
-}
-....
 
 Compared with the traditional fence instructions,
 token age based synchronization is more flexible.
@@ -181,21 +178,6 @@ If we replace `mrelease` with `fence` in the above pseudocode,
 `promotion` will always be executed after the `async_matmul` function inside the for loop,
 which prevents the desired pipelining:
 
-[wavedrom, ,svg]
-....
-{signal: [
-  {name: 'Matrix Core',
-   wave: '2..x...x...2..x...x...',
-   data: ['GEMM[0]', 'GEMM[1]']},
-  {name: 'Async Store',
-   wave: 'x..3.3.x...x..3.3.x...',
-   data: ['Store[0]', 'fence', 'Store[1]', 'fence']},
-  {name: 'Vector Core',
-   wave: 'x......4..xx......4..x',
-   data: ['Promo[0]', 'Promo[1]']},
-], head: {text: 'Fence-based Sync (no pipelining)', tick: 0}
-}
-....
 
 Another schedule is also possible,
 `macquire` only guarantees current sync register is old enough,

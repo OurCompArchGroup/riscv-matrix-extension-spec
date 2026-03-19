@@ -49,7 +49,7 @@ include::tilereg.adoc[]
 
 ==== Matrix ISA Capabilities (Device Tree)
 
-Matrix ISA capabilities are reported via the device tree rather than through a dedicated CSR. The `/cpus/cpu@X` node in the device tree includes a `riscv,matrix-isa-caps` property that specifies the supported matrix operation types using a notation similar to NVIDIA's format: `<input_type_a><input_type_b><output_type_c>`.
+Matrix ISA capabilities are reported via the device tree rather than through a dedicated CSR. The `/cpus/cpu@X` node in the device tree includes a `riscv,matrix-isa-caps` property that specifies the supported matrix operation types using the format `<input_type_a><input_type_b><output_type_c>`.
 
 For example, `i8i8i32` indicates support for int8 × int8 → int32 matrix multiplication.
 
@@ -66,8 +66,8 @@ cpus {
     cpu@0 {
         compatible = "riscv";
         riscv,isa = "rv64imafdcv";
-        riscv,isa-extensions = "zames";
-        riscv,matrix-isa-caps = "i8i8i32";
+        riscv,isa-extensions = "zames", "zmasync";
+        riscv,matrix-isa-caps = "i8i8i32", "bf16bf16s";
     };
 };
 ----
@@ -282,5 +282,5 @@ The misa CSR is a WARL read-write register reporting the ISA supported by the ha
 | 25 | Z | Reserved
 |===
 
-The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node. Software can discover the presence of Zames by checking for the string "zames" in this property.
+The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node as a list of lowercase extension name strings. Software can discover the presence of Zames by checking for the string `"zames"` in this list. Similarly, if the Zmasync extension is implemented, `"zmasync"` will also appear in this list.
 
