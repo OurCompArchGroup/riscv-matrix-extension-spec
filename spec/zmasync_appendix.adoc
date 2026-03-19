@@ -18,7 +18,7 @@ include::tokenreg.adoc[]
 
 ==== Sync Register Count CSR, msync
 
-The read-only `msync` CSR (address 0xCC7) reports the number of sync registers in the implementation. The number of sync registers is fixed at 16.
+The read-only `msync` CSR (address 0xCC7) reports the number of sync registers. The implementation provides exactly 16 sync registers.
 
 === Instruction Format
 
@@ -54,14 +54,9 @@ The func4 field distinguishes different synchronization operations. The tok fiel
 ```
 msyncregreset tok0           # Reset sync register tok0 to 0.
 
-mrelease      tok0           # Increment tok0 by 1.
-                             # Cannot commit until all in-flight matrix stores
-                             # have been made visible to subsequent vector/scalar loads.
+mrelease      tok0           # Increment tok0 by 1; waits for store visibility.
 
-macquire      tok0, t0       # Block until tok0 >= t0.
-                             # Takes a sync register and an integer register as source operands.
-                             # No vector/scalar load older than macquire can execute
-                             # until the sync register value meets or exceeds the threshold.
+macquire      tok0, t0       # Block until tok0 >= t0; ensures store visibility to other units.
 ```
 
 `msyncregreset` resets the specified sync register to zero, clearing any previously accumulated release count.
@@ -169,19 +164,11 @@ The `promotion` function is always executed after the `macquire` function.
 }
 ....
 
-Without Zmasync, all operations execute sequentially on the core, with no overlap between GEMM and promotion:
+Without Zmasync, all operations execute sequentially on the core, with no overlap between GEMM and promotion.
 
+Compared with the traditional fence instructions, token age based synchronization is more flexible. If `mrelease` were replaced with `fence`, `promotion` would always execute after `async_matmul` completes inside the for loop, preventing pipelining.
 
-Compared with the traditional fence instructions,
-token age based synchronization is more flexible.
-If we replace `mrelease` with `fence` in the above pseudocode,
-`promotion` will always be executed after the `async_matmul` function inside the for loop,
-which prevents the desired pipelining:
-
-
-Another schedule is also possible,
-`macquire` only guarantees current sync register is old enough,
-but does not require an exact match.
+`macquire` only guarantees the sync register is old enough; it does not require an exact match.
 
 === Instruction Encoding
 

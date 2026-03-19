@@ -282,5 +282,5 @@ The misa CSR is a WARL read-write register reporting the ISA supported by the ha
 | 25 | Z | Reserved
 |===
 
-The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node as a list of lowercase extension name strings. Software can discover the presence of Zames by checking for the string `"zames"` in this list. Similarly, if the Zmasync extension is implemented, `"zmasync"` will also appear in this list.
+The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node as a list of lowercase extension name strings. Software can discover the presence of Zames by checking for the string `"zames"` in this list. If the Zmasync extension is also implemented, `"zmasync"` appears in the same list.
 
