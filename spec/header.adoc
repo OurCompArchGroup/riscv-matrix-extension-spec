@@ -1,6 +1,6 @@
 [[header]]
 :description: RISC-V Zames (Attached Matrix Extension Simplified) Specification Proposal
-:company: RISC-V.org
+:company: BOSC XSAI Team
 :revdate: 12/2024
 :revnumber: v0.6.0 (Zames - simplified v0.1)
 :revremark: This document is in development.
@@ -51,12 +51,16 @@ specification will likely not conform to the future standard.
 
 [preface]
 == Copyright and license information
-//This specification is licensed under the Creative Commons
-//Attribution 4.0 International License (CC-BY 4.0). The full
-//license text is available at
-//https://creativecommons.org/licenses/by/4.0/.
+This specification is derived from the XuanTie Matrix Extension V0.6.0,
+originally developed by Stream Computing Inc. and XuanTie (T-Head Semiconductor).
+Modifications have been made by BOSC XSAI Team.
 
-//Copyright © 2022-2024 Stream Computing Inc.
+Original work Copyright © 2022-2024 Stream Computing Inc.
+
+This specification is licensed under the Creative Commons
+Attribution 4.0 International License (CC-BY 4.0). The full
+license text is available at
+https://creativecommons.org/licenses/by/4.0/.
 
 [preface]
 include::contributors.adoc[]
