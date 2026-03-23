@@ -22,7 +22,7 @@ The read-only `msync` CSR (address 0xCC7) reports the number of sync registers. 
 
 === Instruction Format
 
-The func4 field distinguishes different synchronization operations. The tok field (inst[24:20]) specifies the sync register index. The ctrl field (inst[25]) is set to 0. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
+The func4 field distinguishes different synchronization operations. The sync field (inst[24:20]) specifies the sync register index. The ctrl field (inst[25]) is set to 0. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
 
 [wavedrom, ,svg]
 ....
@@ -31,7 +31,7 @@ The func4 field distinguishes different synchronization operations. The tok fiel
   {bits: 5,  name: '0', attr: '00000', type: 8},
   {bits: 3,  name: 'func3', attr: '001', type: 8},
   {bits: 5,  name: 'rs1', type: 3},
-  {bits: 5,  name: 'tok', type: 4},
+  {bits: 5,  name: 'sync', type: 4},
   {bits: 1,  name: 'ctrl', attr: '0', type: 8},
   {bits: 2,  name: 'uop', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
@@ -102,7 +102,7 @@ implemented with asynchronous matrix store instructions,
 which retires from the pipeline without waiting for the completion.
 After asynchronous matrix store instructions in `async_matmul` function is finally completed,
 `mrelease` will increment the sync register by one.
-`macquire` blocks until the sync register value reaches or exceeds the given threshold (i.e., `tok >= threshold`), ensuring that the corresponding stores have completed before promotion begins. Note that an exact match is not required — if the sync register has advanced beyond the threshold, `macquire` still proceeds immediately. Without Zmasync, all operations would execute sequentially on the core, with no overlap between GEMM and promotion.
+`macquire` blocks until the sync register value reaches or exceeds the given threshold (i.e., `sync >= threshold`), ensuring that the corresponding stores have completed before promotion begins. Note that an exact match is not required — if the sync register has advanced beyond the threshold, `macquire` still proceeds immediately. Without Zmasync, all operations would execute sequentially on the core, with no overlap between GEMM and promotion.
 
 [wavedrom, ,svg]
 ....
@@ -132,8 +132,8 @@ After asynchronous matrix store instructions in `async_matmul` function is final
 [cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
 |===
 .2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
-                      | *func* | *uop* |  *ctrl*  | *tok* | *rs1*    |  *func3*   |  *nop*       | *opcode*
-      | msyncregreset | 1000   | 00	   |  0	      | tok   | 00000    |   001      |	00000        | major opcode
-      | mrelease  	  | 1001   | 00	   |  0	      | tok   | 00000    |   001      |	00000        | major opcode
-      | macquire	  | 1010   | 00	   |  0	      | tok   | rs1      |	 001      |	00000        | major opcode
+                      | *func* | *uop* |  *ctrl*  | *sync* | *rs1*    |  *func3*   |  *nop*       | *opcode*
+      | msyncregreset | 1000   | 00	   |  0	      | sync  | 00000    |   001      |	00000        | major opcode
+      | mrelease  	  | 1001   | 00	   |  0	      | sync  | 00000    |   001      |	00000        | major opcode
+      | macquire	  | 1010   | 00	   |  0	      | sync  | rs1      |	 001      |	00000        | major opcode
 |===
