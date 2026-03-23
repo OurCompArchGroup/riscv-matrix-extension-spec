@@ -1,6 +1,6 @@
 The 32-bit instruction format fit under the custom-1(0101011) major opcode. There are three main types of instruction formats, as illustrated below.
 
-All matrix instructions use func3 = 000. The uop field distinguishes different instruction categories. Within each category, additional fields further differentiate specific instructions as shown in the tables below.
+All matrix instructions use func3 = 000. The Zmasync extension uses func3 = 001 to maintain a separate encoding space. The uop field distinguishes different instruction categories. Within each category, additional fields further differentiate specific instructions as shown in the tables below.
 
 [wavedrom, ,svg]
 ....
