@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Build and Deploy to GitHub Pages
 
 on:
   push:
@@ -6,16 +6,11 @@ on:
     paths:
       - 'spec/**'
       - '.github/workflows/deploy-pages.yml'
+  pull_request:
+    branches: [master, main]
+    paths:
+      - 'spec/**'
   workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -26,37 +21,43 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Pull RISC-V Docs container image
-        run: docker pull riscvintl/riscv-docs-base-container-image:latest
-
-      - name: Build HTML
+      - name: Build PDF and HTML
         run: |
           docker run --rm -v "$(pwd)/spec":/build \
             riscvintl/riscv-docs-base-container-image:latest \
-            /bin/sh -c 'cd /build && make build-html'
+            /bin/sh -c 'cd /build && make build-no-container && make build-html-no-container'
 
-      - name: Build PDF
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: riscv-matrix-extension-spec
+          path: spec/*.pdf
+          retention-days: 30
+
+      - name: Prepare Pages directory
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
-          docker run --rm -v "$(pwd)/spec":/build \
-            riscvintl/riscv-docs-base-container-image:latest \
-            /bin/sh -c 'cd /build && make build-no-container'
+          mkdir -p dist/spec
+          cp spec/riscv_matrix_extension_proposal.html dist/spec/index.html
+          cp -r spec/images dist/spec/images
+          [ -f spec/riscv_matrix_extension_proposal.pdf ] && cp spec/riscv_matrix_extension_proposal.pdf dist/spec/
 
-      - name: Prepare Pages artifact
-        run: |
-          mkdir -p _site
-          cp spec/riscv_matrix_extension_proposal.html _site/index.html
-          cp -r spec/images _site/images
-          [ -f spec/riscv_matrix_extension_proposal.pdf ] && cp spec/riscv_matrix_extension_proposal.pdf _site/
-
-      - name: Upload Pages artifact
+      - name: Upload pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
