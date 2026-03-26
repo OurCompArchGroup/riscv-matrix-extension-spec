@@ -13,6 +13,7 @@
 :title-logo-image: image:risc-v_logo.svg[pdfwidth=3.25in,align=center]
 // Settings:
 :experimental:
+:docinfo: shared
 :reproducible:
 // needs to be changed? bug discussion started
 //:WaveDromEditorApp: app/wavedrom-editor.app
