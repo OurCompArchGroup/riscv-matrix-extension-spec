@@ -18,8 +18,10 @@ riscvintl/riscv-docs-base-container-image:latest
 
 HEADER_SOURCE := header.adoc
 PDF_RESULT := riscv_matrix_extension_proposal.pdf
+HTML_RESULT := riscv_matrix_extension_proposal.html
 
 ASCIIDOCTOR_PDF := asciidoctor-pdf
+ASCIIDOCTOR_HTML := asciidoctor
 OPTIONS := --trace \
            -a compress \
            -a mathematical-format=svg \
@@ -27,11 +29,19 @@ OPTIONS := --trace \
            -a pdf-fontsdir=docs-resources/fonts \
            -a pdf-theme=riscv-matrix.yml \
            --failure-level=ERROR
+HTML_OPTIONS := --trace \
+           -a mathematical-format=svg \
+           -a revdate=${DATE} \
+           -a toc=left \
+           -a toclevels=4 \
+           -a sectanchors \
+           -a webfonts \
+           --failure-level=ERROR
 REQUIRES := --require=asciidoctor-bibtex \
             --require=asciidoctor-diagram \
             --require=asciidoctor-mathematical
 
-.PHONY: all build clean build-container build-no-container
+.PHONY: all build clean build-container build-no-container build-html build-html-container build-html-no-container
 
 all: build
 
@@ -55,7 +65,25 @@ build-no-container:
 	$(ASCIIDOCTOR_PDF) $(OPTIONS) $(REQUIRES) --out-file=$(PDF_RESULT) $(HEADER_SOURCE)
 	@echo "Build completed successfully."
 
+build-html:
+	@echo "Checking if Docker is available..."
+	@if command -v docker >/dev/null 2>&1 ; then \
+		$(MAKE) build-html-container; \
+	else \
+		$(MAKE) build-html-no-container; \
+	fi
+
+build-html-container:
+	@echo "Building HTML inside Docker container..."
+	$(DOCKER_RUN) /bin/sh -c "$(ASCIIDOCTOR_HTML) $(HTML_OPTIONS) $(REQUIRES) --out-file=$(HTML_RESULT) $(HEADER_SOURCE)"
+	@echo "HTML build completed."
+
+build-html-no-container:
+	@echo "Building HTML..."
+	$(ASCIIDOCTOR_HTML) $(HTML_OPTIONS) $(REQUIRES) --out-file=$(HTML_RESULT) $(HEADER_SOURCE)
+	@echo "HTML build completed."
+
 clean:
 	@echo "Cleaning up generated files..."
-	rm -f $(PDF_RESULT)
+	rm -f $(PDF_RESULT) $(HTML_RESULT)
 	@echo "Cleanup completed."

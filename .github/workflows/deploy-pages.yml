@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'spec/**'
+      - '.github/workflows/deploy-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Pull RISC-V Docs container image
+        run: docker pull riscvintl/riscv-docs-base-container-image:latest
+
+      - name: Build HTML
+        run: |
+          docker run --rm -v "$(pwd)/spec":/build \
+            riscvintl/riscv-docs-base-container-image:latest \
+            /bin/sh -c 'cd /build && make build-html'
+
+      - name: Build PDF
+        run: |
+          docker run --rm -v "$(pwd)/spec":/build \
+            riscvintl/riscv-docs-base-container-image:latest \
+            /bin/sh -c 'cd /build && make build-no-container'
+
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site
+          cp spec/riscv_matrix_extension_proposal.html _site/index.html
+          cp -r spec/images _site/images
+          [ -f spec/riscv_matrix_extension_proposal.pdf ] && cp spec/riscv_matrix_extension_proposal.pdf _site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
