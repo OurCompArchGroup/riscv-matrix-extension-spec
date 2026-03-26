@@ -36,6 +36,7 @@ HTML_OPTIONS := --trace \
            -a toclevels=4 \
            -a sectanchors \
            -a webfonts \
+           -a docinfo=shared \
            --failure-level=ERROR
 REQUIRES := --require=asciidoctor-bibtex \
             --require=asciidoctor-diagram \
