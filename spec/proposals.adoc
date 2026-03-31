@@ -1,0 +1,7 @@
+= Proposals
+
+本章收录尚在讨论中的设计提案。
+
+include::proposal_a_matmul_encoding.adoc[]
+
+include::proposal_b_matmul_encoding.adoc[]

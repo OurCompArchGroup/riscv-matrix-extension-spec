@@ -16,3 +16,6 @@ include::instructions.adoc[]
 
 [appendix]
 include::zmasync_appendix.adoc[]
+
+[appendix]
+include::proposals.adoc[]
