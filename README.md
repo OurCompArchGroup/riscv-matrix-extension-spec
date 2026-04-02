@@ -1,83 +1,99 @@
-# RISC-V Matrix Extension Specification Proposal V0.6.0 (Simplified)
+# RISC-V Zames (Attached Matrix Extension Simplified) Specification Proposal
 
-## Introduction
-This is a simplified matrix extension proposal for AI applications under RISC-V architecture, based on XuanTie Matrix Extension V0.6.0. This version focuses on the core matrix multiplication functionality with minimal instruction set.
+This repository contains the draft specification for **Zames**: the RISC-V Attached Matrix Extension Simplified proposal.
 
-**Key Simplifications:**
-* **Single matrix multiplication instruction**: Only int8 × int8 → int32 signed matrix multiplication
-* **Minimal load/store**: A/B matrices support only 8-bit load, C matrix supports 8/16/32/64-bit load/store
-* **Removed features**: Element-wise operations, type conversions, data movement, broadcast/pack/slide operations
-* **Core registers**: 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3)
-* **Asynchronous store extension (Zmasync)**: Token-based synchronization for overlapping computation with memory operations
+The current draft is based on XuanTie Matrix Extension V0.6.0 and narrows the scope to a small matrix-multiply-oriented ISA subset for AI and ML workloads.
 
-The extension is still under construction, and this is a preview specification project.
+## Scope
 
-## Key Directories
+The current draft focuses on:
+
+- A single matrix multiplication instruction: `mmacc.w.b` (`int8 x int8 -> int32`, signed)
+- Tile configuration via `msettile{m|k|n}` and `minit`
+- Four tile registers (`tr0`-`tr3`) and four accumulation registers (`acc0`-`acc3`)
+- Matrix load/store instructions for:
+  - A/B tiles: 8-bit load
+  - C tiles: 8-bit and 32-bit load/store
+- The `mzero1r` utility instruction
+- The `Zmasync` extension for token-based asynchronous store synchronization
+
+The draft intentionally omits the broader element-wise, conversion, movement, and packing features from the original XuanTie proposal.
+
+## Repository Layout
+
+```text
+spec/               Main Zames specification sources (AsciiDoc)
+doc/                Supplementary documents and build resources
+doc/docs-resources/ RISC-V docs-resources submodule used for builds
+riscv-isa-manual/   Local reference copy of the upstream RISC-V ISA manual
 ```
-|--spec/                    ## The RISC-V Matrix Extension specification
-|--doc/                     ## Documentation resources
-    |--docs-resources/      ## RISC-V documentation build resources (submodule)
-```
 
-## Removed Components
-The following components from the original XuanTie v0.6.0 have been removed:
-- Neural network library (shl)
-- Model deployment toolkit (hhb)
-- Emulator (qemu)
-- GNU toolchain (xuantie-gnu-toolchain)
-- Demo applications
-    |--GEMM                 ## A GEMM evaluation demo using intrinsic
-```
+The main document entry point is `spec/header.adoc`.
 
 ## Quick Start
-### Prepare and clone repos.
-```
-## Quick Start
-### Prepare and clone repos.
-```
+
+```bash
 git clone https://github.com/XUANTIE-RV/riscv-matrix-extension-spec.git
 cd riscv-matrix-extension-spec
 git submodule update --init
 ```
 
-## Matrix Extension Documents
-This project is built using AsciiDoctor (Ruby). The repository has been setup to build the PDF on checkin using GitHub actions.
+## Building The Specification
 
-For more information on AsciiDoctor, specification guidelines, or building locally, see the
-[RISC-V Documentation Developer Guide](https://github.com/riscv/docs-dev-guide).
+The recommended path is to build from `spec/`.
 
-RISC-V Matrix Extension Specification is kept in ./spec.
-The recommended method for building the PDF files is to use the Docker Image, as described in the [RISC-V Docs Base Container Image repository](https://github.com/riscv/riscv-docs-base-container-image).
+**Automatic mode:**
 
-### Building the Specification
+```bash
+cd spec
+make
+```
 
-**Using Docker (Recommended):**
+This uses Docker when available and falls back to a local AsciiDoctor toolchain otherwise.
+
+**Force Docker build:**
+
 ```bash
 cd spec
 make build-container
 ```
 
-**Using Local AsciiDoctor:**
+**Local build without Docker:**
+
 ```bash
-# Install dependencies
 gem install asciidoctor-pdf asciidoctor-bibtex asciidoctor-diagram asciidoctor-mathematical
 
 cd spec
 make build-no-container
 ```
 
-**Using GitHub Actions:**
-Push changes to the repository, and the PDF will be automatically built and available as an artifact.
+**Build HTML:**
 
-## Specification Summary
+```bash
+cd spec
+make build-html
+```
 
-This simplified matrix extension includes:
+Primary outputs:
 
-- **Single instruction**: `mmacc.w.b` (int8 × int8 → int32 signed matrix multiplication)
-- **Load instructions**: 8-bit for A/B matrices, 8/16/32/64-bit for C matrix
-- **Store instructions**: 8/16/32/64-bit for C matrix only
-- **Configuration**: `msettile{m|k|n}`, `minit`
-- **Utility**: `mzero1r` (clear single register)
-- **Zmasync extension**: Token-based asynchronous store synchronization
+- `spec/riscv_zames_specification_proposal.pdf`
+- `spec/riscv_zames_specification_proposal.html`
 
-For detailed instruction descriptions, see the specification PDF in the `spec/` directory.
+## Supplementary Documents
+
+The `doc/` directory contains supplementary material such as:
+
+- ABI documentation under `doc/abi/`
+- SHL documentation under `doc/shl/`
+- Slides and supporting references under `doc/slides/`
+
+## CI
+
+GitHub Actions builds the specification artifacts for changes under `spec/` and can also publish the generated HTML/PDF outputs.
+
+## References
+
+For more information on the RISC-V documentation toolchain and authoring conventions:
+
+- [RISC-V Documentation Developer Guide](https://github.com/riscv/docs-dev-guide)
+- [RISC-V Docs Base Container Image](https://github.com/riscv/riscv-docs-base-container-image)

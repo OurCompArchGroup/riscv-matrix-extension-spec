@@ -1,0 +1,94 @@
+== NVIDIA/AMD 业界基线与备选路径
+
+=== 为什么保留这份基线
+
+当前主方案倾向 scale 寄存器路径，不代表 NVIDIA/AMD 的公开设计就不重要。恰恰相反，业界基线决定了：
+
+* 哪些约束是共识
+* 哪些差异属于厂商实现细节
+* 我们自己的方案偏离了什么，以及为什么偏离
+
+因此这里单独保留一个 “industry baseline” 小节，避免把业界事实和本仓库的设计取舍混写在一起。
+
+=== NVIDIA 官方路径
+
+根据 NVIDIA 官方 PTX ISA 与相关文档，NVIDIA 的 block scaling 路径具有以下特点：
+
+* scale 作为 **matmul 的显式输入**，而不是持久架构寄存器。
+* `mma.sync ... block_scale ...` 形式下，scale 以寄存器操作数和选择元组出现。
+* `tcgen05.mma` 形式下，scale 以 TMEM 地址出现。
+* 语义上更接近 **pre-scaling**，即 `D = C + (A * SFA) * (B * SFB)`。
+* 支持 `UE8M0` 与 `UE4M3` 两类 scale。
+
+这条路径的优势是语义直接、与指令绑定紧密；缺点是在固定 32-bit 编码下不容易原样搬到本 proposal。
+
+主要参考：
+
+* link:https://docs.nvidia.com/cuda/parallel-thread-execution/index.html[NVIDIA PTX ISA]
+* link:https://docs.nvidia.com/deeplearning/cudnn/frontend/latest/operations/BlockScaling.html[NVIDIA cuDNN Block Scaling]
+* link:https://docs.nvidia.com/cutlass/latest/media/docs/cpp/blackwell_functionality.html[CUTLASS Blackwell Functionality]
+
+=== AMD 官方路径
+
+根据 AMD CDNA4 ISA 和 ROCm 公开资料，AMD 的 block scaling 路径具有以下特点：
+
+* scale 同样是 **本次 MFMA 的输入**，不是持久架构寄存器。
+* scale 对当前指令有效，不隐含保留到后续 matmul。
+* A/B 类型独立选择。
+* 当前公开路线主要围绕 OCP/MX 风格的 `E8M0`。
+* 语义上更接近 **post-dot scaling**，即先做 dot-product，再在累加前应用 scale。
+
+AMD 路线证明了“显式 scale 输入 + A/B 类型独立选择”是可行且有现实需求的，但也说明不同厂商对内部计算时机并不统一。
+
+主要参考：
+
+* link:https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf[AMD Instinct CDNA4 ISA]
+* link:https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html[AMD ROCm Matrix Core Programming]
+
+=== 两家的共识与分歧
+
+[cols="^3,^4,^4",options="header"]
+|===
+| Topic | NVIDIA | AMD
+| Scale 是否独立于数据 | 是 | 是
+| Scale 是否由 matmul 直接消费 | 是 | 是
+| Scale 是否是持久架构状态 | 否 | 否
+| A/B 类型是否可异构 | 是 | 是
+| block size 是否由格式决定 | 是 | 是
+| 主要 scale 语义 | pre-scaling | post-dot scaling
+|===
+
+=== 可保留的“共识方案”备选设计
+
+为了让本仓库始终保留一个贴近业界的设计参考，建议把下面这个方案作为**备选路径**保留：
+
+* 不引入 `sa*` / `sb*` 持久寄存器
+* scale 作为 matmul 的显式附加输入
+* 数据 load 路径尽量不新增专用 scale load 指令
+* block size 和 scale 格式由所选数据格式决定
+
+这个备选路径的优点是：
+
+* 更贴近 NVIDIA/AMD 的公开设计
+* 架构状态更少
+* 上下文保存更轻
+
+缺点也很明确：
+
+* 对本仓库当前 32-bit 编码约束不友好
+* 需要额外的操作数字段、地址描述字段，或者多字指令
+
+因此，本提案建议：
+
+* **主方案**：scale 寄存器路径，用于当前仓库的第一阶段讨论
+* **备选方案**：显式 scale 输入路径，作为 NVIDIA/AMD 共识设计基线保留
+
+=== 参考资料
+
+以下资料可作为后续继续收敛该 proposal 的一手依据：
+
+* link:https://docs.nvidia.com/cuda/parallel-thread-execution/index.html[NVIDIA PTX ISA]
+* link:https://docs.nvidia.com/deeplearning/cudnn/frontend/latest/operations/BlockScaling.html[NVIDIA cuDNN Block Scaling]
+* link:https://docs.nvidia.com/cutlass/latest/media/docs/cpp/blackwell_functionality.html[CUTLASS Blackwell Functionality]
+* link:https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf[AMD Instinct CDNA4 ISA]
+* link:https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html[AMD ROCm Matrix Core Programming]

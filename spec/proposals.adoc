@@ -5,3 +5,7 @@
 include::proposal_a_matmul_encoding.adoc[]
 
 include::proposal_b_matmul_encoding.adoc[]
+
+include::proposal_config_rd.adoc[]
+
+include::proposal_block_scaling.adoc[]

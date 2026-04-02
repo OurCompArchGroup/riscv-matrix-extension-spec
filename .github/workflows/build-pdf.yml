@@ -44,7 +44,7 @@ jobs:
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: riscv-matrix-extension-spec
+          name: riscv-zames-specification-proposal
           path: spec/*.pdf
           retention-days: 30
 

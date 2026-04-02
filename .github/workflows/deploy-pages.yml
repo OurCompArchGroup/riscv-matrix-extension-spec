@@ -30,7 +30,7 @@ jobs:
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: riscv-matrix-extension-spec
+          name: riscv-zames-specification-proposal
           path: spec/*.pdf
           retention-days: 30
 
@@ -38,9 +38,9 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         run: |
           mkdir -p dist/spec
-          cp spec/riscv_matrix_extension_proposal.html dist/spec/index.html
+          cp spec/riscv_zames_specification_proposal.html dist/spec/index.html
           cp -r spec/images dist/spec/images
-          [ -f spec/riscv_matrix_extension_proposal.pdf ] && cp spec/riscv_matrix_extension_proposal.pdf dist/spec/
+          [ -f spec/riscv_zames_specification_proposal.pdf ] && cp spec/riscv_zames_specification_proposal.pdf dist/spec/
 
       - name: Upload pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
