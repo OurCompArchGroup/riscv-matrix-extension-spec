@@ -4,7 +4,7 @@ page:
   margin: [0.75in, 1in, 0.75in, 1in]
   size: Letter
 base:
-  font-family: Times-Roman
+  font-family: body
   font_size: 11.5
   line_height_length: 12
   font_style: normal
@@ -17,6 +17,11 @@ base:
 font:
   catalog:
     merge: true
+    body:
+      normal: Petrona-Light.ttf
+      bold: Petrona-Medium.ttf
+      italic: Petrona-LightItalic.ttf
+      bold_italic: Petrona-MediumItalic.ttf
     M+ 1mn:
       normal: GEM_FONTS_DIR/mplus1mn-regular-subset.ttf
       bold: GEM_FONTS_DIR/mplus1mn-bold-subset.ttf
