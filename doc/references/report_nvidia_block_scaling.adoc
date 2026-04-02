@@ -1,0 +1,163 @@
+= 报告：NVIDIA Block Scaling 矩阵乘法实现详解
+
+== 概述
+
+NVIDIA 从 Blackwell 架构（sm_100，第 5 代 Tensor Core）开始，在硬件层面原生支持 block scaling 矩阵乘法。核心思想：**缩放因子作为 MMA 指令的独立操作数**，在 tensor core 内部完成缩放与乘累加。
+
+== 量化格式定义
+
+=== 通用浮点数公式
+
+对于 N-bit 浮点数（1 位符号 + E 位指数 + M 位尾数），实数值计算如下：
+
+* 当指数 ≠ 0（normalized）：`value = (-1)^S × 2^(exp - bias) × (1 + mantissa / 2^M)`
+* 当指数 = 0（subnormal）：`value = (-1)^S × 2^(1 - bias) × (mantissa / 2^M)`
+
+=== 8-bit 格式
+
+[cols="^2,^1,^1,^1,^2,^2,^2,^2"]
+|===
+| *格式* | *位宽* | *指数* | *尾数* | *Bias* | *范围* | *NaN* | *Inf*
+| E4M3 (OCP) | 8 | 4 | 3 | 7 | ±448 | S 1111 111 | 无
+| E5M2 (OCP) | 8 | 5 | 2 | 15 | ±57344 | S 11111 {01,10,11} | S 11111 00
+| E4M3FNUZ | 8 | 4 | 3 | 8 | ±240 | 1 0000 000 | 无
+| E5M2FNUZ | 8 | 5 | 2 | 16 | ±57344 | S 00000 00 | 无
+|===
+
+E4M3 的两个变体区别：
+
+* **E4M3FN (OCP)**：支持 +0/-0 和 +NaN/-NaN，bias=7
+* **E4M3FNUZ**：仅支持 +0 和 NaN（Unsigned Zero），bias=8
+* NVIDIA Blackwell 和 AMD CDNA4 均使用 OCP 变体（E4M3FN / E5M2）
+
+=== 6-bit 格式
+
+[cols="^2,^1,^1,^1,^2,^2"]
+|===
+| *格式* | *位宽* | *指数* | *尾数* | *Bias* | *范围*
+| E2M3 | 6 | 2 | 3 | 1 | ±7.5
+| E3M2 (BF6) | 6 | 3 | 2 | 3 | ±28
+|===
+
+* 无 NaN、无 Inf
+* 存储时需要 padding：每个 6-bit 值存储在 8-bit 容器中，高 2 位补零
+
+=== 4-bit 格式
+
+[cols="^2,^1,^1,^1,^2,^2"]
+|===
+| *格式* | *位宽* | *指数* | *尾数* | *Bias* | *范围*
+| E2M1 (FP4) | 4 | 2 | 1 | 1 | ±6
+|===
+
+* 无 NaN、无 Inf
+* 存储：两个 E2M1 值 packed 在一个字节中
+
+=== Scale Factor 格式
+
+[cols="^2,^1,^1,^1,^2,^3"]
+|===
+| *格式* | *位宽* | *指数* | *尾数* | *Bias* | *说明*
+| UE8M0 | 8 | 8 | 0 | 127 | 无符号纯指数，value = 2^(exp-127)，仅能表示 2 的幂次
+| UE4M3 | 7(+1pad) | 4 | 3 | - | 无符号浮点，比 UE8M0 精度更高但动态范围更小
+|===
+
+UE8M0 特点：
+
+* 无符号（无符号位）
+* 纯指数（无尾数位）
+* NaN = 0xFF（exp=255）
+* 不支持 Inf 和零
+* 可表示范围：2^(-127) 到 2^(127)
+
+== NVIDIA 硬件实现
+
+=== 两代硬件接口
+
+NVIDIA 提供两种 PTX 级别的 block scaling MMA 接口：
+
+==== 1. mma.sync（Hopper/Blackwell warp 级别）
+
+```
+mma.sync.aligned.m16n8k32.row.col
+  .kind::mxf8f6f4.block_scale.scale_vec::1X
+  .f32.e4m3.e5m2.f32.ue8m0
+  {%Rd0,...}, {%Ra0,...}, {%Rb0,...}, {%Rc0,...},
+  scaleAData, {byte-id-a, thread-id-a},
+  scaleBData, {byte-id-b, thread-id-b};
+```
+
+关键修饰符：
+
+* `.kind::mxf8f6f4` — MX 格式 FP8/FP6/FP4
+* `.kind::mxf4` — MX 格式 FP4（block=32）
+* `.kind::mxf4nvf4` — NVIDIA 私有 FP4 格式（支持 UE4M3 scale）
+* `.block_scale` — 启用 block scaling
+* `.scale_vec::1X/2X/4X` — 每条 MMA 消耗的 scale 组数
+
+==== 2. tcgen05.mma（Blackwell 第 5 代 Tensor Core）
+
+```
+tcgen05.mma.cta_group::1.kind::mxf8f6f4
+  .block_scale.scale_vec::1X
+  [d-tmem], [a-tmem], b-desc, idesc,
+  [scale-A-tmem], [scale-B-tmem], enable-input-d;
+```
+
+* Scale factor 存储在专用 **Tensor Memory (TMEM)** 中
+* 通过 TMEM 地址操作数传入，与数据矩阵完全分离
+* 支持 `.block_scale` + `.block16`/`.block32` 别名
+
+=== Scale 传递机制
+
+**mma.sync 方式**：scale 通过寄存器操作数传入，使用 `{byte-id, thread-id}` 元组在 warp 内定位 scale 数据：
+
+* `thread-id-a`：选择 quad 内哪对线程提供 A 的 scale（0=低两线程，1=高两线程）
+* `thread-id-b`：选择 quad 内哪个线程提供 B 的 scale（0-3）
+* `byte-id-a/b`：选择 scale 寄存器中的哪些字节
+
+**tcgen05.mma 方式**：scale 存储在 TMEM 中，通过 Scale Factor ID 选择 TMEM 中的子列：
+
+* Scale Factor A ID：选择 TMEM word 中的字节偏移，形成 scale_A 矩阵
+* Scale Factor B ID：同理，形成 scale_B 矩阵
+* Scale 需要复制到 TMEM 的所有 32 个 lane partition
+
+=== 支持的类型组合
+
+.mma.sync block scaling 类型组合
+[cols="^3,^4,^2,^3"]
+|===
+| *kind* | *数据类型 (A/B)* | *Scale 类型* | *scale_vec*
+| kind::mxf8f6f4 | E4M3, E5M2, E3M2, E2M3, E2M1 | UE8M0 | 1X
+| kind::mxf4 | E2M1 | UE8M0 | 2X
+| kind::mxf4nvf4 | E2M1 | UE8M0 | 2X, 4X
+| kind::mxf4nvf4 | E2M1 | UE4M3 | 4X
+|===
+
+=== MMA 形状
+
+[cols="^3,^3,^3"]
+|===
+| *kind* | *Dense 形状* | *Sparse 形状*
+| mxf8f6f4 | m16n8k32 | m16n8k64
+| mxf4 | m16n8k64 | m16n8k128
+| mxf4nvf4 | m16n8k64 | m16n8k128
+|===
+
+=== 计算语义
+
+```
+D = (A × scale_A) @ (B × scale_B) + C
+
+其中：
+  scale_A 形状 M × SFA_N
+  scale_B 形状 SFB_M × N
+  SFA_N / SFB_M 由 scale_vec 决定（1X→1, 2X→2, 4X→4）
+  每个 scale factor 覆盖 K/SFA_N 个元素（即 block_size）
+```
+
+== 参考资料
+
+* NVIDIA PTX ISA v9.2 — https://docs.nvidia.com/cuda/parallel-thread-execution/
+* NVIDIA cuBLAS 12.9 Block Scaling — https://developer.nvidia.com/blog/boosting-matrix-multiplication-speed-and-flexibility-with-nvidia-cublas-12-9/
+* Triton Block Scaled Matmul — https://triton-lang.org/main/getting-started/tutorials/10-block-scaled-matmul.html

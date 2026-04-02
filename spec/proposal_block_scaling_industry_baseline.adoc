@@ -85,10 +85,13 @@ AMD 路线证明了“显式 scale 输入 + A/B 类型独立选择”是可行�
 
 === 参考资料
 
-以下资料可作为后续继续收敛该 proposal 的一手依据：
+以下资料可作为后续继续收敛该 proposal 的一手依据；仓库内的补充背景文档已整理到 `doc/references/`：
 
 * link:https://docs.nvidia.com/cuda/parallel-thread-execution/index.html[NVIDIA PTX ISA]
 * link:https://docs.nvidia.com/deeplearning/cudnn/frontend/latest/operations/BlockScaling.html[NVIDIA cuDNN Block Scaling]
 * link:https://docs.nvidia.com/cutlass/latest/media/docs/cpp/blackwell_functionality.html[CUTLASS Blackwell Functionality]
 * link:https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf[AMD Instinct CDNA4 ISA]
 * link:https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html[AMD ROCm Matrix Core Programming]
+* `doc/references/nvidia_block_scaling.adoc`
+* `doc/references/report_nvidia_block_scaling.adoc`
+* `doc/references/report_amd_block_scaling.adoc`

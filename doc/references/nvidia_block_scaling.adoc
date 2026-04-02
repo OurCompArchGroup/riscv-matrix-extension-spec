@@ -1,0 +1,159 @@
+= 参考文档：NVIDIA Block Scaling 矩阵乘法实现
+
+本文档整理 NVIDIA Blackwell 架构（sm_100）中 block scaling 矩阵乘法的硬件实现方式，作为 RISC-V 矩阵扩展设计的参考。
+
+== 背景
+
+低精度推理（FP4/FP8）的动态范围不足以直接表示神经网络权重和激活值。Block scaling 通过为一组元素共享一个缩放因子来恢复精度：
+
+```
+Y_real[i] = Y_quantized[i] × scale_factor
+```
+
+其中 `scale_factor` 由同一 block 内的所有元素共享。
+
+== 支持的格式
+
+=== OCP MX 格式（开放标准）
+
+[cols="^2,^3,^2,^2,^3"]
+|===
+| *格式* | *数据类型* | *Block 大小* | *Scale 类型* | *说明*
+| MXFP4  | E2M1       | 32 元素      | UE8M0        | 8-bit 纯指数（power-of-2）
+| MXFP8 (E4M3) | E4M3 | 32 元素      | UE8M0        | 同上
+| MXFP8 (E5M2) | E5M2 | 32 元素      | UE8M0        | 同上
+|===
+
+UE8M0 格式：8-bit 无符号纯指数，无尾数位。表示的缩放因子为 2^(exp - 127)^，只能表示 2 的幂次。
+
+=== NVIDIA 私有格式
+
+[cols="^2,^3,^2,^2,^3"]
+|===
+| *格式* | *数据类型* | *Block 大小* | *Scale 类型* | *说明*
+| NVFP4  | E2M1       | 16 元素      | UE4M3        | 8-bit FP（有尾数，精度更高）
+|===
+
+UE4M3 格式：8-bit 无符号浮点（4-bit 指数 + 3-bit 尾数），比 UE8M0 能表示更精细的缩放值，但动态范围较小。
+
+== 核心设计：Scale 作为 MMA 操作数
+
+NVIDIA 的关键设计决策：**缩放因子不在 load 阶段处理，而是作为矩阵乘法指令的额外操作数**。
+
+=== 计算语义
+
+```
+D = A_scaled @ B_scaled + C
+
+其中：
+  A_scaled[i][j] = A_quantized[i][j] × scale_A[i][j / block_size]
+  B_scaled[i][j] = B_quantized[i][j] × scale_B[i][j / block_size]
+```
+
+缩放在 tensor core 内部完成，软件只需分别提供数据矩阵和缩放因子矩阵。
+
+=== PTX 指令语法
+
+Hopper 架构（sm_90）的 `mma` 指令：
+
+```
+mma.sync.aligned.m16n8k32.row.col.kind::mxf8f6f4
+  .block_scale.scale_vec::1X
+  .f32.e4m3.e5m2.f32.ue8m0
+  {%Rd0, ...},                    // D: 累加结果
+  {%Ra0, ...},                    // A: 量化数据
+  {%Rb0, ...},                    // B: 量化数据
+  {%Rc0, ...},                    // C: 累加输入
+  scaleA, {byte-id-a, tid-a},     // A 的缩放因子 + 寻址
+  scaleB, {byte-id-b, tid-b};     // B 的缩放因子 + 寻址
+```
+
+关键点：
+
+* `.block_scale` 修饰符启用 block scaling 模式
+* `.scale_vec::1X` 指定每个 scale 覆盖一个 block（还有 `2X`、`4X` 变体）
+* `scaleA`/`scaleB` 是独立的寄存器操作数
+* `byte-id` 和 `thread-id` 用于在 warp 内定位 scale 数据
+
+=== Blackwell tcgen05.mma（第 5 代 Tensor Core）
+
+Blackwell 引入 Tensor Memory（TMEM），scale factor 存储在专用 TMEM 中：
+
+```
+tcgen05.mma.cta_group::1.kind::mxf8f6f4
+  .block_scale.scale_vec::1X
+  [d-tmem],                       // D: TMEM 地址
+  [a-tmem],                       // A: TMEM 地址
+  b-desc,                         // B: 共享内存描述符
+  idesc,                          // 指令描述符
+  [scale-A-tmem],                 // A 的 scale: TMEM 地址
+  [scale-B-tmem],                 // B 的 scale: TMEM 地址
+  enable-input-d;                 // 是否累加
+```
+
+Scale factor 通过独立的 TMEM 地址操作数传入，与数据矩阵完全分离。
+
+=== scale_vec 参数
+
+`scale_vec` 控制一条 MMA 指令消耗多少组 scale factor：
+
+[cols="^2,^3,^6"]
+|===
+| *scale_vec* | *含义* | *适用场景*
+| 1X | 1 组 scale / MMA | K 维度较小（K=32 for MXFP8, K=64 for MXFP4）
+| 2X | 2 组 scale / MMA | K 维度翻倍
+| 4X | 4 组 scale / MMA | K 维度 4 倍
+|===
+
+== Scale Factor 内存布局
+
+Scale factor 不是简单的行优先/列优先存储，而是需要特殊的 pre-shuffle 布局以匹配 tensor core 的硬件访问模式。
+
+=== 布局要求
+
+* Scale factor 矩阵的形状：对于 M×K 的数据矩阵 A，其 scale 矩阵形状为 M × (K / block_size)
+* 存储时需要按 tensor core 的 warp 分配模式重排
+* NVIDIA 提供 cuDNN 和 Triton 的 API 自动处理布局转换
+
+=== Triton API 示例
+
+```python
+# Triton 的 dot_scaled 封装了 scale 布局处理
+result = tl.dot_scaled(
+    a,                    # 量化数据 A
+    scale_a,              # A 的 scale factor
+    "e2m1",               # A 的数据类型
+    b.T,                  # 量化数据 B（转置）
+    scale_b,              # B 的 scale factor
+    "e2m1",               # B 的数据类型
+    accumulator           # 累加器
+)
+```
+
+== AMD 的类似方案
+
+AMD CDNA4 架构采用类似设计：
+
+* `mfma_scaled` 指令接受独立的 scale 操作数
+* Scale factor 同样不在 load 阶段处理
+* 支持 OCP MX 格式
+
+== 设计要点总结
+
+[cols="^3,^8"]
+|===
+| *设计决策* | *说明*
+| Scale 与数据分离 | Scale factor 独立加载、独立存储，不与量化数据打包
+| Scale 作为 MMA 操作数 | 矩阵乘法指令显式接受 scale 操作数，硬件在计算时内部应用缩放
+| Block 大小固定 | 16（NVFP4）或 32（MXFP）个元素，不可配置
+| Scale 类型有限 | 仅 UE8M0（power-of-2）和 UE4M3 两种
+| 布局有约束 | Scale factor 需要特殊内存布局以匹配硬件访问模式
+| 不修改 load 指令 | 数据和 scale 都用普通 load 加载，区别仅在 MMA 指令如何使用它们
+|===
+
+== 参考资料
+
+* NVIDIA PTX ISA: tcgen05.mma block scaling — https://docs.nvidia.com/cuda/parallel-thread-execution/
+* NVIDIA cuDNN Block Scaling — https://docs.nvidia.com/deeplearning/cudnn/frontend/latest/operations/BlockScaling.html
+* Triton Block Scaled Matmul Tutorial — https://triton-lang.org/main/getting-started/tutorials/10-block-scaled-matmul.html
+* OCP Microscaling (MX) Specification — https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf
