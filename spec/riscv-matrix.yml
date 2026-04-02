@@ -19,10 +19,15 @@ font:
   catalog:
     merge: true
     Noto Sans CN:
-      normal: NotoSansCJK-Regular.ttc
-      bold: NotoSansCJK-Bold.ttc
-      italic: NotoSansCJK-Regular.ttc
-      bold_italic: NotoSansCJK-Bold.ttc
+      normal: NotoSansCJKsc-VF.ttf
+      bold: NotoSansCJKsc-VF.ttf
+      italic: NotoSansCJKsc-VF.ttf
+      bold_italic: NotoSansCJKsc-VF.ttf
+    Noto Sans Mono CN:
+      normal: NotoSansMonoCJKsc-VF.ttf
+      bold: NotoSansMonoCJKsc-VF.ttf
+      italic: NotoSansMonoCJKsc-VF.ttf
+      bold_italic: NotoSansMonoCJKsc-VF.ttf
     M+ 1mn:
       normal: GEM_FONTS_DIR/mplus1mn-regular-subset.ttf
       bold: GEM_FONTS_DIR/mplus1mn-bold-subset.ttf
@@ -31,10 +36,10 @@ font:
 
 codespan:
   font_color: b12146
-  font-family: M+ 1mn
+  font-family: Noto Sans Mono CN
 
 code:
-  font-family: M+ 1mn
+  font-family: Noto Sans Mono CN
 
 header:
   font_size: $base_font_size_small
