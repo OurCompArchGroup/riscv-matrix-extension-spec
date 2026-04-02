@@ -17,8 +17,8 @@ DOCKER_RUN := docker run --rm -v ${PWD}:/build -w /build \
 riscvintl/riscv-docs-base-container-image:latest
 
 HEADER_SOURCE := header.adoc
-PDF_RESULT := riscv_matrix_extension_proposal.pdf
-HTML_RESULT := riscv_matrix_extension_proposal.html
+PDF_RESULT := riscv_zames_specification_proposal.pdf
+HTML_RESULT := riscv_zames_specification_proposal.html
 
 ASCIIDOCTOR_PDF := asciidoctor-pdf
 ASCIIDOCTOR_HTML := asciidoctor

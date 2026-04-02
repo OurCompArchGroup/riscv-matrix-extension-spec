@@ -1,0 +1,21 @@
+= 提案：Block Scaling 矩阵乘法支持
+
+[WARNING]
+====
+**待讨论** — 本文档为 RISC-V 矩阵扩展支持 block scaling 的拆分提案入口，尚未定稿。
+
+本文档拆分为四个部分：
+
+* 概述与范围
+* 基于 scale 寄存器的架构状态提案
+* 执行模型与编码方向
+* NVIDIA/AMD 业界基线与备选路径
+====
+
+include::proposal_block_scaling_overview.adoc[]
+
+include::proposal_block_scaling_arch_state.adoc[]
+
+include::proposal_block_scaling_execution.adoc[]
+
+include::proposal_block_scaling_industry_baseline.adoc[]
