@@ -1,4 +1,4 @@
-= 提案：Block Scaling 矩阵乘法支持
+== 提案：Block Scaling 矩阵乘法支持
 
 [WARNING]
 ====

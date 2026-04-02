@@ -1,6 +1,6 @@
-== NVIDIA/AMD 业界基线与备选路径
+=== NVIDIA/AMD 业界基线与备选路径
 
-=== 为什么保留这份基线
+==== 为什么保留这份基线
 
 当前主方案倾向 scale 寄存器路径，不代表 NVIDIA/AMD 的公开设计就不重要。恰恰相反，业界基线决定了：
 
@@ -10,7 +10,7 @@
 
 因此这里单独保留一个 “industry baseline” 小节，避免把业界事实和本仓库的设计取舍混写在一起。
 
-=== NVIDIA 官方路径
+==== NVIDIA 官方路径
 
 根据 NVIDIA 官方 PTX ISA 与相关文档，NVIDIA 的 block scaling 路径具有以下特点：
 
@@ -28,7 +28,7 @@
 * link:https://docs.nvidia.com/deeplearning/cudnn/frontend/latest/operations/BlockScaling.html[NVIDIA cuDNN Block Scaling]
 * link:https://docs.nvidia.com/cutlass/latest/media/docs/cpp/blackwell_functionality.html[CUTLASS Blackwell Functionality]
 
-=== AMD 官方路径
+==== AMD 官方路径
 
 根据 AMD CDNA4 ISA 和 ROCm 公开资料，AMD 的 block scaling 路径具有以下特点：
 
@@ -45,7 +45,7 @@ AMD 路线证明了“显式 scale 输入 + A/B 类型独立选择”是可行�
 * link:https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf[AMD Instinct CDNA4 ISA]
 * link:https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html[AMD ROCm Matrix Core Programming]
 
-=== 两家的共识与分歧
+==== 两家的共识与分歧
 
 [cols="^3,^4,^4",options="header"]
 |===
@@ -58,7 +58,7 @@ AMD 路线证明了“显式 scale 输入 + A/B 类型独立选择”是可行�
 | 主要 scale 语义 | pre-scaling | post-dot scaling
 |===
 
-=== 可保留的“共识方案”备选设计
+==== 可保留的“共识方案”备选设计
 
 为了让本仓库始终保留一个贴近业界的设计参考，建议把下面这个方案作为**备选路径**保留：
 
@@ -83,7 +83,7 @@ AMD 路线证明了“显式 scale 输入 + A/B 类型独立选择”是可行�
 * **主方案**：scale 寄存器路径，用于当前仓库的第一阶段讨论
 * **备选方案**：显式 scale 输入路径，作为 NVIDIA/AMD 共识设计基线保留
 
-=== 参考资料
+==== 参考资料
 
 以下资料可作为后续继续收敛该 proposal 的一手依据；仓库内的补充背景文档已整理到 `doc/references/`：
 

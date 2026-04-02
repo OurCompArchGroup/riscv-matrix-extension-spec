@@ -16,11 +16,27 @@ base:
 
 font:
   catalog:
+    merge: true
     M+ 1mn:
       normal: GEM_FONTS_DIR/mplus1mn-regular-subset.ttf
       bold: GEM_FONTS_DIR/mplus1mn-bold-subset.ttf
       italic: GEM_FONTS_DIR/mplus1mn-italic-subset.ttf
       bold_italic: GEM_FONTS_DIR/mplus1mn-bold_italic-subset.ttf
+    M+ 1p Fallback:
+      normal: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
+      bold: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
+      italic: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
+      bold_italic: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
+    Droid Fallback:
+      normal: doc/docs-resources/fonts/droid-sans-fallback.ttf
+      bold: doc/docs-resources/fonts/droid-sans-fallback.ttf
+      italic: doc/docs-resources/fonts/droid-sans-fallback.ttf
+      bold_italic: doc/docs-resources/fonts/droid-sans-fallback.ttf
+  fallbacks:
+    - M+ 1p Fallback
+    - Droid Fallback
+  svg:
+    fallback-font-family: M+ 1mn
 
 codespan:
   font_color: b12146

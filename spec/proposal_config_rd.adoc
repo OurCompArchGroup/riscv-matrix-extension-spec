@@ -1,11 +1,11 @@
-= 提案：Config 指令增加 rd 写回（类似 vsetvl）
+== 提案：Config 指令增加 rd 写回（类似 vsetvl）
 
 [WARNING]
 ====
 **待讨论** — 本文档为配置指令编码改进提案，尚未定稿。
 ====
 
-== 问题
+=== 问题
 
 当前 `msettile{m|k|n}[i]` 指令的 bits[11:7] 固定为 `00000`，不写回任何 GPR。软件设置 tile 大小后，硬件会将请求值 clamp 到硬件支持的最大值，但软件无法直接获知 clamp 后的实际值，必须额外读取 `mtilem/mtilek/mtilen` CSR：
 
@@ -21,13 +21,13 @@ RISC-V V 扩展的 `vsetvli` 不存在这个问题——它直接将实际 VL �
 vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
 ```
 
-== 提案
+=== 提案
 
 将 bits[11:7] 改为 rd 字段，`msettile{m|k|n}[i]` 将实际（clamp 后的）tile 大小写回 rd。当 rd=x0 时行为与当前一致（丢弃返回值）。
 
-== 指令格式
+=== 指令格式
 
-=== 立即数格式（msettile{m|k|n}i rd, uimm10）
+==== 立即数格式（msettile{m|k|n}i rd, uimm10）
 
 [wavedrom, ,svg]
 ....
@@ -42,7 +42,7 @@ vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-=== 寄存器格式（msettile{m|k|n} rd, rs1）
+==== 寄存器格式（msettile{m|k|n} rd, rs1）
 
 [wavedrom, ,svg]
 ....
@@ -58,7 +58,7 @@ vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-== 指令语义
+=== 指令语义
 
 [cols="^3,^6"]
 |===
@@ -73,7 +73,7 @@ vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
 
 当 rd = x0 时，写回被丢弃，行为与当前编码完全兼容。
 
-== 编码表
+=== 编码表
 
 .Configuration Instructions (uop=00)
 [cols="^2,^2,^2,^8"]
@@ -88,7 +88,7 @@ vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
 | 0011    | 1          | rd    | msettilen rd, rs1
 |===
 
-== 使用示例
+=== 使用示例
 
 ```
 # 改进后：一条指令同时设置 tile 大小并获取实际值
@@ -121,11 +121,11 @@ loop:
     ...
 ```
 
-== 对 minit 的影响
+=== 对 minit 的影响
 
 `minit`（func4=0000）当前 rd=00000。可以保持不变（minit 不返回有意义的值），或者让 minit 也支持 rd 写回某个状态值（如硬件能力信息）。建议保持 rd=00000 不变。
 
-== 优缺点
+=== 优缺点
 
 *优点：*
 
