@@ -18,10 +18,10 @@ font:
   catalog:
     merge: true
     body:
-      normal: Petrona-Light.ttf
-      bold: Petrona-Medium.ttf
-      italic: Petrona-LightItalic.ttf
-      bold_italic: Petrona-MediumItalic.ttf
+      normal: NotoSerifCJK-Regular.ttc
+      bold: NotoSerifCJK-Bold.ttc
+      italic: NotoSerifCJK-Regular.ttc
+      bold_italic: NotoSerifCJK-Bold.ttc
     M+ 1mn:
       normal: GEM_FONTS_DIR/mplus1mn-regular-subset.ttf
       bold: GEM_FONTS_DIR/mplus1mn-bold-subset.ttf

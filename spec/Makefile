@@ -27,7 +27,7 @@ OPTIONS := --trace \
            -a compress \
            -a mathematical-format=svg \
            -a revdate=${DATE} \
-           -a pdf-fontsdir=docs-resources/fonts \
+           -a pdf-fontsdir=docs-resources/fonts,../doc/resources/fonts \
            -a pdf-theme=riscv-matrix.yml \
            --failure-level=ERROR
 HTML_OPTIONS := --trace \
