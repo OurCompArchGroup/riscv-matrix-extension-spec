@@ -13,8 +13,7 @@
 # the Doc Template for RISC-V Extensions.
 
 DATE ?= $(shell date +%Y-%m-%d)
-REPO_ROOT := $(abspath ..)
-DOCKER_RUN := docker run --rm -v ${REPO_ROOT}:/repo -w /repo/spec \
+DOCKER_RUN := docker run --rm -v ${PWD}:/build -w /build \
 riscvintl/riscv-docs-base-container-image:latest
 
 HEADER_SOURCE := header.adoc
@@ -27,7 +26,7 @@ OPTIONS := --trace \
            -a compress \
            -a mathematical-format=svg \
            -a revdate=${DATE} \
-           -a pdf-fontsdir=docs-resources/fonts,../doc/resources/fonts \
+           -a pdf-fontsdir=docs-resources/fonts \
            -a pdf-theme=riscv-matrix.yml \
            --failure-level=ERROR
 HTML_OPTIONS := --trace \

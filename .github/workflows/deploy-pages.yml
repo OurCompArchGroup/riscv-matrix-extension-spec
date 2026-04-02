@@ -23,9 +23,9 @@ jobs:
 
       - name: Build PDF and HTML
         run: |
-          docker run --rm -v "$(pwd)":/repo -w /repo/spec \
+          docker run --rm -v "$(pwd)/spec":/build \
             riscvintl/riscv-docs-base-container-image:latest \
-            /bin/sh -c 'make build-no-container && make build-html-no-container'
+            /bin/sh -c 'cd /build && make build-no-container && make build-html-no-container'
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
