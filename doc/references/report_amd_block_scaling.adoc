@@ -1,0 +1,170 @@
+= 报告：AMD CDNA4 Block Scaling 矩阵乘法实现详解
+
+== 概述
+
+AMD 从 CDNA4 架构（MI355X）开始，在 Matrix Core 中原生支持 block exponent scaling 的 MFMA 指令。与 NVIDIA 类似，scale factor 作为 MMA 指令的独立操作数传入。
+
+== 量化格式定义
+
+AMD CDNA4 支持的低精度浮点类型与 NVIDIA 基本一致，均遵循 OCP 标准：
+
+=== 数据类型总表
+
+[cols="^2,^1,^1,^1,^2,^2,^3"]
+|===
+| *格式* | *位宽* | *指数* | *尾数* | *Bias* | *范围* | *说明*
+| E4M3FN (FP8) | 8 | 4 | 3 | 7 | ±448 | OCP 标准，CDNA4 使用此变体
+| E5M2 (BF8) | 8 | 5 | 2 | 15 | ±57344 | OCP 标准
+| E2M3 | 6 | 2 | 3 | 1 | ±7.5 | 无 NaN/Inf
+| E3M2 (BF6) | 6 | 3 | 2 | 3 | ±28 | 无 NaN/Inf
+| E2M1 (FP4) | 4 | 2 | 1 | 1 | ±6 | 无 NaN/Inf
+| E8M0 | 8 | 8 | 0 | 127 | 2^(±127) | Scale factor 专用，NaN=0xFF
+|===
+
+关键区别：CDNA3 使用 FNUZ 变体（E4M3FNUZ/E5M2FNUZ），CDNA4 切换到 OCP 变体（E4M3FN/E5M2）。
+
+=== E8M0 Scale Factor
+
+```
+value = 2^(E - 127)
+
+当 E = 127 时，scale = 1（无缩放）
+当 E = 0   时，scale = 2^(-127)
+当 E = 254 时，scale = 2^(127)
+当 E = 255 时，NaN
+```
+
+== AMD 硬件实现
+
+=== 指令接口
+
+CDNA4 使用统一的 `mfma_scale` 编译器内建函数：
+
+```c
+d_reg = __builtin_amdgcn_mfma_scale_f32_MxNxK_f8f6f4(
+    a_reg,      // A 矩阵数据（寄存器向量）
+    b_reg,      // B 矩阵数据（寄存器向量）
+    c_reg,      // C 累加器（寄存器向量）
+    Atype,      // A 的数据类型（整数编码）
+    Btype,      // B 的数据类型（整数编码）
+    OPSEL_A,    // A 的操作选择（通常为 0）
+    scale_a,    // A 的 E8M0 scale factor（uint8_t）
+    OPSEL_B,    // B 的操作选择（通常为 0）
+    scale_b     // B 的 E8M0 scale factor（uint8_t）
+);
+```
+
+=== 类型编码
+
+A/B 矩阵的数据类型通过整数参数指定：
+
+[cols="^2,^4"]
+|===
+| *编码值* | *类型*
+| 0 | E4M3 (FP8)
+| 1 | E5M2 (BF8)
+| 2 | E2M3 (FP6)
+| 3 | E3M2 (BF6)
+| 4 | E2M1 (FP4)
+|===
+
+A 和 B 可以独立选择不同类型（如 A=E4M3, B=E2M1）。
+
+=== 支持的 MMA 形状
+
+[cols="^3,^3,^2,^3"]
+|===
+| *类型* | *MxNxK* | *Cycles* | *说明*
+| FP32 ← FP8/FP6/FP4 (dense) | 16x16x128 / 32x32x64 | 16-32 / 32-64 | A/B 可独立选择类型
+| FP32 ← MXFP8/MXFP6/MXFP4 (block scaled) | 16x16x128 / 32x32x64 | 16-32 / 32-64 | 带 E8M0 block scaling
+|===
+
+FP8 类型的 cycle count 更大（32/64），FP4/FP6 更快（16/32）。
+
+=== Scale Factor 传递
+
+与 NVIDIA 的关键区别：AMD 的 scale factor 是 **per-thread scalar**，不需要复杂的寻址机制。
+
+```c
+// 每个线程持有：
+// - 32 个 A 矩阵元素（a_reg, 256 bits）
+// - 32 个 B 矩阵元素（b_reg, 256 bits）
+// - 1 个 A 的 scale factor（scale_a, uint8_t E8M0）
+// - 1 个 B 的 scale factor（scale_b, uint8_t E8M0）
+// - 16 个 C/D 累加器元素（c_reg/d_reg, FP32）
+
+uint8_t scale_a = 127;  // E8M0, value = 2^(127-127) = 1
+uint8_t scale_b = 127;  // 无缩放
+
+c_reg = __builtin_amdgcn_mfma_scale_f32_32x32x64_f8f6f4(
+    a_reg, b_reg, c_reg,
+    0,         // Atype = E4M3
+    0,         // Btype = E4M3
+    0, scale_a,
+    0, scale_b
+);
+```
+
+=== 计算语义
+
+```
+D := A * B + C
+
+其中 dot product 过程中：
+  scaled_result = dot(A_chunk, B_chunk) * scale_a * scale_b
+  D[i][j] += scaled_result
+```
+
+Scale 在 dot product 之后、累加之前应用。每个线程的 scale_a 对应该线程持有的 A 数据块，scale_b 同理。
+
+=== FP4 数据布局
+
+FP4 元素以 packed 形式存储（2 个 FP4 = 1 字节）。AMD 提供辅助函数：
+
+```c
+// 从 fp4x2 中提取单个 FP4
+uint8_t __amd_extract_fp4(__amd_fp4x2_storage_t x, size_t index) {
+    if (index == 0) return (x & 0xFu);
+    return (x >> 4);
+}
+
+// 将两个 FP4 打包为 fp4x2
+__amd_fp4x2_storage_t __amd_create_fp4x2(uint8_t x, uint8_t y) {
+    return x | (y << 4);
+}
+```
+
+=== 性能数据
+
+.MI355X (CDNA4) Matrix Core 峰值性能
+[cols="^2,^3,^2"]
+|===
+| *类型* | *峰值性能* | *相对 FP32*
+| FP32 | 157.3 TF | 1x
+| FP16 | 2.5 PF | ~16x
+| FP8 | 5 PF | ~32x
+| FP6 | 10 PF | ~64x
+| FP4 | 10 PF | ~64x
+|===
+
+== 与 NVIDIA 的对比
+
+[cols="^3,^5,^5"]
+|===
+| *方面* | *NVIDIA (Blackwell)* | *AMD (CDNA4)*
+| Scale 存储 | Tensor Memory 或寄存器 | 寄存器（per-thread scalar）
+| Scale 传递 | 复杂寻址（byte-id + thread-id） | 直接作为函数参数
+| Scale 粒度 | 可配置（1X/2X/4X） | 固定（1 scale per thread per MMA）
+| 类型选择 | PTX 修饰符（.e4m3/.e5m2 等） | 整数编码（0-4）
+| A/B 独立类型 | 支持 | 支持
+| Scale 类型 | UE8M0 + UE4M3 | 仅 UE8M0
+| FP6 支持 | E2M3, E3M2 | E2M3, E3M2
+| FP4 支持 | E2M1 (OCP) + NVFP4 | E2M1 (OCP)
+| Sparse MMA | 支持（2:4 / 4:8） | 不支持 block scaled sparse
+|===
+
+== 参考资料
+
+* AMD ROCm Blog: Matrix Core Programming on CDNA3 and CDNA4 — https://rocm.blogs.amd.com/software-tools-optimization/matrix-cores-cdna/README.html
+* AMD CDNA4 ISA Reference — https://www.amd.com/content/dam/amd/en/documents/instinct-tech-docs/instruction-set-architectures/amd-instinct-cdna4-instruction-set-architecture.pdf
+* OCP Microscaling Formats (MX) v1.0 — https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf
