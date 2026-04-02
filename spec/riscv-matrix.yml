@@ -23,15 +23,15 @@ font:
       italic: GEM_FONTS_DIR/mplus1mn-italic-subset.ttf
       bold_italic: GEM_FONTS_DIR/mplus1mn-bold_italic-subset.ttf
     M+ 1p Fallback:
-      normal: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
-      bold: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
-      italic: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
-      bold_italic: doc/docs-resources/fonts/mplus-1p-regular-fallback.ttf
+      normal: mplus-1p-regular-fallback.ttf
+      bold: mplus-1p-regular-fallback.ttf
+      italic: mplus-1p-regular-fallback.ttf
+      bold_italic: mplus-1p-regular-fallback.ttf
     Droid Fallback:
-      normal: doc/docs-resources/fonts/droid-sans-fallback.ttf
-      bold: doc/docs-resources/fonts/droid-sans-fallback.ttf
-      italic: doc/docs-resources/fonts/droid-sans-fallback.ttf
-      bold_italic: doc/docs-resources/fonts/droid-sans-fallback.ttf
+      normal: droid-sans-fallback.ttf
+      bold: droid-sans-fallback.ttf
+      italic: droid-sans-fallback.ttf
+      bold_italic: droid-sans-fallback.ttf
   fallbacks:
     - M+ 1p Fallback
     - Droid Fallback
