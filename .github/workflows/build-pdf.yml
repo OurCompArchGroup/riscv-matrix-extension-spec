@@ -30,16 +30,17 @@ jobs:
       - name: Build PDF
         run: |
           if [ -f spec/Makefile ]; then
-            SPEC_DIR="spec"
+            docker run --rm -v "$(pwd)":/repo -w /repo/spec \
+              riscvintl/riscv-docs-base-container-image:latest \
+              /bin/sh -c 'make'
           elif [ -f Makefile ]; then
-            SPEC_DIR="."
+            docker run --rm -v "$(pwd)":/repo -w /repo \
+              riscvintl/riscv-docs-base-container-image:latest \
+              /bin/sh -c 'make'
           else
             echo "Makefile not found in spec/ or repository root."
             exit 1
           fi
-          docker run --rm -v "$(pwd)/${SPEC_DIR}":/build \
-            riscvintl/riscv-docs-base-container-image:latest \
-            /bin/sh -c 'cd /build && make'
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4

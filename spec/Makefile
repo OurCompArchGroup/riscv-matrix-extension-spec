@@ -13,7 +13,8 @@
 # the Doc Template for RISC-V Extensions.
 
 DATE ?= $(shell date +%Y-%m-%d)
-DOCKER_RUN := docker run --rm -v ${PWD}:/build -w /build \
+REPO_ROOT := $(abspath ..)
+DOCKER_RUN := docker run --rm -v ${REPO_ROOT}:/repo -w /repo/spec \
 riscvintl/riscv-docs-base-container-image:latest
 
 HEADER_SOURCE := header.adoc
