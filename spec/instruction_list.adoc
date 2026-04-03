@@ -13,8 +13,8 @@
 | msettilem  | 0010 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
 | msettileni | 0011 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
 | msettilen  | 0011 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
-| msettypei  | 0100 | 00 | 0 | mtr | 00000 | 000 | type[4:0] | major opcode
-| msettype   | 0100 | 00 | 1 | mtr | rs1 | 000 | 00000 | major opcode
+| msettypei  | 0100 | 00 | 0 | 00000 | mtr | 000 | type[4:0] | major opcode
+| msettype   | 0100 | 00 | 1 | 00000 | mtr | 000 | rs1 | major opcode
 |===
 
 .Matrix MISC Instructions

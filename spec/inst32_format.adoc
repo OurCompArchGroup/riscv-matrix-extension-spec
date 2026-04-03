@@ -89,7 +89,7 @@ The `md`/`ms1`/`ms2` fields are 3-bit wide to index the four tile registers and 
 | 111 | acc3
 |===
 
-The `msettype` family uses the same 3-bit encoding in its target-selector operand to identify the associated `mtype` register for `tr0`-`tr3` and `acc0`-`acc3`.
+The `msettype` family uses the `mtr` selector field in `inst[19:15]` to identify the target `mtype` register. Legal `mtr` encodings are `00000` through `00111`, where `mtr[2:0]` select `mtype0` through `mtype7`. `mtr[4:3]` are reserved and shall be zero.
 
 For matrix multiplication instructions, `ms1` and `ms2` shall be tile registers (`000`-`011`), and `md` shall be an accumulation register (`100`-`111`). For matrix misc instructions, `md`/`ms1`/`ms2` can be `000`-`111`, according to the specific instruction.
 
@@ -102,6 +102,20 @@ The element sizes of `d_size` and `s_size` are as follows:
 | 01 | 16-bit
 | 10 | 32-bit
 | 11 | 64-bit
+|===
+
+[cols="^1,1"]
+|===
+| *mtr[4:0]* | *Target `mtype` Register*
+| 00000 | mtype0 (type state for tr0)
+| 00001 | mtype1 (type state for tr1)
+| 00010 | mtype2 (type state for tr2)
+| 00011 | mtype3 (type state for tr3)
+| 00100 | mtype4 (type state for acc0)
+| 00101 | mtype5 (type state for acc1)
+| 00110 | mtype6 (type state for acc2)
+| 00111 | mtype7 (type state for acc3)
+| 01000-11111 | Reserved
 |===
 
 For instructions with GPR operands, `rs1` and `rs2` indicate the scalar source registers. For configuration instructions that use immediate operands, `imm10` carries the immediate payload.
