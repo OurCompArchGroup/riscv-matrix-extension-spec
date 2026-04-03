@@ -4,6 +4,8 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
+* **Matrix Type Registers**: Eight addressable architectural registers, `mtype0`-`mtype7`, that record the programmed data type of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msettype[i]` instruction family.
+
 * **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
 * **Modified Standard CSRs**: The matrix extension modifies one standard RISC-V CSR: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector). The Zames extension is not indicated in the `misa` Extensions field; it is reported via device tree.
@@ -17,6 +19,11 @@ The matrix extension introduces the following architectural state:
 | tr0-tr3    | 0x0-0x3 | - | Tile registers (TLEN bits each), store input matrices A and B
 | acc0-acc3  | 0x4-0x7 | - | Accumulation registers (ALEN bits each), store output matrix C
 2+| _Total: 8 matrix registers_ 2+|
+
+.3+| Matrix Type Registers
+| mtype0-mtype3 | 0x8-0xb | - | Type state for `tr0`-`tr3`
+| mtype4-mtype7 | 0xc-0xf | - | Type state for `acc0`-`acc3`
+2+| _Total: 8 matrix type registers_ 2+|
 
 .8+| CSRs
 | mcsr      | 0x802 | URW | Matrix control and status register
@@ -44,6 +51,28 @@ The matrix extension introduces the following architectural state:
 === Matrix Registers
 
 include::tilereg.adoc[]
+
+=== Matrix Type Registers
+
+The `mtype` architectural registers hold the programmed element type for each matrix register. `mtype0`-`mtype3` correspond to `tr0`-`tr3`, and `mtype4`-`mtype7` correspond to `acc0`-`acc3`.
+
+Only the `msettypei` and `msettype` instructions update `mtype` state. Matrix load/store, matrix multiplication, and misc instructions validate their required operand types against the programmed `mtype` state and do not implicitly rewrite it.
+
+Each `mtype` register uses the least-significant five bits to hold the type code. The upper bits are reserved and shall be written as zero.
+
+[cols="^2,^5"]
+|===
+| `mtype[4:0]` | Meaning
+| 00000 | `i8`
+| 00001 | `i16`
+| 00010 | `i32`
+| 00011 | `i64`
+| 00100 | `bf16`
+| 00101 | `f16`
+| 00110-11111 | Reserved
+|===
+
+The current simplified specification defines matrix multiplication only for `mtype(ms1)=i8`, `mtype(ms2)=i8`, and `mtype(md)=i32`. Executing a matrix instruction whose encoded element size or defined operand semantics do not match the programmed `mtype` state raises an illegal instruction exception.
 
 === CSR Registers
 
@@ -285,4 +314,3 @@ The misa CSR is a WARL read-write register reporting the ISA supported by the ha
 |===
 
 The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node as a list of lowercase extension name strings. Software can discover the presence of Zames by checking for the string `"zames"` in this list. If the Zmasync extension is also implemented, `"zmasync"` appears in the same list.
-

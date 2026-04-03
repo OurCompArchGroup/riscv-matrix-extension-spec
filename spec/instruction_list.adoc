@@ -1,62 +1,64 @@
 
 == Instruction List
 
-
 .Matrix Configuration Instructions
-[cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
+[cols="^5,^2,^2,^5,^3,^3,^2,^4,^5"]
 |===
-.2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
-                      | *func* | *uop* |  *ctrl*  | *rs2* | *rs1*    |  *func3*   |  *nop*       | *opcode*
-      | minit  	      | 0000   | 00	   |  0	    2+|      0	         |   000      |	00000        | major opcode
-      | msettileki	  | 0001   | 00	   |  0	    2+| uimm10[9:0]      |	 000      |	00000        | major opcode
-      | msettilek	  | 0001   | 00	   |  1	      | 00000  | rs1     |	 000      |	00000        | major opcode
-      | msettilemi	  | 0010   | 00	   |  0	    2+| uimm10[9:0]      |	 000      |	00000        | major opcode
-      | msettilem	  | 0010   | 00	   |  1	      | 00000  | rs1     |	 000      |	00000        | major opcode
-      | msettileni	  | 0011   | 00	   |  0	    2+| uimm10[9:0]      |	 000      |	00000        | major opcode
-      | msettilen	  | 0011   | 00	   |  1	      | 00000  |  rs1    |	 000      |	00000        | major opcode
-
+.2+^.^| *Format* | 31 28 | 27 26 | 25 | 24 20 | 19 15 | 14 12 | 11 7 | 6 0
+                  | *func* | *res* | *ctrl* | *sel* | *payload* | *func3* | *rd/imm* | *opcode*
+| minit      | 0000 | 00 | 0 | 00000 | 00000 | 000 | 00000 | major opcode
+| msettileki | 0001 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
+| msettilek  | 0001 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
+| msettilemi | 0010 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
+| msettilem  | 0010 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
+| msettileni | 0011 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
+| msettilen  | 0011 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
+| msettypei  | 0100 | 00 | 0 | mtr | 00000 | 000 | type[4:0] | major opcode
+| msettype   | 0100 | 00 | 1 | mtr | rs1 | 000 | 00000 | major opcode
 |===
-
 
 .Matrix MISC Instructions
-[cols="^5,^3,^2,^2,^2,^2,^2,^2,^2,^2,^2,^5"]
+[cols="^5,^2,^2,^2,^3,^2,^3,^3,^2,^3,^5"]
 |===
-.2+^.^| *Format*        |  31 28 | 27  26 | 25      | 24  23      | 22 20 |19   18      | 17  15    |   14  12    |   11  10    |   9  7      |  6    0
-                        | *func* | *uop*  |  *ctrl* | *ctrl*      | *ms2* | *s_size*    |  *ms1*    |  *func3*    |  *d_size*   |  *md*       | *opcode*
-      | mzero1r	        | 0000	 |  11    |	0       | 00          | 000	  | 00          |  000      |	000       |	00	        |   md	      | major opcode
-
+.2+^.^| *Format* | 31 28 | 27 26 | 25 23 | 22 20 | 19 18 | 17 15 | 14 12 | 11 10 | 9 7 | 6 0
+                  | *func* | *res* | *ctrl* | *ms2* | *s_size* | *ms1* | *func3* | *d_size* | *md* | *opcode*
+| mzero1r | 0000 | 00 | 000 | 000 | 00 | 000 | 011 | 00 | md | major opcode
 |===
-
-
-
 
 .Matrix Multiplication Instructions
-[cols="^5,^3,^2,^2,^2,^2,^2,^2,^2,^4,^5"]
+[cols="^5,^2,^3,^3,^2,^3,^3,^2,^3,^5"]
 |===
-.2+^.^| *Format*      |  31 28 | 27  26| 25   23      | 22 20 |19   18   | 17  15   |   14  12  | 11 10      | 9 7      |  6    0
-                      | *func* | *uop* |  *size_sup*  | *ms2* | *s_size* |  *ms1*   |  *func3*  | *d_size*   | *md/ms3* | *opcode*
-     | mmacc.w.b	  | 0001   |  10   |   011  	  |ms2    |	00	     |  ms1  	|  000      | 	10       |	md/ms3  |	major opcode
-
+.2+^.^| *Format* | 31 28 | 27 26 | 25 23 | 22 20 | 19 18 | 17 15 | 14 12 | 11 10 | 9 7 | 6 0
+                  | *func* | *res* | *ctrl* | *ms2* | *s_size* | *ms1* | *func3* | *d_size* | *md/ms3* | *opcode*
+| mmacc | 0001 | 00 | 011 | ms2 | 00 | ms1 | 010 | 10 | md/ms3 | major opcode
 |===
-
-
 
 .Matrix Load/Store Instructions
-[cols="^5,^3,^2,^2,^2,^2,^2,^2,^4,^5"]
+[cols="^5,^2,^2,^5,^5,^3,^2,^4,^5"]
 |===
-.2+^.^| *Format*      |  31 28 | 27  26| 25     | 24 20 |19   15   | 14  12     |   11  10    | 9 7      |  6    0
-                      | *func* | *uop* |  *ls*  | *rs2* | *rs1*    |  *func3*   |  *d_size*   | *md/ms3* | *opcode*
-     |mlae8	          | 0000   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlbe8	          | 0001   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlce8	          | 0010   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlce32	      | 0010   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode
-     |msce8	          | 0010   |  01   |  1     | 	rs2	| rs1      |	000     |	00        |	ms3 	|  major opcode
-     |msce32	      | 0010   |  01   |  1     | 	rs2	| rs1      |	000     |	10        |	ms3 	|  major opcode
-     |mlate8	      | 0100   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlbte8	      | 0101   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlcte8	      | 0110   |  01   |  0     | 	rs2	| rs1      |	000     |	00        |	md	    |  major opcode
-     |mlcte32	      | 0110   |  01   |  0     | 	rs2	| rs1      |	000     |	10        |	md	    |  major opcode
-     |mscte8	      | 0110   |  01   |  1     | 	rs2	| rs1      |	000     |	00        |	ms3 	|  major opcode
-     |mscte32	      | 0110   |  01   |  1     | 	rs2	| rs1      |	000     |	10        |	ms3 	|  major opcode
+.2+^.^| *Format* | 31 28 | 27 26 | 25 | 24 20 | 19 15 | 14 12 | 11 10 | 9 7 | 6 0
+                  | *func* | *res* | *l/s* | *rs2* | *rs1* | *func3* | *d_size* | *md/ms3* | *opcode*
+| mlae8   | 0000 | 00 | 0 | rs2 | rs1 | 001 | 00 | md  | major opcode
+| mlbe8   | 0001 | 00 | 0 | rs2 | rs1 | 001 | 00 | md  | major opcode
+| mlce8   | 0010 | 00 | 0 | rs2 | rs1 | 001 | 00 | md  | major opcode
+| mlce32  | 0010 | 00 | 0 | rs2 | rs1 | 001 | 10 | md  | major opcode
+| msce8   | 0010 | 00 | 1 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
+| msce32  | 0010 | 00 | 1 | rs2 | rs1 | 001 | 10 | ms3 | major opcode
+| mlate8  | 0100 | 00 | 0 | rs2 | rs1 | 001 | 00 | md  | major opcode
+| mlbte8  | 0101 | 00 | 0 | rs2 | rs1 | 001 | 00 | md  | major opcode
+| mlcte8  | 0110 | 00 | 0 | rs2 | rs1 | 001 | 00 | md  | major opcode
+| mlcte32 | 0110 | 00 | 0 | rs2 | rs1 | 001 | 10 | md  | major opcode
+| mscte8  | 0110 | 00 | 1 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
+| mscte32 | 0110 | 00 | 1 | rs2 | rs1 | 001 | 10 | ms3 | major opcode
+|===
 
+.Zmasync Instructions
+[cols="^5,^2,^2,^5,^5,^3,^2,^4,^5"]
+|===
+.2+^.^| *Format* | 31 28 | 27 26 | 25 | 24 20 | 19 15 | 14 12 | 11 7 | 6 0
+                  | *func* | *res* | *ctrl* | *sync* | *rs1* | *func3* | *nop* | *opcode*
+| msyncregreset | 1000 | 00 | 0 | sync  | 00000 | 100 | 00000 | major opcode
+| mrelease      | 1001 | 00 | 0 | sync  | 00000 | 100 | 00000 | major opcode
+| macquire      | 1010 | 00 | 0 | sync  | rs1   | 100 | 00000 | major opcode
+| mfence        | 1011 | 00 | 0 | 00000 | 00000 | 100 | 00000 | major opcode
 |===

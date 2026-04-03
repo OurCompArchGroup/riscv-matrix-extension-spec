@@ -17,3 +17,16 @@ msettilek  rs1  # rs1 = new mtilek
 msettileni imm  # imm = new mtilen
 msettilen  rs1  # rs1 = new mtilen
 ```
+
+The `msettype[i]` instruction family programs the `mtype` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. These instructions are the only instructions that modify `mtype` state.
+
+`msettypei` encodes the type value directly in the instruction. `msettype` reads the type value from the least-significant five bits of the scalar register `rs1`. In both forms, the `mtr` operand selects which `mtype` register is updated, using the same 3-bit register index encoding as the corresponding matrix register:
+
+```
+msettypei mtype0, 0b00000  # type state for tr0  = i8
+msettypei mtype1, 0b00000  # type state for tr1  = i8
+msettypei mtype4, 0b00010  # type state for acc0 = i32
+msettype  mtype5, rs1      # type state for acc1 = x[rs1][4:0]
+```
+
+The selected type code must be one of the defined `mtype` encodings described in the programmer's model. Reserved type codes cause an illegal instruction exception.

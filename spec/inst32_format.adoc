@@ -1,16 +1,29 @@
-The 32-bit instruction format fit under the custom-1(0101011) major opcode. There are three main types of instruction formats, as illustrated below.
+The 32-bit matrix instruction formats fit under the custom-1 (`0101011`) major opcode. The `func3` field is the top-level instruction-category selector. Bits `inst[27:26]` are reserved and shall be written as `0` in all normative encodings. Any bit without an explicitly defined semantic role in the instruction formats below is reserved and shall be written as `0`.
 
-All matrix instructions use func3 = 000. The Zmasync extension uses func3 = 001 to maintain a separate encoding space. The uop field distinguishes different instruction categories. Within each category, additional fields further differentiate specific instructions as shown in the tables below.
+The assigned `func3` values are as follows:
+
+[cols="^2,^8"]
+|===
+| *func3* | *Instruction Category*
+| 000 | Configuration instructions
+| 001 | Load/Store instructions
+| 010 | Matrix multiplication instructions
+| 011 | MISC instructions
+| 100 | Zmasync instructions
+| 101 | Reserved
+| 110 | Reserved
+| 111 | Reserved
+|===
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: '0', type: 8},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
   {bits: 3,  name: 'func3', type: 5},
   {bits: 10, name: 'imm10[9:0]', type: 4},
-  {bits: 1,  name: '0', type: 8},
-  {bits: 2,  name: 'uop', type: 5},
+  {bits: 1,  name: 'ctrl', type: 6},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -19,12 +32,11 @@ All matrix instructions use func3 = 000. The Zmasync extension uses func3 = 001 
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: '0', type: 8},
+  {bits: 5,  name: 'rd/rs1', type: 3},
   {bits: 3,  name: 'func3', type: 5},
-  {bits: 5,  name: 'rs1', type: 3},
-  {bits: 5,  name: '0', type: 8},
-  {bits: 1,  name: '1', type: 8},
-  {bits: 2,  name: 'uop', type: 5},
+  {bits: 5,  name: 'rs1/sel', type: 4},
+  {bits: 1,  name: 'ctrl', type: 6},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -39,7 +51,7 @@ All matrix instructions use func3 = 000. The Zmasync extension uses func3 = 001 
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: 'rs2', type: 4},
   {bits: 1,  name: 'l/s', type: 6},
-  {bits: 2,  name: 'uop', type: 5},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -55,63 +67,52 @@ All matrix instructions use func3 = 000. The Zmasync extension uses func3 = 001 
   {bits: 2,  name: 's_size', type: 7},
   {bits: 3,  name: 'ms2', type: 4},
   {bits: 3,  name: 'imm3/ctrl', type: 6},
-  {bits: 2,  name: 'uop', type: 5},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-For the matrix instructions only with matrix register, md/ms1/ms2 fields indicate the matrix register indexes for the dest(src3)/src1/src2 matrix operands, d_size field indicates the destination operand size, s_size field indicates the source operand size, imm3/ctrl field indicates the immediate index of matrix row/column or more operation information, and uop field indicates the different micro-operation types.
+For instructions that use matrix-register operands, `md`/`ms1`/`ms2` identify the destination (or store source) and source matrix registers. The `d_size` field indicates the destination element size. The `s_size` field indicates the source element size. The `imm3/ctrl` field carries operation-specific control information. Bits `inst[27:26]` are reserved and shall be zero.
 
-The md/ms1/ms2 fields are 3-bit width to index the four tile registers and four accumulation registers.
+The `md`/`ms1`/`ms2` fields are 3-bit wide to index the four tile registers and four accumulation registers.
 
 [cols="^1,1"]
 |===
 | *md/ms1/ms2[2:0]*  | *Matrix Register Index*
-|  000               |   tr0
-|  001               |   tr1
-|  010               |   tr2
-|  011               |   tr3
-|  100               |   acc0
-|  101               |   acc1
-|  110               |   acc2
-|  111               |   acc3
-|=== 
+| 000 | tr0
+| 001 | tr1
+| 010 | tr2
+| 011 | tr3
+| 100 | acc0
+| 101 | acc1
+| 110 | acc2
+| 111 | acc3
+|===
 
-For matrix multiplication instructions, ms1/ms2 should be 000-011 for tile registers, and md should be 100-111 for accumulation registers. For matrix misc instructions, md/ms1/ms2 can be 000-111, according to the specific misc instruction.
+The `msettype` family uses the same 3-bit encoding in its target-selector operand to identify the associated `mtype` register for `tr0`-`tr3` and `acc0`-`acc3`.
 
-The element sizes of d_size and s_size are as follows:
+For matrix multiplication instructions, `ms1` and `ms2` shall be tile registers (`000`-`011`), and `md` shall be an accumulation register (`100`-`111`). For matrix misc instructions, `md`/`ms1`/`ms2` can be `000`-`111`, according to the specific instruction.
+
+The element sizes of `d_size` and `s_size` are as follows:
 
 [cols="^1,1"]
 |===
 | *d/s_size[1:0]* | *Element Size*
-|  00       | 8-bit
-|  01       | 16-bit
-|  10       | 32-bit
-|  11       | 64-bit
-|=== 
-
-
-For the matrix instructions with GPR operand, rd/rs1/rs2 fields indicate the scaler register indexes for the dest/src1/src2 scaler operands.
-
-For the matrix instructions with IMM10, imm10 fields indicates the 10-bit width immediate, usually used in configuration instruction.
-
-The uop field (inst[27:26]) is the primary classifier that determines the instruction category. All instructions are first categorized by their uop value, then further differentiated within each category using additional encoding fields.
-
-.Instruction Category Encoding (uop field)
-[cols="^2,^8"]
+| 00 | 8-bit
+| 01 | 16-bit
+| 10 | 32-bit
+| 11 | 64-bit
 |===
-| *uop* | *Instruction Category*
-| 00    | Configuration instructions
-| 01    | Load/Store instructions
-| 10    | Matrix Multiplication instructions
-| 11    | MISC instructions
-|===
+
+For instructions with GPR operands, `rs1` and `rs2` indicate the scalar source registers. For configuration instructions that use immediate operands, `imm10` carries the immediate payload.
 
 ==== Configuration Instructions
 
-The func4 field distinguishes m/n/k configuration, and inst[25] indicates whether the configuration parameter is from imm10 field (inst[25]=0) or rs1 register (inst[25]=1). When inst[25]=0, the tile size is encoded as a 10-bit unsigned immediate (uimm10) in the instruction, which is suitable for compile-time known constant tile sizes; when inst[25]=1, the tile size is read from the general-purpose register rs1, which is used when the tile size is computed at runtime, such as handling the tail iterations of a tiling loop.
+The configuration instruction category uses `func3 = 000`. Bits `inst[27:26]` are reserved and shall be `00`.
 
-===== Immediate Format (msettile{m|k|n}i)
+The `msettile{m|k|n}[i]` and `minit` instructions use the following formats.
+
+===== Immediate Format (`minit`, `msettile{m|k|n}i`)
 
 [wavedrom, ,svg]
 ....
@@ -120,13 +121,13 @@ The func4 field distinguishes m/n/k configuration, and inst[25] indicates whethe
   {bits: 5,  name: '0', attr: '00000', type: 8},
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 10, name: 'uimm10[9:0]', type: 4},
-  {bits: 1,  name: '0', attr: '0', type: 8},
-  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 1,  name: 'ctrl', attr: '0', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-===== Register Format (msettile{m|k|n})
+===== Register Format (`msettile{m|k|n}`)
 
 [wavedrom, ,svg]
 ....
@@ -136,28 +137,62 @@ The func4 field distinguishes m/n/k configuration, and inst[25] indicates whethe
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: '0', attr: '00000', type: 8},
-  {bits: 1,  name: '1', attr: '1', type: 8},
-  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 1,  name: 'ctrl', attr: '1', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-.Configuration Instructions (uop=00)
+===== Immediate Format (`msettypei`)
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: 'type[4:0]', type: 4},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 5,  name: 'mtr', type: 3},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 1,  name: 'ctrl', attr: '0', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', attr: '0100', type: 8},
+], config: {lanes: 1, hspace: 1000}}
+....
+
+===== Register Format (`msettype`)
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: 'rs1', type: 3},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 5,  name: 'mtr', type: 3},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 1,  name: 'ctrl', attr: '1', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', attr: '0100', type: 8},
+], config: {lanes: 1, hspace: 1000}}
+....
+
+.Configuration Instructions (`func3=000`)
 [cols="^2,^2,^8"]
 |===
-| *func4* | *inst[25]* | *Instruction*
-| 0000    | 0          | minit
-| 0001    | 0          | msettileki (immediate)
-| 0010    | 0          | msettilemi (immediate)
-| 0011    | 0          | msettileni (immediate)
-| 0001    | 1          | msettilek (register)
-| 0010    | 1          | msettilem (register)
-| 0011    | 1          | msettilen (register)
+| *func4* | *ctrl (inst[25])* | *Instruction*
+| 0000 | 0 | minit
+| 0001 | 0 | msettileki (immediate)
+| 0010 | 0 | msettilemi (immediate)
+| 0011 | 0 | msettileni (immediate)
+| 0001 | 1 | msettilek (register)
+| 0010 | 1 | msettilem (register)
+| 0011 | 1 | msettilen (register)
+| 0100 | 0 | msettypei (immediate)
+| 0100 | 1 | msettype (register)
 |===
 
 ==== Load/Store Instructions
 
-The func4 field defines load/store types (A/B/C matrix type, transpose type). Inst[25] is the ls field indicating load/store direction: 0=Load, 1=Store. The d_size field indicates the element size (8/16/32/64 bits).
+The load/store instruction category uses `func3 = 001`. Bits `inst[27:26]` are reserved and shall be `00`. The `func4` field defines load/store types (A/B/C matrix type, transpose type). `inst[25]` is the `l/s` field indicating load/store direction: `0` for load and `1` for store. The `d_size` field indicates the transferred element size.
 
 [wavedrom, ,svg]
 ....
@@ -165,80 +200,93 @@ The func4 field defines load/store types (A/B/C matrix type, transpose type). In
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 3,  name: 'md/ms3', type: 2},
   {bits: 2,  name: 'd_size', type: 7},
-  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'func3', attr: '001', type: 8},
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: 'rs2', type: 4},
   {bits: 1,  name: 'l/s', type: 6},
-  {bits: 2,  name: 'uop', attr: '01', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-.Load/Store Instructions (uop=01)
+.Load/Store Instructions (`func3=001`)
 [cols="^2,^2,^8"]
 |===
-| *func4* | *inst[25] (ls)* | *Instruction*
-| 0000    | 0               | mlae8 (load A matrix)
-| 0001    | 0               | mlbe8 (load B matrix)
-| 0010    | 0               | mlce{8,32} (load C matrix)
-| 0010    | 1               | msce{8,32} (store C matrix)
-| 0100    | 0               | mlate8 (load A matrix transpose)
-| 0101    | 0               | mlbte8 (load B matrix transpose)
-| 0110    | 0               | mlcte{8,32} (load C matrix transpose)
-| 0110    | 1               | mscte{8,32} (store C matrix transpose)
+| *func4* | *inst[25] (l/s)* | *Instruction*
+| 0000 | 0 | mlae8 (load A matrix)
+| 0001 | 0 | mlbe8 (load B matrix)
+| 0010 | 0 | mlce{8,32} (load C matrix)
+| 0010 | 1 | msce{8,32} (store C matrix)
+| 0100 | 0 | mlate8 (load A matrix transpose)
+| 0101 | 0 | mlbte8 (load B matrix transpose)
+| 0110 | 0 | mlcte{8,32} (load C matrix transpose)
+| 0110 | 1 | mscte{8,32} (store C matrix transpose)
 |===
 
 ==== Matrix Multiplication Instructions
 
-The A/B/C matrices come from ms1/ms2/ms3 fields. The d_size field indicates the element size of C matrix (d_size=10 for 32-bit). The s_size indicates the element size of A/B matrix (s_size=00 for 8-bit). The func4 is 0001 for integer matrix multiplication. For the current simplified specification, only signed `int8 x int8 -> int32` matrix multiplication is supported, where ctrl (inst[25:23]) = 011.
+The matrix multiplication category uses `func3 = 010`. Bits `inst[27:26]` are reserved and shall be `00`. The `mmacc` instruction is the only architectural matrix multiply instruction in this simplified specification. Its operand typing is validated against the programmed `mtype` state. The currently defined combination is `i8` tile operands accumulated into `i32`.
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 3,  name: 'md/ms3', type: 2},
-  {bits: 2,  name: 'd_size', type: 7},
-  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 2,  name: 'd_size', attr: '10', type: 8},
+  {bits: 3,  name: 'func3', attr: '010', type: 8},
   {bits: 3,  name: 'ms1', type: 3},
-  {bits: 2,  name: 's_size', type: 7},
+  {bits: 2,  name: 's_size', attr: '00', type: 8},
   {bits: 3,  name: 'ms2', type: 4},
-  {bits: 3,  name: 'imm3/ctrl', type: 6},
-  {bits: 2,  name: 'uop', attr: '10', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
+  {bits: 3,  name: 'ctrl', attr: '011', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', attr: '0001', type: 8},
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-.Matrix Multiplication Instructions (uop=10)
+.Matrix Multiplication Instructions (`func3=010`)
 [cols="^2,^8"]
 |===
-| *size_sup (inst[25:23])* | *Instruction*
-| 011                  | mmacc.w.b (`int8 x int8 -> int32`)
+| *ctrl (inst[25:23])* | *Instruction*
+| 011 | mmacc
+| 000 | Reserved
+| 001 | Reserved
+| 010 | Reserved
+| 100 | Reserved
+| 101 | Reserved
+| 110 | Reserved
+| 111 | Reserved
 |===
 
 ==== MISC Instructions
 
-The func4 field is 0000 for mzero instruction. When ms1 or ms2 are not used, these fields are set to zero. For the mzero instruction, the imm3 field (inst[25:23]) is fixed to 000.
+The misc instruction category uses `func3 = 011`. Bits `inst[27:26]` are reserved and shall be `00`. The `func4` field is `0000` for `mzero1r`. When `ms1` or `ms2` are not used, these fields are set to zero. For `mzero1r`, the `imm3/ctrl` field (`inst[25:23]`) is fixed to `000`.
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 3,  name: 'md/ms3', type: 2},
-  {bits: 2,  name: 'd_size', type: 7},
-  {bits: 3,  name: 'func3', attr: '000', type: 8},
-  {bits: 3,  name: 'ms1', type: 3},
-  {bits: 2,  name: 's_size', type: 7},
-  {bits: 3,  name: 'ms2', type: 4},
-  {bits: 3,  name: 'imm3/ctrl', type: 6},
-  {bits: 2,  name: 'uop', attr: '11', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
+  {bits: 2,  name: 'd_size', attr: '00', type: 8},
+  {bits: 3,  name: 'func3', attr: '011', type: 8},
+  {bits: 3,  name: 'ms1', attr: '000', type: 8},
+  {bits: 2,  name: 's_size', attr: '00', type: 8},
+  {bits: 3,  name: 'ms2', attr: '000', type: 8},
+  {bits: 3,  name: 'ctrl', attr: '000', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', attr: '0000', type: 8},
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-.MISC Instructions (uop=11)
+.MISC Instructions (`func3=011`)
 [cols="^2,^8"]
 |===
 | *ctrl (inst[25:23])* | *Instruction*
-| 000                  | mzero1r (clear single register)
+| 000 | mzero1r (clear single register)
+| 001 | Reserved
+| 010 | Reserved
+| 011 | Reserved
+| 100 | Reserved
+| 101 | Reserved
+| 110 | Reserved
+| 111 | Reserved
 |===
-

@@ -1,5 +1,7 @@
 Mzero instruction sets the destination register to zero.
 
+The instruction does not modify the destination register's `mtype` state. Software shall program the destination `mtype` explicitly by `msettype[i]` before using the zeroed register in a typed matrix operation.
+
 ```
 #zero 1 matrix register
 mzero1r md  

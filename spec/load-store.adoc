@@ -1,7 +1,7 @@
 
-Matrix load instructions load a matrix tile from memory to matrix register. and matrix store instructions store a matrix tile from matrix register to memory. 
+Matrix load instructions load a matrix tile from memory to a matrix register, and matrix store instructions store a matrix tile from a matrix register to memory.
 
-The element data width is in instruction encoding, including 8/16/32/64 bits, other data widths are reserved. The base address is in rs1 and row stride in byte is in rs2, md/ms3 is the register index for destination of matrix load  and source for matrix store.
+The element data width is encoded in the instruction, including 8/16/32/64 bits; other data widths are reserved. The base address is in `rs1` and the row stride in bytes is in `rs2`. `md`/`ms3` is the register index for the destination of a matrix load and the source of a matrix store.
 
 Due to the difference in matrix tile shapes of matrix A, B, and C, three types of load/store instructions are provided to separately implement memory access operations for matrix A(mla*), B(mlb*), and C(mlc*/msc*).
 
@@ -64,7 +64,9 @@ mscte8  ms3, (rs1), rs2       #  8-bit output tile store
 mscte32 ms3, (rs1), rs2       # 32-bit output tile store
 ```
 
-Executing matrix load or store instructions will result in illegal instruction exception under unsupported corresponding mtilem/mtilek/mtilen settings.
+Executing matrix load or store instructions will result in an illegal instruction exception under unsupported corresponding `mtilem`/`mtilek`/`mtilen` settings.
+
+Matrix load and store instructions also validate the programmed `mtype` state of the accessed matrix register. The encoded element width of the instruction shall match the `mtype` value of the destination register for loads and the source register for stores. A mismatch raises an illegal instruction exception.
 
 For mla*/mlb*, the destination matrix register is tile register, and the index of md must be 0-3. For mlc*/msc*, the destination matrix register or the source matrix register is accumulation register, and the index of ms3/md must be 4-7.
 

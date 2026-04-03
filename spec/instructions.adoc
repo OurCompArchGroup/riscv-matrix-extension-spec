@@ -2,7 +2,7 @@
 
 === Configuration Instructions
 
-==== Mtilem/n/k Configuration Instructions
+==== Tile and Type Configuration Instructions
 include::config_set.adoc[]
 
 ==== Minit Instruction
@@ -23,4 +23,3 @@ include::load-store.adoc[]
 ==== Mzero Instructions
 
 include::mzero.adoc[]
-

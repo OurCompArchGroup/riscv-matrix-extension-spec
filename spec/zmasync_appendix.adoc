@@ -22,29 +22,30 @@ The read-only `msync` CSR (address 0xCC7) reports the number of sync registers. 
 
 === Instruction Format
 
-The func4 field distinguishes different synchronization operations. The sync field (inst[24:20]) specifies the sync register index. The ctrl field (inst[25]) is set to 0. For msyncregreset and mrelease, the rs1 field is set to zero. For macquire, the rs1 field specifies the scalar register containing the threshold value.
+The Zmasync instruction category uses `func3 = 100`. Bits `inst[27:26]` are reserved and shall be `00`. The `func4` field distinguishes different synchronization operations. The `sync` field (`inst[24:20]`) specifies the sync register index when the instruction operates on a sync register. The `ctrl` field (`inst[25]`) is set to 0. For `msyncregreset` and `mrelease`, the `rs1` field is set to zero. For `macquire`, the `rs1` field specifies the scalar register containing the threshold value. For `mfence`, both `sync` and `rs1` are reserved and shall be zero.
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 5,  name: '0', attr: '00000', type: 8},
-  {bits: 3,  name: 'func3', attr: '001', type: 8},
+  {bits: 3,  name: 'func3', attr: '100', type: 8},
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: 'sync', type: 4},
   {bits: 1,  name: 'ctrl', attr: '0', type: 8},
-  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-.Zmasync Instructions (uop=00)
+.Zmasync Instructions (`func3=100`)
 [cols="^2,^8"]
 |===
 | *func4* | *Instruction*
 | 1000    | msyncregreset
 | 1001    | mrelease
 | 1010    | macquire
+| 1011    | mfence
 |===
 
 === Instructions
@@ -57,6 +58,8 @@ msyncregreset tok0           # Reset sync register tok0 to 0.
 mrelease      tok0           # Increment tok0 by 1; waits for store visibility.
 
 macquire      tok0, t0       # Block until tok0 >= t0; ensures store visibility to other units.
+
+mfence                        # Ensure non-matrix memory data is visible to the matrix engine.
 ```
 
 `msyncregreset` resets the specified sync register to zero, clearing any previously accumulated release count.
@@ -64,6 +67,8 @@ macquire      tok0, t0       # Block until tok0 >= t0; ensures store visibility 
 `mrelease` increments the sync register by one. It does not commit until all in-flight matrix store instructions from the current thread have been made visible to subsequent vector and scalar loads, ensuring that memory written by those stores is observable before the release count advances.
 
 `macquire` blocks until the sync register value is greater than or equal to the threshold supplied in an integer register. This guarantees that the memory written by matrix store instructions associated with prior `mrelease` operations is visible to other functional units (vector and scalar loads) before any instruction following `macquire` proceeds.
+
+`mfence` is the reverse-direction companion to `macquire`. It is a single-hart, intra-core visibility barrier that guarantees memory data produced outside the matrix engine is visible to subsequent matrix-engine memory operations. `mfence` does not use a sync register and does not define any cross-hart or system-wide ordering semantics.
 
 ==== Usage Example: DeepGEMM in AME with Zmasync
 
@@ -78,6 +83,8 @@ void deepgemm_kernel() {
     ...
 
     tok0 = msyncregreset();
+
+    mfence();         // make non-matrix-produced inputs visible to the matrix engine
 
     async_matmul(c[0]);
     mrelease(tok0);  // tok0 becomes 1
@@ -103,6 +110,7 @@ which retires from the pipeline without waiting for the completion.
 After asynchronous matrix store instructions in `async_matmul` function is finally completed,
 `mrelease` will increment the sync register by one.
 `macquire` blocks until the sync register value reaches or exceeds the given threshold (i.e., `sync >= threshold`), ensuring that the corresponding stores have completed before promotion begins. Note that an exact match is not required — if the sync register has advanced beyond the threshold, `macquire` still proceeds immediately. Without Zmasync, all operations would execute sequentially on the core, with no overlap between GEMM and promotion.
+`mfence` is used before dispatching asynchronous matrix work when the matrix engine must observe memory data that was produced by scalar or vector execution earlier in the same hart.
 
 [wavedrom, ,svg]
 ....
@@ -132,8 +140,9 @@ After asynchronous matrix store instructions in `async_matmul` function is final
 [cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
 |===
 .2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
-                      | *func* | *uop* |  *ctrl*  | *sync* | *rs1*    |  *func3*   |  *nop*       | *opcode*
-      | msyncregreset | 1000   | 00	   |  0	      | sync  | 00000    |   001      |	00000        | major opcode
-      | mrelease  	  | 1001   | 00	   |  0	      | sync  | 00000    |   001      |	00000        | major opcode
-      | macquire	  | 1010   | 00	   |  0	      | sync  | rs1      |	 001      |	00000        | major opcode
+                      | *func* | *res* |  *ctrl*  | *sync* | *rs1*    |  *func3*   |  *nop*       | *opcode*
+      | msyncregreset | 1000   | 00	   |  0	      | sync  | 00000    |   100      |	00000        | major opcode
+      | mrelease  	  | 1001   | 00	   |  0	      | sync  | 00000    |   100      |	00000        | major opcode
+      | macquire	  | 1010   | 00	   |  0	      | sync  | rs1      |	 100      |	00000        | major opcode
+      | mfence        | 1011   | 00     |  0       | 00000 | 00000    |   100      | 00000        | major opcode
 |===
