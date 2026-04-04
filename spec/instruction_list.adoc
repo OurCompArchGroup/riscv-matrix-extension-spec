@@ -26,7 +26,7 @@
 |===
 
 .Matrix Multiplication Instructions
-[cols="^5,^2,^3,^3,^2,^3,^3,^2,^3,^5"]
+[cols="^5,^2,^3,^3,^2,^3,^3,^2,^3,^3,^5"]
 |===
 .2+^.^| *Format* | 31 28 | 27 26 | 25 23 | 22 20 | 19 18 | 17 15 | 14 12 | 11 10 | 9 7 | 6 0
                   | *func* | *res* | *ctrl* | *ms2* | *s_size* | *ms1* | *func3* | *d_size* | *md/ms3* | *opcode*
@@ -34,7 +34,7 @@
 |===
 
 .Matrix Load/Store Instructions
-[cols="^5,^2,^2,^5,^5,^3,^2,^4,^5"]
+[cols="^5,^2,^2,^5,^5,^3,^2,^2,^4,^5"]
 |===
 .2+^.^| *Format* | 31 28 | 27 26 | 25 | 24 20 | 19 15 | 14 12 | 11 10 | 9 7 | 6 0
                   | *func* | *res* | *l/s* | *rs2* | *rs1* | *func3* | *d_size* | *md/ms3* | *opcode*
