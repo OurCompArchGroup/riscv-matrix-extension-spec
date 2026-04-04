@@ -17,12 +17,12 @@
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 3,  name: 'md/ms3', type: 2},
   {bits: 2,  name: 'd_type[1:0]', type: 7},
-  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'func3', attr: '010', type: 8},
   {bits: 3,  name: 'ms1', type: 3},
   {bits: 4,  name: 's_type[3:0]', type: 4},
   {bits: 3,  name: 'ms2', type: 4},
   {bits: 1,  name: 'd_type[2]', type: 7},
-  {bits: 2,  name: 'uop', attr: '10', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -81,10 +81,10 @@
 [cols="^3,^2,^2,^6"]
 |===
 | *指令* | *s_type* | *d_type* | *操作*
-| mmacc.w.b     | 0010 (i8s)  | 000 (i32) | int8(signed) × int8(signed) → int32
-| mmacc.w.bu    | 0011 (i8u)  | 000 (i32) | int8(unsigned) × int8(unsigned) → int32
-| mmacc.w.n     | 0000 (i4s)  | 000 (i32) | int4(signed) × int4(signed) → int32
-| mmacc.w.nu    | 0001 (i4u)  | 000 (i32) | int4(unsigned) × int4(unsigned) → int32
+| mmacc (i8s → i32) | 0010 (i8s)  | 000 (i32) | int8(signed) × int8(signed) → int32
+| mmacc (i8u → i32) | 0011 (i8u)  | 000 (i32) | int8(unsigned) × int8(unsigned) → int32
+| mmacc (i4s → i32) | 0000 (i4s)  | 000 (i32) | int4(signed) × int4(signed) → int32
+| mmacc (i4u → i32) | 0001 (i4u)  | 000 (i32) | int4(unsigned) × int4(unsigned) → int32
 |===
 
 ==== 浮点矩阵乘法（func4=0010）

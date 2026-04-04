@@ -17,12 +17,12 @@
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 3,  name: 'md/ms3', type: 2},
   {bits: 2,  name: 'reserved', type: 8},
-  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 3,  name: 'func3', attr: '010', type: 8},
   {bits: 3,  name: 'ms1', type: 3},
   {bits: 2,  name: 'reserved', type: 8},
   {bits: 3,  name: 'ms2', type: 4},
   {bits: 3,  name: 'd_type[2:0]', type: 7},
-  {bits: 2,  name: 'uop', attr: '10', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 's_type[3:0]', type: 4},
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -73,10 +73,10 @@
 [cols="^3,^2,^2,^6"]
 |===
 | *指令* | *s_type* | *d_type* | *操作*
-| mmacc.w.b     | 0010 (i8s)  | 000 (i32) | int8(signed) × int8(signed) → int32
-| mmacc.w.bu    | 0011 (i8u)  | 000 (i32) | int8(unsigned) × int8(unsigned) → int32
-| mmacc.w.n     | 0000 (i4s)  | 000 (i32) | int4(signed) × int4(signed) → int32
-| mmacc.w.nu    | 0001 (i4u)  | 000 (i32) | int4(unsigned) × int4(unsigned) → int32
+| mmacc (i8s → i32) | 0010 (i8s)  | 000 (i32) | int8(signed) × int8(signed) → int32
+| mmacc (i8u → i32) | 0011 (i8u)  | 000 (i32) | int8(unsigned) × int8(unsigned) → int32
+| mmacc (i4s → i32) | 0000 (i4s)  | 000 (i32) | int4(signed) × int4(signed) → int32
+| mmacc (i4u → i32) | 0001 (i4u)  | 000 (i32) | int4(unsigned) × int4(unsigned) → int32
 |===
 
 ==== 浮点矩阵乘法
@@ -125,13 +125,13 @@
 *优点：*
 
 * 编码最简洁：s_type 和 d_type 各占连续位域，解码只需读两个字段即可确定完整类型
-* 不依赖 func4 的语义，uop=10 下所有指令统一用 s_type+d_type 描述
+* 不依赖 func4 的语义，在当前主规范的 `func3=010` 乘法编码空间内统一用 s_type+d_type 描述
 * 释放 4 bits reserved，为未来扩展留出空间
 * 硬件可直接用 s_type 高位判断整数/浮点（0000-0011=整数，0100+=浮点）
 
 *缺点：*
 
-* func4 位置不再是"操作类型"，而是"源数据类型"，与其他 uop 类别（config/load-store/misc）中 func4 的语义不一致
+* func4 位置不再是"操作类型"，而是"源数据类型"，与主规范其他 `func3` 类别中的 func4 语义不一致
 * 无法通过 func4 单独区分整数和浮点执行路径，需要解码 s_type
 
 === 方案 A 与方案 B 对比
@@ -141,8 +141,8 @@
 | | *方案 A（层次化）* | *方案 B（扁平化）*
 
 | func4 含义
-| 操作族（整数/浮点），与其他 uop 一致
-| 源类型，仅 uop=10 下语义不同
+| 操作族（整数/浮点），与主规范其他类别更一致
+| 源类型，仅矩阵乘法编码空间内语义不同
 
 | 类型字段
 | s_type(4) + d_type(3)，d_type 跨两个位域

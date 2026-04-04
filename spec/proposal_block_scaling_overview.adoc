@@ -2,7 +2,7 @@
 
 ==== 问题
 
-当前主 spec 仅支持 `mmacc.w.b`（int8 x int8 -> int32）。如果未来要支持 FP8、FP6、FP4 等低精度矩阵乘法，仅靠量化数据本身通常不足以覆盖推理所需动态范围，必须配合 block scaling。
+当前主 spec 仅支持 `mmacc`（当前定义为 int8 x int8 -> int32）。如果未来要支持 FP8、FP6、FP4 等低精度矩阵乘法，仅靠量化数据本身通常不足以覆盖推理所需动态范围，必须配合 block scaling。
 
 核心计算语义可以写为：
 

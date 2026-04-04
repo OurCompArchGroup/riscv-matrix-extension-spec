@@ -37,7 +37,7 @@ vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 10, name: 'uimm10[9:0]', type: 4},
   {bits: 1,  name: '0', attr: '0', type: 8},
-  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -53,7 +53,7 @@ vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: '0', attr: '00000', type: 8},
   {bits: 1,  name: '1', attr: '1', type: 8},
-  {bits: 2,  name: 'uop', attr: '00', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5},
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -75,7 +75,7 @@ vsetvli t0, a0, e8, m1   # t0 = 实际设置的 VL
 
 === 编码表
 
-.Configuration Instructions (uop=00)
+.Configuration Instructions (`func3=000`, `inst[27:26]=00`)
 [cols="^2,^2,^2,^8"]
 |===
 | *func4* | *inst[25]* | *rd* | *Instruction*
