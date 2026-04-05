@@ -92,11 +92,11 @@ This format is used by `msettypei` and `msettype`. The current 4.1 second-format
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: '0/rs1', type: 3},
+  {bits: 5,  name: 'zero/rs1', type: 3},
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 3,  name: 'mtype_sel', type: 4},
   {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'imm4/0', type: 6},
+  {bits: 4,  name: 'type/zero', type: 6},
   {bits: 1,  name: 'mode', type: 6},
   {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', attr: '0100', type: 8}
