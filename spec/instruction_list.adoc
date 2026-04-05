@@ -1,57 +1,56 @@
 == Instruction List
 
 .Matrix Configuration Instructions
-[cols="^5,^2,^2,^5,^3,^3,^2,^4,^5"]
+[cols="^3,^1,^4,^4,^2,^4",options="header"]
 |===
-.2+^.^| *Format* | 31 28 | 27 26 | 25 | 24 20 | 19 15 | 14 12 | 11 7 | 6 0
-                  | *func* | *res* | *mode* | *p_hi* | *p_lo* | *f3* | *aux* | *opc*
-| minit      | 0000 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
-| msettileki | 0001 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
-| msettilemi | 0010 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
-| msettileni | 0011 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
-| msettilek  | 0001 | 00 | 1 | 00000 | rs1 | 000 | 00000 | opcode
-| msettilem  | 0010 | 00 | 1 | 00000 | rs1 | 000 | 00000 | opcode
-| msettilen  | 0011 | 00 | 1 | 00000 | rs1 | 000 | 00000 | opcode
-| msettypei  | 0100 | 00 | 0 | type,0 | sel,00 | 000 | 00000 | opcode
-| msettype   | 0100 | 00 | 1 | 00000 | sel,00 | 000 | rs1 | opcode
+| Instruction | Mode | Payload[24:15] | Aux[11:7] | func3 | func4
+| minit      | imm | u10[9:0]  | 00000 | 000 | 0000
+| msettileki | imm | u10[9:0]  | 00000 | 000 | 0001
+| msettilemi | imm | u10[9:0]  | 00000 | 000 | 0010
+| msettileni | imm | u10[9:0]  | 00000 | 000 | 0011
+| msettilek  | gpr | 00000,rs1 | 00000 | 000 | 0001
+| msettilem  | gpr | 00000,rs1 | 00000 | 000 | 0010
+| msettilen  | gpr | 00000,rs1 | 00000 | 000 | 0011
+| msettypei  | imm | type,sel  | 00000 | 000 | 0100
+| msettype   | gpr | 00000,sel | rs1   | 000 | 0100
 |===
 
 .Matrix MISC Instructions
-[cols="^5,^2,^3,^3,^2,^3,^3,^2,^3,^3,^5"]
+[cols="^3,^4,^4,^2,^4",options="header"]
 |===
-.2+^.^| *Format* | 31 28 | 27 26 | 25 23 | 22 20 | 19 18 | 17 15 | 14 12 | 11 10 | 9 7 | 6 0
-                  | *func* | *res* | *0* | *0* | *0* | *0* | *f3* | *0* | *md* | *opc*
-| mzero1r | 0000 | 00 | 000 | 000 | 00 | 000 | 011 | 00 | md | opcode
+| Instruction | Upper Fields | Lower Fields | func3 | func4
+| mzero1r | zeroed control fields | md | 011 | 0000
 |===
 
 .Matrix Multiplication Instructions
-[cols="^5,^2,^3,^3,^2,^3,^3,^2,^3,^3,^5"]
+[cols="^3,^4,^4,^2,^4",options="header"]
 |===
-.2+^.^| *Format* | 31 28 | 27 26 | 25 23 | 22 20 | 19 18 | 17 15 | 14 12 | 11 10 | 9 7 | 6 0
-                  | *func* | *res* | *0* | *ms2* | *0* | *ms1* | *f3* | *0* | *md* | *opc*
-| mmacc | 0000 | 00 | 000 | ms2 | 00 | ms1 | 010 | 00 | md | opcode
+| Instruction | Source Fields | Destination | func3 | func4
+| mmacc | ms2, ms1, reserved control | md | 010 | 0000
 |===
 
 .Matrix Load/Store Instructions
-[cols="^4,^1,^1,^1,^5,^2,^5,^5,^3,^2,^4,^5"]
+[cols="^3,^1,^1,^1,^2,^3,^3,^2,^4",options="header"]
 |===
-| *Insn* | *W* | *T* | *L/S* | *f4* | *res* | *rs2* | *rs1* | *f3* | *0* | *md/ms3* | *opc*
-| mla         | 0 | 0 | 0 | 0000 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| mlb         | 0 | 0 | 0 | 0001 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| mlc         | 0 | 0 | 0 | 0010 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| msa         | 0 | 0 | 1 | 0000 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| msb         | 0 | 0 | 1 | 0001 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| msc         | 0 | 0 | 1 | 0010 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| mlat        | 0 | 1 | 0 | 0100 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| mlbt        | 0 | 1 | 0 | 0101 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| mlct        | 0 | 1 | 0 | 0110 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| msat        | 0 | 1 | 1 | 0100 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| msbt        | 0 | 1 | 1 | 0101 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| msct        | 0 | 1 | 1 | 0110 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| mla.whole   | 1 | 0 | 0 | 1000 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| mlb.whole   | 1 | 0 | 0 | 1001 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| mlc.whole   | 1 | 0 | 0 | 1010 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
-| msa.whole   | 1 | 0 | 1 | 1000 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| msb.whole   | 1 | 0 | 1 | 1001 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
-| msc.whole   | 1 | 0 | 1 | 1010 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| Instruction | W | T | L/S | Kind | rs2 | rs1 | func3 | md/ms3
+| mla       | 0 | 0 | 0 | 00 | rs2 | rs1 | 001 | md
+| mlb       | 0 | 0 | 0 | 01 | rs2 | rs1 | 001 | md
+| mlc       | 0 | 0 | 0 | 10 | rs2 | rs1 | 001 | md
+| msa       | 0 | 0 | 1 | 00 | rs2 | rs1 | 001 | ms3
+| msb       | 0 | 0 | 1 | 01 | rs2 | rs1 | 001 | ms3
+| msc       | 0 | 0 | 1 | 10 | rs2 | rs1 | 001 | ms3
+| mlat      | 0 | 1 | 0 | 00 | rs2 | rs1 | 001 | md
+| mlbt      | 0 | 1 | 0 | 01 | rs2 | rs1 | 001 | md
+| mlct      | 0 | 1 | 0 | 10 | rs2 | rs1 | 001 | md
+| msat      | 0 | 1 | 1 | 00 | rs2 | rs1 | 001 | ms3
+| msbt      | 0 | 1 | 1 | 01 | rs2 | rs1 | 001 | ms3
+| msct      | 0 | 1 | 1 | 10 | rs2 | rs1 | 001 | ms3
+| mla.whole | 1 | 0 | 0 | 00 | rs2 | rs1 | 001 | md
+| mlb.whole | 1 | 0 | 0 | 01 | rs2 | rs1 | 001 | md
+| mlc.whole | 1 | 0 | 0 | 10 | rs2 | rs1 | 001 | md
+| msa.whole | 1 | 0 | 1 | 00 | rs2 | rs1 | 001 | ms3
+| msb.whole | 1 | 0 | 1 | 01 | rs2 | rs1 | 001 | ms3
+| msc.whole | 1 | 0 | 1 | 10 | rs2 | rs1 | 001 | ms3
 |===
+
+NOTE: In the load/store table, `W` denotes the whole-register mode bit, `T` denotes the transpose mode bit, and `Kind` denotes the A/B/C matrix-class selector encoded in `func4[1:0]`.
