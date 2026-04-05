@@ -4,54 +4,54 @@
 [cols="^5,^2,^2,^5,^3,^3,^2,^4,^5"]
 |===
 .2+^.^| *Format* | 31 28 | 27 26 | 25 | 24 20 | 19 15 | 14 12 | 11 7 | 6 0
-                  | *func* | *res* | *mode* | *payload-hi* | *payload-lo* | *func3* | *aux* | *opcode*
-| minit      | 0000 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
-| msettileki | 0001 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
-| msettilemi | 0010 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
-| msettileni | 0011 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | major opcode
-| msettilek  | 0001 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
-| msettilem  | 0010 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
-| msettilen  | 0011 | 00 | 1 | 00000 | rs1 | 000 | 00000 | major opcode
-| msettypei  | 0100 | 00 | 0 | mtype_code[3:0],0 | mtype_sel,00 | 000 | 00000 | major opcode
-| msettype   | 0100 | 00 | 1 | 00000 | mtype_sel,00 | 000 | rs1 | major opcode
+                  | *func* | *res* | *mode* | *p_hi* | *p_lo* | *f3* | *aux* | *opc*
+| minit      | 0000 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
+| msettileki | 0001 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
+| msettilemi | 0010 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
+| msettileni | 0011 | 00 | 0 | u10[9:5] | u10[4:0] | 000 | 00000 | opcode
+| msettilek  | 0001 | 00 | 1 | 00000 | rs1 | 000 | 00000 | opcode
+| msettilem  | 0010 | 00 | 1 | 00000 | rs1 | 000 | 00000 | opcode
+| msettilen  | 0011 | 00 | 1 | 00000 | rs1 | 000 | 00000 | opcode
+| msettypei  | 0100 | 00 | 0 | type,0 | sel,00 | 000 | 00000 | opcode
+| msettype   | 0100 | 00 | 1 | 00000 | sel,00 | 000 | rs1 | opcode
 |===
 
 .Matrix MISC Instructions
 [cols="^5,^2,^3,^3,^2,^3,^3,^2,^3,^3,^5"]
 |===
 .2+^.^| *Format* | 31 28 | 27 26 | 25 23 | 22 20 | 19 18 | 17 15 | 14 12 | 11 10 | 9 7 | 6 0
-                  | *func* | *res* | *0* | *0* | *0* | *0* | *func3* | *0* | *md* | *opcode*
-| mzero1r | 0000 | 00 | 000 | 000 | 00 | 000 | 011 | 00 | md | major opcode
+                  | *func* | *res* | *0* | *0* | *0* | *0* | *f3* | *0* | *md* | *opc*
+| mzero1r | 0000 | 00 | 000 | 000 | 00 | 000 | 011 | 00 | md | opcode
 |===
 
 .Matrix Multiplication Instructions
 [cols="^5,^2,^3,^3,^2,^3,^3,^2,^3,^3,^5"]
 |===
 .2+^.^| *Format* | 31 28 | 27 26 | 25 23 | 22 20 | 19 18 | 17 15 | 14 12 | 11 10 | 9 7 | 6 0
-                  | *func* | *res* | *0* | *ms2* | *0* | *ms1* | *func3* | *0* | *md* | *opcode*
-| mmacc | 0000 | 00 | 000 | ms2 | 00 | ms1 | 010 | 00 | md | major opcode
+                  | *func* | *res* | *0* | *ms2* | *0* | *ms1* | *f3* | *0* | *md* | *opc*
+| mmacc | 0000 | 00 | 000 | ms2 | 00 | ms1 | 010 | 00 | md | opcode
 |===
 
 .Matrix Load/Store Instructions
 [cols="^4,^1,^1,^1,^5,^2,^5,^5,^3,^2,^4,^5"]
 |===
-| *Instruction* | *whole* | *transpose* | *l/s* | *func4[3:0]* | *res[27:26]* | *rs2[24:20]* | *rs1[19:15]* | *func3[14:12]* | *0[11:10]* | *md/ms3[9:7]* | *opcode[6:0]*
-| mla         | 0 | 0 | 0 | 0000 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| mlb         | 0 | 0 | 0 | 0001 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| mlc         | 0 | 0 | 0 | 0010 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| msa         | 0 | 0 | 1 | 0000 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| msb         | 0 | 0 | 1 | 0001 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| msc         | 0 | 0 | 1 | 0010 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| mlat        | 0 | 1 | 0 | 0100 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| mlbt        | 0 | 1 | 0 | 0101 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| mlct        | 0 | 1 | 0 | 0110 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| msat        | 0 | 1 | 1 | 0100 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| msbt        | 0 | 1 | 1 | 0101 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| msct        | 0 | 1 | 1 | 0110 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| mla.whole   | 1 | 0 | 0 | 1000 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| mlb.whole   | 1 | 0 | 0 | 1001 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| mlc.whole   | 1 | 0 | 0 | 1010 | 00 | rs2 | rs1 | 001 | 00 | md  | major opcode
-| msa.whole   | 1 | 0 | 1 | 1000 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| msb.whole   | 1 | 0 | 1 | 1001 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
-| msc.whole   | 1 | 0 | 1 | 1010 | 00 | rs2 | rs1 | 001 | 00 | ms3 | major opcode
+| *Insn* | *W* | *T* | *L/S* | *f4* | *res* | *rs2* | *rs1* | *f3* | *0* | *md/ms3* | *opc*
+| mla         | 0 | 0 | 0 | 0000 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| mlb         | 0 | 0 | 0 | 0001 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| mlc         | 0 | 0 | 0 | 0010 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| msa         | 0 | 0 | 1 | 0000 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| msb         | 0 | 0 | 1 | 0001 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| msc         | 0 | 0 | 1 | 0010 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| mlat        | 0 | 1 | 0 | 0100 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| mlbt        | 0 | 1 | 0 | 0101 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| mlct        | 0 | 1 | 0 | 0110 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| msat        | 0 | 1 | 1 | 0100 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| msbt        | 0 | 1 | 1 | 0101 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| msct        | 0 | 1 | 1 | 0110 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| mla.whole   | 1 | 0 | 0 | 1000 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| mlb.whole   | 1 | 0 | 0 | 1001 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| mlc.whole   | 1 | 0 | 0 | 1010 | 00 | rs2 | rs1 | 001 | 00 | md  | opcode
+| msa.whole   | 1 | 0 | 1 | 1000 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| msb.whole   | 1 | 0 | 1 | 1001 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
+| msc.whole   | 1 | 0 | 1 | 1010 | 00 | rs2 | rs1 | 001 | 00 | ms3 | opcode
 |===
