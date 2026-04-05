@@ -21,9 +21,15 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Verify workspace layout
+        run: |
+          echo "workspace=$GITHUB_WORKSPACE"
+          ls -la "$GITHUB_WORKSPACE"
+          test -d "$GITHUB_WORKSPACE/spec"
+
       - name: Build PDF and HTML
         run: |
-          docker run --rm -v "$(pwd)":/repo -w /repo/spec \
+          docker run --rm -v "$GITHUB_WORKSPACE":/repo -w /repo/spec \
             riscvintl/riscv-docs-base-container-image:latest \
             /bin/sh -c 'make build-no-container && make build-html-no-container'
 

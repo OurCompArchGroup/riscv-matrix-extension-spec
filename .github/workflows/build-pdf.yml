@@ -24,17 +24,23 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Verify workspace layout
+        run: |
+          echo "workspace=$GITHUB_WORKSPACE"
+          ls -la "$GITHUB_WORKSPACE"
+          test -d "$GITHUB_WORKSPACE/spec"
+
       - name: Pull RISC-V Docs container image
         run: docker pull riscvintl/riscv-docs-base-container-image:latest
 
       - name: Build PDF
         run: |
-          if [ -f spec/Makefile ]; then
-            docker run --rm -v "$(pwd)":/repo -w /repo/spec \
+          if [ -f "$GITHUB_WORKSPACE/spec/Makefile" ]; then
+            docker run --rm -v "$GITHUB_WORKSPACE":/repo -w /repo/spec \
               riscvintl/riscv-docs-base-container-image:latest \
               /bin/sh -c 'make'
-          elif [ -f Makefile ]; then
-            docker run --rm -v "$(pwd)":/repo -w /repo \
+          elif [ -f "$GITHUB_WORKSPACE/Makefile" ]; then
+            docker run --rm -v "$GITHUB_WORKSPACE":/repo -w /repo \
               riscvintl/riscv-docs-base-container-image:latest \
               /bin/sh -c 'make'
           else
