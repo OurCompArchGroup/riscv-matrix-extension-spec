@@ -35,7 +35,7 @@ jobs:
 
       - name: Diagnose PDF table overflow
         run: |
-          cat > /tmp/probe-template.adoc <<'EOF'
+          cat > "$GITHUB_WORKSPACE/spec/.probe-template.adoc" <<'EOF'
           :description: Probe
           :company: Probe
           :revdate: 2026-04-05
@@ -80,7 +80,7 @@ jobs:
             proposals.adoc
           do
             echo "=== PROBE $f ==="
-            sed "s|__TARGET__|$f|g" /tmp/probe-template.adoc > /tmp/probe.adoc
+            sed "s|__TARGET__|$f|g" "$GITHUB_WORKSPACE/spec/.probe-template.adoc" > "$GITHUB_WORKSPACE/spec/.probe.adoc"
 
             if ! docker run --rm -v "$GITHUB_WORKSPACE":/repo -v /tmp:/tmp -w /repo/spec \
               riscvintl/riscv-docs-base-container-image:latest \
@@ -96,13 +96,15 @@ jobs:
                 --require=asciidoctor-diagram \
                 --require=asciidoctor-mathematical \
                 --out-file=/tmp/$(basename "$f" .adoc).pdf \
-                /tmp/probe.adoc" >"/tmp/${f}.log" 2>&1
+                /repo/spec/.probe.adoc" >"/tmp/${f}.log" 2>&1
             then
               echo "::error file=spec/$f::Probe failed for $f"
               cat "/tmp/${f}.log"
               failed=1
             fi
           done
+
+          rm -f "$GITHUB_WORKSPACE/spec/.probe-template.adoc" "$GITHUB_WORKSPACE/spec/.probe.adoc"
 
           exit $failed
 
