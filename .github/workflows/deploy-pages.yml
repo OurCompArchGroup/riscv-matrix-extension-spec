@@ -27,6 +27,79 @@ jobs:
           ls -la "$GITHUB_WORKSPACE"
           test -d "$GITHUB_WORKSPACE/spec"
 
+      - name: Diagnose PDF table overflow
+        run: |
+          cat > /tmp/probe-template.adoc <<'EOF'
+          :description: Probe
+          :company: Probe
+          :revdate: 2026-04-05
+          :doctype: book
+          :preface-title: Preamble
+          :appendix-caption: Appendix
+          :imagesdir: images
+          :experimental:
+          :docinfo: shared
+          :reproducible:
+          :bibtex-file: example.bib
+          :bibtex-order: alphabetical
+          :bibtex-style: apa
+          :icons: font
+          :lang: en
+          :listing-caption: Listing
+          :sectnums:
+          :toc: left
+          :toclevels: 4
+          :source-highlighter: pygments
+          :data-uri:
+          :hide-uri-scheme:
+          :stem: latexmath
+          :footnote:
+          :xrefstyle: short
+
+          = Probe
+
+          include::__TARGET__[]
+          EOF
+
+          failed=0
+          for f in \
+            intro.adoc \
+            param.adoc \
+            program_model.adoc \
+            inst_format.adoc \
+            instructions.adoc \
+            mem_model.adoc \
+            instruction_list.adoc \
+            zmasync_appendix.adoc \
+            proposals.adoc
+          do
+            echo "=== PROBE $f ==="
+            sed "s|__TARGET__|$f|g" /tmp/probe-template.adoc > /tmp/probe.adoc
+
+            if ! docker run --rm -v "$GITHUB_WORKSPACE":/repo -v /tmp:/tmp -w /repo/spec \
+              riscvintl/riscv-docs-base-container-image:latest \
+              /bin/sh -c "asciidoctor-pdf --trace \
+                -a compress \
+                -a mathematical-format=svg \
+                -a scripts=cjk \
+                -a revdate=2026-04-05 \
+                -a pdf-fontsdir=docs-resources/fonts,../doc/resources/fonts \
+                -a pdf-theme=riscv-matrix.yml \
+                --failure-level=ERROR \
+                --require=asciidoctor-bibtex \
+                --require=asciidoctor-diagram \
+                --require=asciidoctor-mathematical \
+                --out-file=/tmp/$(basename "$f" .adoc).pdf \
+                /tmp/probe.adoc" >"/tmp/${f}.log" 2>&1
+            then
+              echo "::error file=spec/$f::Probe failed for $f"
+              cat "/tmp/${f}.log"
+              failed=1
+            fi
+          done
+
+          exit $failed
+
       - name: Build PDF and HTML
         run: |
           docker run --rm -v "$GITHUB_WORKSPACE":/repo -w /repo/spec \
