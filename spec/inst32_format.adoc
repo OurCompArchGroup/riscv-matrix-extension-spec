@@ -169,28 +169,28 @@ This format uses the same field layout as the normal load/store format, with `fu
 This format uses the same field layout as the normal load/store format, with `func4[3]=1` and `func4[2]=0`.
 
 .Load/Store Instructions (`func3=001`)
-[cols="^1,^1,^2,^8"]
+[cols="^1,^1,^1,^2,^8"]
 |===
-| *whole* | *transpose* | *kind* | *Instruction*
-| 0 | 0 | 00 | mla
-| 0 | 0 | 01 | mlb
-| 0 | 0 | 10 | mlc
-| 0 | 0 | 00 | msa
-| 0 | 0 | 01 | msb
-| 0 | 0 | 10 | msc
-| 0 | 1 | 00 | mlat
-| 0 | 1 | 01 | mlbt
-| 0 | 1 | 10 | mlct
-| 0 | 1 | 00 | msat
-| 0 | 1 | 01 | msbt
-| 0 | 1 | 10 | msct
-| 1 | 0 | 00 | mla (whole)
-| 1 | 0 | 01 | mlb (whole)
-| 1 | 0 | 10 | mlc (whole)
-| 1 | 0 | 00 | msa (whole)
-| 1 | 0 | 01 | msb (whole)
-| 1 | 0 | 10 | msc (whole)
-| 1 | 1 | 00-10 | Reserved
+| *whole* | *transpose* | *l/s* | *kind* | *Instruction*
+| 0 | 0 | 0 | 00 | mla
+| 0 | 0 | 0 | 01 | mlb
+| 0 | 0 | 0 | 10 | mlc
+| 0 | 0 | 1 | 00 | msa
+| 0 | 0 | 1 | 01 | msb
+| 0 | 0 | 1 | 10 | msc
+| 0 | 1 | 0 | 00 | mlat
+| 0 | 1 | 0 | 01 | mlbt
+| 0 | 1 | 0 | 10 | mlct
+| 0 | 1 | 1 | 00 | msat
+| 0 | 1 | 1 | 01 | msbt
+| 0 | 1 | 1 | 10 | msct
+| 1 | 0 | 0 | 00 | mla.whole
+| 1 | 0 | 0 | 01 | mlb.whole
+| 1 | 0 | 0 | 10 | mlc.whole
+| 1 | 0 | 1 | 00 | msa.whole
+| 1 | 0 | 1 | 01 | msb.whole
+| 1 | 0 | 1 | 10 | msc.whole
+| 1 | 1 | 0/1 | 00-10 | Reserved
 |===
 
 ==== Matrix Multiplication Instructions

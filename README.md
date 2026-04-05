@@ -8,14 +8,12 @@ The current draft is based on XuanTie Matrix Extension V0.6.0 and narrows the sc
 
 The current draft focuses on:
 
-- A single matrix multiplication instruction: `mmacc.w.b` (`int8 x int8 -> int32`, signed)
-- Tile configuration via `msettile{m|k|n}` and `minit`
-- Four tile registers (`tr0`-`tr3`) and four accumulation registers (`acc0`-`acc3`)
-- Matrix load/store instructions for:
-  - A/B tiles: 8-bit load
-  - C tiles: 8-bit and 32-bit load/store
+- A single architectural matrix multiplication instruction: `mmacc`
+- Tile configuration via `msettile{m|k|n}` and type configuration via `msettype[i]`
+- Four tile registers (`tr0`-`tr3`), four accumulation registers (`acc0`-`acc3`), and eight associated `mtype` registers
+- Matrix load/store instructions organized by matrix class (`A` / `B` / `C`), direction (load / store), transpose mode, and whole-register mode
 - The `mzero1r` utility instruction
-- The `Zmasync` extension for token-based asynchronous store synchronization
+- An optional `Zmasync` appendix / extension, documented separately from the Zames main-body instruction set
 
 The draft intentionally omits the broader element-wise, conversion, movement, and packing features from the original XuanTie proposal.
 

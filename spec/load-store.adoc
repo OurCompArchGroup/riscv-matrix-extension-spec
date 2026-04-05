@@ -46,7 +46,7 @@ msct ms3, (rs1), rs2     # store C tile, transpose mode
 
 ==== Whole Register Load/Store Instructions
 
-The whole-register variants are not a separate top-level instruction family. They are the same A/B/C load/store instructions with the `whole` mode bit set to 1. The recommended assembly notation below uses a `.whole` suffix to make the mode visible.
+The whole-register variants are not a separate top-level instruction family. They are the same A/B/C load/store instructions with the `whole` mode bit set to 1. The assembly notation in this specification uses a `.whole` suffix to make the mode visible.
 
 ```
 mla.whole md, (rs1), rs2   # load whole A register
