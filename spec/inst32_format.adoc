@@ -9,7 +9,7 @@ The assigned `func3` values in the Zames main body are as follows:
 | 001 | Load/Store instructions
 | 010 | Matrix multiplication instructions
 | 011 | MISC instructions
-| 100 | Reserved
+| 100 | Optional extension encoding space
 | 101 | Reserved
 | 110 | Reserved
 | 111 | Reserved
