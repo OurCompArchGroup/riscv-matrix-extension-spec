@@ -1,6 +1,6 @@
-The 32-bit matrix instruction formats fit under the custom-1 (`0101011`) major opcode. The `func3` field is the top-level instruction-category selector. Bits `inst[27:26]` are reserved and shall be written as `0` in all normative encodings. Any bit without an explicitly defined semantic role in the instruction formats below is reserved and shall be written as `0`.
+The 32-bit Zames instruction formats fit under the custom-1 (`0101011`) major opcode. The `func3` field is the only top-level instruction-category selector in the Zames main body, and it is always located at bits `inst[14:12]`. Bits `inst[27:26]` are reserved and shall be written as `00` in all Zames main-body encodings. Any bit without an explicitly defined semantic role in the formats below is reserved and shall be written as zero.
 
-The assigned `func3` values are as follows:
+The assigned `func3` values in the Zames main body are as follows:
 
 [cols="^2,^8"]
 |===
@@ -9,76 +9,17 @@ The assigned `func3` values are as follows:
 | 001 | Load/Store instructions
 | 010 | Matrix multiplication instructions
 | 011 | MISC instructions
-| 100 | Zmasync instructions
+| 100 | Reserved
 | 101 | Reserved
 | 110 | Reserved
 | 111 | Reserved
 |===
 
-[wavedrom, ,svg]
-....
-{reg: [
-  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: '0', attr: '00000', type: 8},
-  {bits: 3,  name: 'func3', type: 5},
-  {bits: 10, name: 'imm10[9:0]', type: 4},
-  {bits: 1,  name: 'ctrl', type: 6},
-  {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
-], config: {lanes: 1, hspace: 1000}}
-....
-
-[wavedrom, ,svg]
-....
-{reg: [
-  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: 'rd/rs1', type: 3},
-  {bits: 3,  name: 'func3', type: 5},
-  {bits: 5,  name: 'rs1/sel', type: 4},
-  {bits: 1,  name: 'ctrl', type: 6},
-  {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
-], config: {lanes: 1, hspace: 1000}}
-....
-
-[wavedrom, ,svg]
-....
-{reg: [
-  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 3,  name: 'md/ms3', type: 2},
-  {bits: 2,  name: 'd_size', type: 7},
-  {bits: 3,  name: 'func3', type: 5},
-  {bits: 5,  name: 'rs1', type: 3},
-  {bits: 5,  name: 'rs2', type: 4},
-  {bits: 1,  name: 'l/s', type: 6},
-  {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
-], config: {lanes: 1, hspace: 1000}}
-....
-
-[wavedrom, ,svg]
-....
-{reg: [
-  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 3,  name: 'md/ms3', type: 2},
-  {bits: 2,  name: 'd_size', type: 7},
-  {bits: 3,  name: 'func3', type: 5},
-  {bits: 3,  name: 'ms1', type: 3},
-  {bits: 2,  name: 's_size', type: 7},
-  {bits: 3,  name: 'ms2', type: 4},
-  {bits: 3,  name: 'imm3/ctrl', type: 6},
-  {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
-], config: {lanes: 1, hspace: 1000}}
-....
-
-For instructions that use matrix-register operands, `md`/`ms1`/`ms2` identify the destination (or store source) and source matrix registers. The `d_size` field indicates the destination element size. The `s_size` field indicates the source element size. The `imm3/ctrl` field carries operation-specific control information. Bits `inst[27:26]` are reserved and shall be zero.
-
-The `md`/`ms1`/`ms2` fields are 3-bit wide to index the four tile registers and four accumulation registers.
+The `md` / `ms1` / `ms2` fields use the same 3-bit register-index encoding:
 
 [cols="^1,1"]
 |===
-| *md/ms1/ms2[2:0]*  | *Matrix Register Index*
+| *Index* | *Matrix Register*
 | 000 | tr0
 | 001 | tr1
 | 010 | tr2
@@ -89,44 +30,28 @@ The `md`/`ms1`/`ms2` fields are 3-bit wide to index the four tile registers and 
 | 111 | acc3
 |===
 
-The `msettype` family uses the `mtr` selector field in `inst[19:15]` to identify the target `mtype` register. Legal `mtr` encodings are `00000` through `00111`, where `mtr[2:0]` select `mtype0` through `mtype7`. `mtr[4:3]` are reserved and shall be zero.
-
-For matrix multiplication instructions, `ms1` and `ms2` shall be tile registers (`000`-`011`), and `md` shall be an accumulation register (`100`-`111`). For matrix misc instructions, `md`/`ms1`/`ms2` can be `000`-`111`, according to the specific instruction.
-
-The element sizes of `d_size` and `s_size` are as follows:
+The `mtype` configuration family reuses this same 3-bit encoding to select `mtype0` through `mtype7`, because `mtype` and matrix registers never occupy the same field in the same instruction format.
 
 [cols="^1,1"]
 |===
-| *d/s_size[1:0]* | *Element Size*
-| 00 | 8-bit
-| 01 | 16-bit
-| 10 | 32-bit
-| 11 | 64-bit
+| *mtype_sel[2:0]* | *Target Type Register*
+| 000 | mtype0 (type state for tr0)
+| 001 | mtype1 (type state for tr1)
+| 010 | mtype2 (type state for tr2)
+| 011 | mtype3 (type state for tr3)
+| 100 | mtype4 (type state for acc0)
+| 101 | mtype5 (type state for acc1)
+| 110 | mtype6 (type state for acc2)
+| 111 | mtype7 (type state for acc3)
 |===
-
-[cols="^1,1"]
-|===
-| *mtr[4:0]* | *Target `mtype` Register*
-| 00000 | mtype0 (type state for tr0)
-| 00001 | mtype1 (type state for tr1)
-| 00010 | mtype2 (type state for tr2)
-| 00011 | mtype3 (type state for tr3)
-| 00100 | mtype4 (type state for acc0)
-| 00101 | mtype5 (type state for acc1)
-| 00110 | mtype6 (type state for acc2)
-| 00111 | mtype7 (type state for acc3)
-| 01000-11111 | Reserved
-|===
-
-For instructions with GPR operands, `rs1` and `rs2` indicate the scalar source registers. For configuration instructions that use immediate operands, `imm10` carries the immediate payload.
 
 ==== Configuration Instructions
 
-The configuration instruction category uses `func3 = 000`. Bits `inst[27:26]` are reserved and shall be `00`.
+The configuration instruction category uses `func3 = 000`.
 
-The `msettile{m|k|n}[i]` and `minit` instructions use the following formats.
+===== Configuration-IMM Format
 
-===== Immediate Format (`minit`, `msettile{m|k|n}i`)
+This format is used by `minit` and the immediate tile-configuration instructions.
 
 [wavedrom, ,svg]
 ....
@@ -135,13 +60,15 @@ The `msettile{m|k|n}[i]` and `minit` instructions use the following formats.
   {bits: 5,  name: '0', attr: '00000', type: 8},
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 10, name: 'uimm10[9:0]', type: 4},
-  {bits: 1,  name: 'ctrl', attr: '0', type: 8},
+  {bits: 1,  name: 'mode', attr: '0', type: 8},
   {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
+  {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-===== Register Format (`msettile{m|k|n}`)
+===== Configuration-GPR Format
+
+This format is used by the register tile-configuration instructions.
 
 [wavedrom, ,svg]
 ....
@@ -151,156 +78,173 @@ The `msettile{m|k|n}[i]` and `minit` instructions use the following formats.
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: '0', attr: '00000', type: 8},
-  {bits: 1,  name: 'ctrl', attr: '1', type: 8},
+  {bits: 1,  name: 'mode', attr: '1', type: 8},
   {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
+  {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-===== Immediate Format (`msettypei`)
+===== Configuration-MTYPE Format
+
+This format is used by `msettypei` and `msettype`. The current 4.1 second-format description is replaced by this dedicated branch so that type configuration is no longer mixed with tile configuration.
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: 'type[4:0]', type: 4},
+  {bits: 5,  name: '0/rs1', type: 3},
   {bits: 3,  name: 'func3', attr: '000', type: 8},
-  {bits: 5,  name: 'mtr', type: 3},
-  {bits: 5,  name: '0', attr: '00000', type: 8},
-  {bits: 1,  name: 'ctrl', attr: '0', type: 8},
+  {bits: 3,  name: 'mtype_sel', type: 4},
   {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', attr: '0100', type: 8},
+  {bits: 4,  name: 'imm4/0', type: 6},
+  {bits: 1,  name: 'mode', type: 6},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', attr: '0100', type: 8}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-===== Register Format (`msettype`)
-
-[wavedrom, ,svg]
-....
-{reg: [
-  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: 'rs1', type: 3},
-  {bits: 3,  name: 'func3', attr: '000', type: 8},
-  {bits: 5,  name: 'mtr', type: 3},
-  {bits: 5,  name: '0', attr: '00000', type: 8},
-  {bits: 1,  name: 'ctrl', attr: '1', type: 8},
-  {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', attr: '0100', type: 8},
-], config: {lanes: 1, hspace: 1000}}
-....
+For `msettypei`, `mode=0`, bits `inst[24:21]` carry `mtype_code[3:0]`, and bits `inst[11:7]` are reserved zero. For `msettype`, `mode=1`, bits `inst[11:7]` hold `rs1`, and bits `inst[24:21]` are reserved zero. In both forms, `inst[19:17]` carry `mtype_sel[2:0]`, and `inst[16:15]` are reserved zero.
 
 .Configuration Instructions (`func3=000`)
 [cols="^2,^2,^8"]
 |===
-| *func4* | *ctrl (inst[25])* | *Instruction*
+| *func4* | *mode (inst[25])* | *Instruction*
 | 0000 | 0 | minit
-| 0001 | 0 | msettileki (immediate)
-| 0010 | 0 | msettilemi (immediate)
-| 0011 | 0 | msettileni (immediate)
-| 0001 | 1 | msettilek (register)
-| 0010 | 1 | msettilem (register)
-| 0011 | 1 | msettilen (register)
-| 0100 | 0 | msettypei (immediate)
-| 0100 | 1 | msettype (register)
+| 0001 | 0 | msettileki
+| 0010 | 0 | msettilemi
+| 0011 | 0 | msettileni
+| 0001 | 1 | msettilek
+| 0010 | 1 | msettilem
+| 0011 | 1 | msettilen
+| 0100 | 0 | msettypei
+| 0100 | 1 | msettype
 |===
 
 ==== Load/Store Instructions
 
-The load/store instruction category uses `func3 = 001`. Bits `inst[27:26]` are reserved and shall be `00`. The `func4` field defines load/store types (A/B/C matrix type, transpose type). `inst[25]` is the `l/s` field indicating load/store direction: `0` for load and `1` for store. The `d_size` field indicates the transferred element size.
+The load/store instruction category uses `func3 = 001`. Types are not encoded in the instruction. They are determined by the programmed `mtype` state of the accessed matrix register.
+
+The `func4` field is partitioned as follows:
+
+- `func4[3]`: `whole`
+- `func4[2]`: `transpose`
+- `func4[1:0]`: matrix kind
+
+Matrix-kind encoding:
+
+[cols="^2,^8"]
+|===
+| *func4[1:0]* | *Matrix Kind*
+| 00 | A matrix
+| 01 | B matrix
+| 10 | C matrix
+| 11 | Reserved
+|===
+
+The `whole` bit is only defined for load/store instructions. Whole-register access with `transpose=1` is reserved.
+
+===== Load/Store-Normal Format
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 3,  name: 'md/ms3', type: 2},
-  {bits: 2,  name: 'd_size', type: 7},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 3,  name: 'func3', attr: '001', type: 8},
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: 'rs2', type: 4},
   {bits: 1,  name: 'l/s', type: 6},
   {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', type: 5},
+  {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
+===== Load/Store-Transpose Format
+
+This format uses the same field layout as the normal load/store format, with `func4[2]=1` and `func4[3]=0`.
+
+===== Load/Store-Whole Format
+
+This format uses the same field layout as the normal load/store format, with `func4[3]=1` and `func4[2]=0`.
+
 .Load/Store Instructions (`func3=001`)
-[cols="^2,^2,^8"]
+[cols="^1,^1,^2,^8"]
 |===
-| *func4* | *inst[25] (l/s)* | *Instruction*
-| 0000 | 0 | mlae8 (load A matrix)
-| 0001 | 0 | mlbe8 (load B matrix)
-| 0010 | 0 | mlce{8,32} (load C matrix)
-| 0010 | 1 | msce{8,32} (store C matrix)
-| 0100 | 0 | mlate8 (load A matrix transpose)
-| 0101 | 0 | mlbte8 (load B matrix transpose)
-| 0110 | 0 | mlcte{8,32} (load C matrix transpose)
-| 0110 | 1 | mscte{8,32} (store C matrix transpose)
+| *whole* | *transpose* | *kind* | *Instruction*
+| 0 | 0 | 00 | mla
+| 0 | 0 | 01 | mlb
+| 0 | 0 | 10 | mlc
+| 0 | 0 | 00 | msa
+| 0 | 0 | 01 | msb
+| 0 | 0 | 10 | msc
+| 0 | 1 | 00 | mlat
+| 0 | 1 | 01 | mlbt
+| 0 | 1 | 10 | mlct
+| 0 | 1 | 00 | msat
+| 0 | 1 | 01 | msbt
+| 0 | 1 | 10 | msct
+| 1 | 0 | 00 | mla (whole)
+| 1 | 0 | 01 | mlb (whole)
+| 1 | 0 | 10 | mlc (whole)
+| 1 | 0 | 00 | msa (whole)
+| 1 | 0 | 01 | msb (whole)
+| 1 | 0 | 10 | msc (whole)
+| 1 | 1 | 00-10 | Reserved
 |===
 
 ==== Matrix Multiplication Instructions
 
-The matrix multiplication category uses `func3 = 010`. Bits `inst[27:26]` are reserved and shall be `00`. The `mmacc` instruction is the only architectural matrix multiply instruction in this simplified specification. Its operand typing is validated against the programmed `mtype` state. The currently defined combination is `i8` tile operands accumulated into `i32`.
+The matrix multiplication category uses `func3 = 010`. Matrix multiplication type combinations are determined by `mtype(ms1)`, `mtype(ms2)`, and `mtype(md)`. Bits `inst[25:23]`, `inst[19:18]`, and `inst[11:10]` are reserved.
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 3,  name: 'md/ms3', type: 2},
-  {bits: 2,  name: 'd_size', attr: '10', type: 8},
+  {bits: 3,  name: 'md', type: 2},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 3,  name: 'func3', attr: '010', type: 8},
   {bits: 3,  name: 'ms1', type: 3},
-  {bits: 2,  name: 's_size', attr: '00', type: 8},
-  {bits: 3,  name: 'ms2', type: 4},
-  {bits: 3,  name: 'ctrl', attr: '011', type: 8},
   {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', attr: '0001', type: 8},
+  {bits: 3,  name: 'ms2', type: 4},
+  {bits: 3,  name: '0', attr: '000', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
 .Matrix Multiplication Instructions (`func3=010`)
 [cols="^2,^8"]
 |===
-| *ctrl (inst[25:23])* | *Instruction*
-| 011 | mmacc
-| 000 | Reserved
-| 001 | Reserved
-| 010 | Reserved
-| 100 | Reserved
-| 101 | Reserved
-| 110 | Reserved
-| 111 | Reserved
+| *func4* | *Instruction*
+| 0000 | mmacc
+| 0001-1111 | Reserved
 |===
 
 ==== MISC Instructions
 
-The misc instruction category uses `func3 = 011`. Bits `inst[27:26]` are reserved and shall be `00`. The `func4` field is `0000` for `mzero1r`. When `ms1` or `ms2` are not used, these fields are set to zero. For `mzero1r`, the `imm3/ctrl` field (`inst[25:23]`) is fixed to `000`.
+The misc category uses `func3 = 011`. Bits `inst[25:23]`, `inst[22:20]`, `inst[19:18]`, `inst[17:15]`, and `inst[11:10]` are reserved.
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 3,  name: 'md/ms3', type: 2},
-  {bits: 2,  name: 'd_size', attr: '00', type: 8},
-  {bits: 3,  name: 'func3', attr: '011', type: 8},
-  {bits: 3,  name: 'ms1', attr: '000', type: 8},
-  {bits: 2,  name: 's_size', attr: '00', type: 8},
-  {bits: 3,  name: 'ms2', attr: '000', type: 8},
-  {bits: 3,  name: 'ctrl', attr: '000', type: 8},
+  {bits: 3,  name: 'md', type: 2},
   {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', attr: '0000', type: 8},
+  {bits: 3,  name: 'func3', attr: '011', type: 8},
+  {bits: 3,  name: '0', attr: '000', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 3,  name: '0', attr: '000', type: 8},
+  {bits: 3,  name: '0', attr: '000', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
 .MISC Instructions (`func3=011`)
 [cols="^2,^8"]
 |===
-| *ctrl (inst[25:23])* | *Instruction*
-| 000 | mzero1r (clear single register)
-| 001 | Reserved
-| 010 | Reserved
-| 011 | Reserved
-| 100 | Reserved
-| 101 | Reserved
-| 110 | Reserved
-| 111 | Reserved
+| *func4* | *Instruction*
+| 0000 | mzero1r
+| 0001-1111 | Reserved
 |===

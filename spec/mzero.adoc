@@ -6,3 +6,5 @@ The instruction does not modify the destination register's `mtype` state. Softwa
 #zero 1 matrix register
 mzero1r md  
 ```
+
+All other non-destination operand fields in the misc format are reserved zero for `mzero1r`.

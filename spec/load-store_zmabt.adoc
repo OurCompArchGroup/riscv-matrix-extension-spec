@@ -1,42 +1,21 @@
-
 The legal matrix shapes of load/store instructions are:
 
-*  mlae8: matrixA, mtilem stem:[\le] TLEN/TRLEN, mtilek stem:[\le] TRLEN/8
-*  mlbe8: matrixB, mtilen stem:[\le] TLEN/TRLEN, mtilek stem:[\le] TRLEN/8
-*  mlce<8/32>: matrixC, mtilem stem:[\le] TLEN/TRLEN, mtilen stem:[\le] ARLEN/<8/32>
-*  msce<8/32>: matrixC, mtilem stem:[\le] TLEN/TRLEN, mtilen stem:[\le] ARLEN/<8/32>
+* `mla` / `msa`: matrix A, stem:[mtilem \le TLEN / TRLEN], stem:[mtilek \le TRLEN / EW_A]
+* `mlb` / `msb`: matrix B, stem:[mtilen \le TLEN / TRLEN], stem:[mtilek \le TRLEN / EW_B]
+* `mlc` / `msc`: matrix C, stem:[mtilem \le TLEN / TRLEN], stem:[mtilen \le ARLEN / EW_C]
 
-NOTE: Load A/B matrices only support 8-bit element width. There are no store instructions for A/B matrices.
+The effective element widths stem:[EW_A], stem:[EW_B], and stem:[EW_C] are determined by the programmed `mtype` state of the accessed register.
 
-The matrix tile loading to tile register is X rows and Y colunms elements.
+The transposed variants `mlat` / `mlbt` / `mlct` and `msat` / `msbt` / `msct` use the same tile shapes as their non-transposed counterparts, but interpret memory layout in transpose mode.
 
-*  ml<a/at>e8: X = mtilem, Y = mtilek
-*  ml<b/bt>e8: X = mtilen, Y = mtilek
-*  ml<c/ct>e<8/32>: X = mtilem, Y = mtilen
+The whole-register variants use the same matrix-class selection and the same register-class rules as the tile variants. They transfer the entire architectural register state selected by the instruction.
 
+Taking TLEN=512, TRLEN=128, and ALEN=512 as an example:
 
-Taking TLEN=512, TRLEN=128 , ELEN=32 and ALEN=512 as an example, the max matrix shapes are:
+* matrix A and B tile registers support up to 4 rows
+* matrix C accumulation registers support up to 4 rows
+* the maximum K or N dimensions depend on the programmed `mtype` element width
 
-*  mlae8 / mlbe8
-** matrixA: M = 4, K = 16
-** matrixB: N = 4, K = 16
+The memory layout and matrix register layout examples are shown below:
 
-*  mlce8 / msce8
-** matrixC: M = 4, N = 16
-
-*  mlce32 / msce32
-** matrixC: M = 4, N = 4
-
-The  memory layout and matrix register layout is shown below:
-
-image::matrix_load_example_0.svg[alt="mlbe16", align="center"]
-
-
-with mtilen is 2 and mtilek is 4, the mlbe16 operation  is shown below:
-
-image::mlbe16.svg[alt="  mlbe16", align="center"]
-
-with mtilen is 2 and mtilek is 4, the mlbte16 operation is shown below:
-
-image::mlbte16.svg[alt="  mlbte16", align="center"]
-
+image::matrix_load_example_0.svg[alt="matrix load example", align="center"]

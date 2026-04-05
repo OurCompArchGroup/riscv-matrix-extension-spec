@@ -4,7 +4,7 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
-* **Matrix Type Registers**: Eight addressable architectural registers, `mtype0`-`mtype7`, that record the programmed data type of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msettype[i]` instruction family.
+* **Matrix Type Registers**: Eight addressable architectural registers, `mtype0`-`mtype7`, that record the programmed data type of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msettype[i]` instruction family. The target selection encoding for `mtype0`-`mtype7` reuses the same 3-bit numbering as `tr0`-`acc3`.
 
 * **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
@@ -56,23 +56,47 @@ include::tilereg.adoc[]
 
 The `mtype` architectural registers hold the programmed element type for each matrix register. `mtype0`-`mtype3` correspond to `tr0`-`tr3`, and `mtype4`-`mtype7` correspond to `acc0`-`acc3`.
 
+The 3-bit `mtype` selector encoding is shared with the matrix-register numbering:
+
+[cols="^2,^3,^3"]
+|===
+| Selector | Matrix Register | Type Register
+| 000 | tr0 | mtype0
+| 001 | tr1 | mtype1
+| 010 | tr2 | mtype2
+| 011 | tr3 | mtype3
+| 100 | acc0 | mtype4
+| 101 | acc1 | mtype5
+| 110 | acc2 | mtype6
+| 111 | acc3 | mtype7
+|===
+
 Only the `msettypei` and `msettype` instructions update `mtype` state. Matrix load/store, matrix multiplication, and misc instructions validate their required operand types against the programmed `mtype` state and do not implicitly rewrite it.
 
-Each `mtype` register uses the least-significant five bits to hold the type code. The upper bits are reserved and shall be written as zero.
+Each `mtype` register uses the least-significant four bits to hold the type code. The upper bits are reserved and shall be written as zero.
 
 [cols="^2,^5"]
 |===
-| `mtype[4:0]` | Meaning
-| 00000 | `i8`
-| 00001 | `i16`
-| 00010 | `i32`
-| 00011 | `i64`
-| 00100 | `bf16`
-| 00101 | `f16`
-| 00110-11111 | Reserved
+| `mtype[3:0]` | Meaning
+| 0000 | `int4`
+| 0001 | `uint4`
+| 0010 | `int8`
+| 0011 | `uint8`
+| 0100 | `int32`
+| 0101 | `nvfp4`
+| 0110 | `mxfp4`
+| 0111 | `fp8e5m2`
+| 1000 | `fp8e4m3`
+| 1001 | `mxfp8`
+| 1010 | `fp16`
+| 1011 | `bf16`
+| 1100 | `tf32`
+| 1101 | `fp32`
+| 1110 | `fp2`
+| 1111 | Reserved
 |===
 
-The current simplified specification defines matrix multiplication only for `mtype(ms1)=i8`, `mtype(ms2)=i8`, and `mtype(md)=i32`. Executing a matrix instruction whose encoded element size or defined operand semantics do not match the programmed `mtype` state raises an illegal instruction exception.
+Executing a matrix instruction whose defined operand semantics do not match the programmed `mtype` state raises an illegal instruction exception. Supported type combinations are defined by the relevant instruction chapters and reported through the matrix capability description.
 
 === CSR Registers
 
@@ -97,7 +121,7 @@ cpus {
     cpu@0 {
         compatible = "riscv";
         riscv,isa = "rv64imafdcv";
-        riscv,isa-extensions = "zames", "zmasync";
+        riscv,isa-extensions = "zames";
         riscv,matrix-isa-caps = "i8i8i32", "bf16bf16s", "iew", "few";
     };
 };
@@ -313,4 +337,4 @@ The misa CSR is a WARL read-write register reporting the ISA supported by the ha
 | 25 | Z | Reserved
 |===
 
-The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node as a list of lowercase extension name strings. Software can discover the presence of Zames by checking for the string `"zames"` in this list. If the Zmasync extension is also implemented, `"zmasync"` appears in the same list.
+The **Zames** (Attached Matrix Extension Simplified) is a multi-letter extension and is not represented as a single bit in the misa.Extensions field. Multi-letter extensions like Zames are reported through the device tree `riscv,isa-extensions` property in the `/cpus/cpu@X` node as a list of lowercase extension name strings. Software can discover the presence of Zames by checking for the string `"zames"` in this list.

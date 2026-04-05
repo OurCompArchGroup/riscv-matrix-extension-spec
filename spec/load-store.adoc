@@ -1,77 +1,72 @@
+Matrix load instructions load matrix data from memory into matrix registers, and matrix store instructions store matrix data from matrix registers back to memory.
 
-Matrix load instructions load a matrix tile from memory to a matrix register, and matrix store instructions store a matrix tile from a matrix register to memory.
+The data type of a load or store instruction is not encoded by dedicated width fields. Instead, the type is determined entirely by the programmed `mtype` state of the destination register for loads and the source register for stores.
 
-The element data width is encoded in the instruction, including 8/16/32/64 bits; other data widths are reserved. The base address is in `rs1` and the row stride in bytes is in `rs2`. `md`/`ms3` is the register index for the destination of a matrix load and the source of a matrix store.
+The base address is held in `rs1`, and the row stride in bytes is held in `rs2`. `md` / `ms3` identifies the destination matrix register for a load and the source matrix register for a store.
 
-Due to the difference in matrix tile shapes of matrix A, B, and C, three types of load/store instructions are provided to separately implement memory access operations for matrix A(mla*), B(mlb*), and C(mlc*/msc*).
+Load/store instructions are organized by:
 
-The shape of the tile that load to or store from matrix register is based on stem:[C = A \times B^T] matrix multiplication mode,  the shape of left matrix A that load to matrix register is stem:[mtilem \times mtilek]. the shape of right matrix B that load to matrix register is stem:[mtilen \times mtilek], and  the shape of output matrix C that load to matrix register is stem:[mtilem \times mtilen]. 
+- matrix class: A / B / C
+- direction: load / store
+- access mode: normal / transpose / whole
 
+The active tile shape is based on stem:[C = A \times B^T]:
 
-==== Load Instructions
+- A matrix tile shape: stem:[mtilem \times mtilek]
+- B matrix tile shape: stem:[mtilen \times mtilek]
+- C matrix tile shape: stem:[mtilem \times mtilen]
+
+==== Normal Load/Store Instructions
 
 ```
 # md destination, rs1 base address, rs2 row byte stride
+mla  md, (rs1), rs2      # load A tile
+mlb  md, (rs1), rs2      # load B tile
+mlc  md, (rs1), rs2      # load C tile
 
-# For left matrix, A
-mlae8  md, (rs1), rs2         #  8-bit left tile load
-
-# For right matrix, B
-mlbe8  md, (rs1), rs2         #  8-bit right tile load
-
-# For output matrix, C
-mlce8  md, (rs1), rs2         #  8-bit output tile load
-mlce32 md, (rs1), rs2         # 32-bit output tile load
-
-```
-==== Store Instructions
-
-```
-# ms3 store data, rs1 base address, rs2 row byte stride
-
-# For output matrix, C
-msce8  ms3, (rs1), rs2        #  8-bit output tile store
-msce32 ms3, (rs1), rs2        # 32-bit output tile store
-
+# ms3 source, rs1 base address, rs2 row byte stride
+msa  ms3, (rs1), rs2     # store A tile
+msb  ms3, (rs1), rs2     # store B tile
+msc  ms3, (rs1), rs2     # store C tile
 ```
 
-In addition, considering that matrices are stored in memory either in row-major or column-major order, load/store instructions provide both non-transposed and transposed instructions. For non-transposed instructions, the matrix tile in memory is row-major of A, BT, and C matrix. And for transposed instructions, the matrix tile in memory is column major.
+==== Transposed Load/Store Instructions
 
-==== Load Transposed Instructions
 ```
 # md destination, rs1 base address, rs2 row byte stride
+mlat md, (rs1), rs2      # load A tile, transpose mode
+mlbt md, (rs1), rs2      # load B tile, transpose mode
+mlct md, (rs1), rs2      # load C tile, transpose mode
 
-# For left matrix, A
-mlate8  md, (rs1), rs2        #  8-bit left tile load
-
-# For right matrix, B
-mlbte8  md, (rs1), rs2        #  8-bit right tile load
-
-# For output matrix, C
-mlcte8  md, (rs1), rs2        #  8-bit output tile load
-mlcte32 md, (rs1), rs2        # 32-bit output tile load
-
+# ms3 source, rs1 base address, rs2 row byte stride
+msat ms3, (rs1), rs2     # store A tile, transpose mode
+msbt ms3, (rs1), rs2     # store B tile, transpose mode
+msct ms3, (rs1), rs2     # store C tile, transpose mode
 ```
 
-==== Store Transposed Instructions
+==== Whole Register Load/Store Instructions
+
+The whole-register variants are not a separate top-level instruction family. They are the same A/B/C load/store instructions with the `whole` mode bit set to 1. The recommended assembly notation below uses a `.whole` suffix to make the mode visible.
 
 ```
-# ms3 store data, rs1 base address, rs2 row byte stride
+mla.whole md, (rs1), rs2   # load whole A register
+mlb.whole md, (rs1), rs2   # load whole B register
+mlc.whole md, (rs1), rs2   # load whole C register
 
-# For output matrix, C
-# tile size = mtilen * mtilem
-mscte8  ms3, (rs1), rs2       #  8-bit output tile store
-mscte32 ms3, (rs1), rs2       # 32-bit output tile store
+msa.whole ms3, (rs1), rs2  # store whole A register
+msb.whole ms3, (rs1), rs2  # store whole B register
+msc.whole ms3, (rs1), rs2  # store whole C register
 ```
 
-Executing matrix load or store instructions will result in an illegal instruction exception under unsupported corresponding `mtilem`/`mtilek`/`mtilen` settings.
+Whole-register access with transpose mode is reserved.
 
-Matrix load and store instructions also validate the programmed `mtype` state of the accessed matrix register. The encoded element width of the instruction shall match the `mtype` value of the destination register for loads and the source register for stores. A mismatch raises an illegal instruction exception.
+Executing a matrix load or store instruction will result in an illegal instruction exception under unsupported `mtilem` / `mtilek` / `mtilen` settings.
 
-For mla*/mlb*, the destination matrix register is tile register, and the index of md must be 0-3. For mlc*/msc*, the destination matrix register or the source matrix register is accumulation register, and the index of ms3/md must be 4-7.
+Matrix load/store instructions validate the programmed `mtype` state of the accessed matrix register. A mismatch between the instruction's defined matrix class semantics and the programmed `mtype` state raises an illegal instruction exception.
 
+For A/B matrix accesses, the destination register of a load and the source register of a store shall be a tile register (`tr0`-`tr3`). For C matrix accesses, the destination register of a load and the source register of a store shall be an accumulation register (`acc0`-`acc3`).
 
-NOTE: Whole matrix load and store instructions are usually used for context saving and restoring.
+NOTE: Whole matrix load and store instructions are primarily used for context save and restore.
 
 ==== Examples for Load and Store Instructions
 

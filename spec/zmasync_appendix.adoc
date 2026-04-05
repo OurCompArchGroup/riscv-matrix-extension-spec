@@ -1,4 +1,4 @@
-== Zmasync: Asynchronous Store Synchronization Extension
+== Zmasync: Optional Asynchronous Store Synchronization Extension
 
 === Overview
 
