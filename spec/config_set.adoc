@@ -35,7 +35,7 @@ The `mtype` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
 `msettypei` encodes the type value directly in the instruction. `msettype` reads the type value from the least-significant four bits of scalar register `rs1`. In both forms, bits `inst[19:17]` hold the 3-bit `mtype` selector and bits `inst[16:15]` are reserved zero.
 
-For `msettypei`, bits `inst[24:21]` carry the 4-bit type code and bit `inst[20]` is reserved zero. For `msettype`, bits `inst[24:20]` hold `rs1`.
+For `msettypei`, bits `inst[24:21]` carry the 4-bit type code and bit `inst[20]` is reserved zero. For `msettype`, bits `inst[11:7]` hold `rs1`, and bits `inst[24:21]` are reserved zero.
 
 ```
 msettypei mtype0, 0b0010  # type state for tr0  = int8
