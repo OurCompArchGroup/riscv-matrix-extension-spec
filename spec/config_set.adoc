@@ -18,7 +18,7 @@ msettileni imm  # imm = new mtilen
 msettilen  rs1  # rs1 = new mtilen
 ```
 
-The `msettype[i]` instruction family programs the `mtype` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. These instructions are the only instructions that modify `mtype` state.
+The `msettype` instruction programs the `mtype` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. It is the only instruction that modifies `mtype` state.
 
 The `mtype` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
@@ -33,14 +33,13 @@ The `mtype` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 111 -> mtype7 (for acc3)
 ```
 
-`msettypei` encodes the type value directly in the instruction. `msettype` reads the type value from the least-significant four bits of scalar register `rs1`. In both forms, bits `inst[19:17]` hold the 3-bit `mtype` selector and bits `inst[16:15]` are reserved zero.
+`mcfg_d1` is the destination selector and chooses which `mtype` register is updated.
 
-For `msettypei`, bits `inst[24:21]` carry the 4-bit type code and bit `inst[20]` is reserved zero. For `msettype`, bits `inst[11:7]` hold `rs1`, and bits `inst[24:21]` are reserved zero.
+For `msettype`, `inst[24:20]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, and the new type code is taken from `x[rs1][3:0]`.
 
 ```
-msettypei mtype0, 0b0010  # type state for tr0  = int8
-msettypei mtype1, 0b0010  # type state for tr1  = int8
-msettypei mtype4, 0b0100  # type state for acc0 = int32
+msettype  mtype0, rs1     # type state for tr0  = x[rs1][3:0]
+msettype  mtype1, rs2     # type state for tr1  = x[rs2][3:0]
 msettype  mtype5, rs1     # type state for acc1 = x[rs1][3:0]
 ```
 

@@ -61,7 +61,7 @@ This format is used by `minit` and the immediate tile-configuration instructions
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 10, name: 'uimm10[9:0]', type: 4},
   {bits: 1,  name: 'mode', attr: '0', type: 8},
-  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 2,  name: 'rd', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
@@ -86,24 +86,29 @@ This format is used by the register tile-configuration instructions.
 
 ===== Configuration-MTYPE Format
 
-This format is used by `msettypei` and `msettype`. The current 4.1 second-format description is replaced by this dedicated branch so that type configuration is no longer mixed with tile configuration.
+This format is used by `msettype`. The `Configuration-MTYPE` branch is separated from tile configuration so that matrix-type programming has its own dedicated encoding description.
+
+`mcfg_d1` selects the target `mtype` register. The selector reuses the same 3-bit numbering as `tr0`-`acc3`, and the upper two bits of the 5-bit field are reserved zero.
 
 [wavedrom, ,svg]
 ....
 {reg: [
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
-  {bits: 5,  name: 'zero/rs1', type: 3},
+  {bits: 5,  name: 'mcfg_d1', type: 3},
   {bits: 3,  name: 'func3', attr: '000', type: 8},
-  {bits: 3,  name: 'mtype_sel', type: 4},
-  {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'type/zero', type: 6},
+  {bits: 5,  name: 'rs1', type: 3},
+  {bits: 5,  name: '0', attr: '0000000', type: 8},
   {bits: 1,  name: 'mode', type: 6},
-  {bits: 2,  name: '0', attr: '00', type: 8},
-  {bits: 4,  name: 'func4', attr: '0100', type: 8}
+  {bits: 2,  name: '00', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', attr: '0100', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-For `msettypei`, `mode=0`, bits `inst[24:21]` carry `mtype_code[3:0]`, and bits `inst[11:7]` are reserved zero. For `msettype`, `mode=1`, bits `inst[11:7]` hold `rs1`, and bits `inst[24:21]` are reserved zero. In both forms, `inst[19:17]` carry `mtype_sel[2:0]`, and `inst[16:15]` are reserved zero.
+- `mode=1`
+- `inst[11:7]` is `mcfg_d1`
+- `inst[24:20]` is `rs1`
+- the low four bits of `x[rs1]` provide the new type code
+- `inst[19:15]` is reserved zero
 
 .Configuration Instructions (`func3=000`)
 [cols="^2,^2,^8"]
@@ -116,7 +121,6 @@ For `msettypei`, `mode=0`, bits `inst[24:21]` carry `mtype_code[3:0]`, and bits 
 | 0001 | 1 | msettilek
 | 0010 | 1 | msettilem
 | 0011 | 1 | msettilen
-| 0100 | 0 | msettypei
 | 0100 | 1 | msettype
 |===
 

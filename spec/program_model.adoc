@@ -4,7 +4,7 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
-* **Matrix Type Registers**: Eight addressable architectural registers, `mtype0`-`mtype7`, that record the programmed data type of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msettype[i]` instruction family. The target selection encoding for `mtype0`-`mtype7` reuses the same 3-bit numbering as `tr0`-`acc3`.
+* **Matrix Type Registers**: Eight addressable architectural registers, `mtype0`-`mtype7`, that record the programmed data type of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msettype` instruction. The target selection encoding for `mtype0`-`mtype7` reuses the same 3-bit numbering as `tr0`-`acc3`.
 
 * **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
@@ -71,7 +71,7 @@ The 3-bit `mtype` selector encoding is shared with the matrix-register numbering
 | 111 | acc3 | mtype7
 |===
 
-Only the `msettypei` and `msettype` instructions update `mtype` state. Matrix load/store, matrix multiplication, and misc instructions validate their required operand types against the programmed `mtype` state and do not implicitly rewrite it.
+Only the `msettype` instruction updates `mtype` state. Matrix load/store, matrix multiplication, and misc instructions validate their required operand types against the programmed `mtype` state and do not implicitly rewrite it.
 
 Each `mtype` register uses the least-significant four bits to hold the type code. The upper bits are reserved and shall be written as zero.
 

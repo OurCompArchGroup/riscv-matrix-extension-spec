@@ -9,7 +9,7 @@ The current draft is based on XuanTie Matrix Extension V0.6.0 and narrows the sc
 The current draft focuses on:
 
 - A single architectural matrix multiplication instruction: `mmacc`
-- Tile configuration via `msettile{m|k|n}` and type configuration via `msettype[i]`
+- Tile configuration via `msettile{m|k|n}` and type configuration via `msettype`
 - Four tile registers (`tr0`-`tr3`), four accumulation registers (`acc0`-`acc3`), and eight associated `mtype` registers
 - Matrix load/store instructions organized by matrix class (`A` / `B` / `C`), direction (load / store), transpose mode, and whole-register mode
 - The `mzero1r` utility instruction
