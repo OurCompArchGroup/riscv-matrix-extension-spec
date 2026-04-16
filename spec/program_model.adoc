@@ -92,8 +92,8 @@ Each `mtype` register uses the least-significant four bits to hold the type code
 | 1011 | `bf16`
 | 1100 | `tf32`
 | 1101 | `fp32`
-| 1110 | `fp2`
-| 1111 | Reserved
+| 1110 | `fp2pack4`
+| 1111 | `fp2pack5`
 |===
 
 Executing a matrix instruction whose defined operand semantics do not match the programmed `mtype` state raises an illegal instruction exception. Supported type combinations are defined by the relevant instruction chapters and reported through the matrix capability description.
