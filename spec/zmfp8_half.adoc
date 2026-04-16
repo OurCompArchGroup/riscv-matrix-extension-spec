@@ -1,4 +1,4 @@
-For mfmacc.<h/bf16>.<e5/e4> instructions, the source is E5M2/E4M3 8-bit floating-point, and the result is fp16/bf16. these instructions require `e5e5h` and `e5e5bf16` (for E5M2) or `e4e4h` and `e4e4bf16` (for E4M3) in device-tree `riscv,matrix-isa-caps` property to indicate support for both fp16 and bf16 output formats.
+For `mfmacc.<h/bf16>.<e5/e4>` instructions, the source is E5M2/E4M3 8-bit floating-point, and the result is fp16/bf16. These instructions require `fp8e5m2fp8e5m2fp16` and `fp8e5m2fp8e5m2bf16` (for E5M2) or `fp8e4m3fp8e4m3fp16` and `fp8e4m3fp8e4m3bf16` (for E4M3) in device-tree `riscv,matrix-isa-caps` property to indicate support for both fp16 and bf16 output formats.
 
 The legal matrix shape of mfmacc.<h/bf16>.<e5/e4> is:
 
@@ -6,7 +6,7 @@ The legal matrix shape of mfmacc.<h/bf16>.<e5/e4> is:
 * matrixB: N stem:[\le] TLEN/TRLEN, K stem:[\le] TRLEN/8
 * matrixC: M stem:[\le] TLEN/TRLEN, N stem:[\le] TLEN/TRLEN
 
-The mfmacc.<h/bf16>.<e5/e4> instructions requires ELEN>=16.
+The `mfmacc.<h/bf16>.<e5/e4>` instructions require ELEN>=16.
 
 
 ```
@@ -22,7 +22,7 @@ The mfmacc.<h/bf16>.<e5/e4> instructions requires ELEN>=16.
 
 ```
 
-For conversion between fp8 and fp16, requires `fp8hcvt` in device-tree `riscv,matrix-isa-caps` property.
+For conversion between fp8 and fp16, requires `fp8fp16cvt` in device-tree `riscv,matrix-isa-caps` property.
 
 For double widen conversion, mfcvt<l/h>.h.<e5/e4>, Low or high half columns of  matrix register are used by source matrix specified by ms1. The matrix size configurations are ignored.
 For narrow conversion, mfcvt<l/h>.<e5/e4>.h, source elements are twice as wide as destination elements. Low or high half columns of  matrix register are used by destination matrix specified by md, and another half columns kept undisturbed.  The matrix size configurations are ignored. 

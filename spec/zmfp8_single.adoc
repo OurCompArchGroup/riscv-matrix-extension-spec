@@ -1,4 +1,4 @@
-For mfmacc.s.<e5/e4> instruction, the source is E5M2/E4M3 8-bit floating-point, and the result is fp32 result, these instructions require `e5e5s` (for E5M2) or `e4e4s` (for E4M3) in device-tree `riscv,matrix-isa-caps` property.
+For `mfmacc.s.<e5/e4>` instructions, the source is E5M2/E4M3 8-bit floating-point, and the result is FP32. These instructions require `fp8e5m2fp8e5m2fp32` (for E5M2) or `fp8e4m3fp8e4m3fp32` (for E4M3) in device-tree `riscv,matrix-isa-caps` property.
 
 The legal matrix shape of  mfmacc.s.<e5/e4> is:
 
@@ -6,7 +6,7 @@ The legal matrix shape of  mfmacc.s.<e5/e4> is:
 * matrixB: N stem:[\le] TLEN/TRLEN, K stem:[\le] TRLEN/8
 * matrixC: M stem:[\le] TLEN/TRLEN, N stem:[\le] TLEN/TRLEN
 
-The mfmacc.s.<e5/e4> instructions requires ELEN>=32.
+The `mfmacc.s.<e5/e4>` instructions require ELEN>=32.
 
 ```
 #the input is fp8(E5M2), the output is fp32, md = md + ms1*ms2
@@ -15,7 +15,7 @@ The mfmacc.s.<e5/e4> instructions requires ELEN>=32.
  mfmacc.s.e4 md, ms2, ms1
 ```
 
-For conversion between fp8 and fp32, requires `fp8scvt` in device-tree `riscv,matrix-isa-caps` property.
+For conversion between fp8 and fp32, requires `fp8fp32cvt` in device-tree `riscv,matrix-isa-caps` property.
 
 The mfcvt<l/h>.<e5/e4>.s instructions are used to convert a single float-point source into a 4x narrower destination. The mfcvtl.<e5/e4>.s write back to the first quater of md and the mfcvth.<e5/e4>.s write back to the second quater of md, the rest parts of md are kept undisturbed.  The matrix size configurations are ignored for mfcvt<l/h>.<e5/e4>.s instructions. 
 

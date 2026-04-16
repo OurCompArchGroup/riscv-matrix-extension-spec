@@ -11,7 +11,7 @@
 | msettilek  | gpr | 00000,rs1 | 00000 | 000 | 0001
 | msettilem  | gpr | 00000,rs1 | 00000 | 000 | 0010
 | msettilen  | gpr | 00000,rs1 | 00000 | 000 | 0011
-| msettype   | gpr | 00000,sel | rs1   | 000 | 0100
+| msettype   | gpr | 00000,rs1 | sel   | 000 | 0100
 |===
 
 .Matrix MISC Instructions

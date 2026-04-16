@@ -35,7 +35,7 @@ The `mtype` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
 `mcfg_d1` is the destination selector and chooses which `mtype` register is updated.
 
-For `msettype`, `inst[24:20]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, and the new type code is taken from `x[rs1][3:0]`.
+For `msettype`, `inst[19:15]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, `inst[24:20]` is reserved zero, and the new type code is taken from `x[rs1][3:0]`.
 
 ```
 msettype  mtype0, rs1     # type state for tr0  = x[rs1][3:0]

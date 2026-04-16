@@ -1,4 +1,4 @@
-This extension provides a matrix widening BF16 mul-add instruction that accumulates into FP32, requires `bf16bf16s` in device-tree `riscv,matrix-isa-caps` property.
+This extension provides a matrix widening BF16 mul-add instruction that accumulates into FP32, requires `bf16bf16fp32` in device-tree `riscv,matrix-isa-caps` property.
 
 The legal matrix shape of  mfmacc.s.bf16 is:
 
@@ -13,7 +13,7 @@ Zmbf16 extension requires ELEN>=32.
  mfmacc.s.bf16 md, ms2, ms1
 ```
 
-The matrix extension provides conversion between BF16 values and FP32 values, requires `bf16bf16s` (for mfmacc.s.bf16) and `bf16scvt` (for conversion instructions) in device-tree `riscv,matrix-isa-caps` property. The widen convert instructions use high or low half columns of source register and write to 1 destination register. The narrow covert instructions only modify high or low half columns of destination register. The convert instructions do not depend upon matrix size.
+The matrix extension provides conversion between BF16 values and FP32 values, requires `bf16bf16fp32` (for `mfmacc.s.bf16`) and `bf16fp32cvt` (for conversion instructions) in device-tree `riscv,matrix-isa-caps` property. The widen convert instructions use high or low half columns of source register and write to 1 destination register. The narrow covert instructions only modify high or low half columns of destination register. The convert instructions do not depend upon matrix size.
 
 ```
 #bf16 floating point widen convert to fp32
@@ -29,4 +29,4 @@ mfcvth.bf16.s md, ms1
 mfcvtl.bf16.s md, ms1
 ```
 
-For conversion between fp32 and bf16, requires `bf16scvt` in device-tree `riscv,matrix-isa-caps` property.
+For conversion between fp32 and bf16, requires `bf16fp32cvt` in device-tree `riscv,matrix-isa-caps` property.

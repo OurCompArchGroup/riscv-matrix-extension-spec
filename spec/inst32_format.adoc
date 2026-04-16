@@ -96,15 +96,20 @@ This format is used by `msettype`. The `Configuration-MTYPE` branch is separated
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 5,  name: 'mcfg_d1', type: 3},
   {bits: 3,  name: 'func3', attr: '000', type: 8},
-  {bits: 13,  name: '0', type: 8},
+  {bits: 5,  name: 'rs1', type: 3},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 1,  name: 'mode', attr: '1', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', attr: '0100', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
 - `inst[11:7]` is `mcfg_d1`
-- `inst[24:20]` is `rs1`
+- `inst[19:15]` is `rs1`
 - the low four bits of `x[rs1]` provide the new type code
-- `inst[28:15]` is reserved zero
+- `inst[24:20]` is reserved zero
+- `inst[27:26]` is reserved zero
+- `inst[25]` is `mode=1`
 
 .Configuration Instructions (`func3=000`)
 [cols="^2,^2,^8"]
@@ -117,7 +122,7 @@ This format is used by `msettype`. The `Configuration-MTYPE` branch is separated
 | 0001 | 1 | msettilek
 | 0010 | 1 | msettilem
 | 0011 | 1 | msettilen
-| 0100 | 0 | msettype
+| 0100 | 1 | msettype
 |===
 
 ==== Load/Store Instructions

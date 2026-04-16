@@ -110,6 +110,8 @@ Integer type tokens use `i<width>` for signed integer types and `u<width>` for u
 
 Floating-point type tokens use direct names. Supported token forms include `nvfp4`, `mxfp4`, `mxfp8`, `fp8`, `fp8e4m3`, `fp8e5m2`, `fp16`, `bf16`, `fp32`, `fp64`, and `tf32`.
 
+For conversion capabilities, the capability string uses the format `<input_type><output_type>cvt`. Relevant instruction chapters define whether a given conversion capability covers one direction or both directions between the named types.
+
 .Device Tree Example
 [source,dts]
 ----
