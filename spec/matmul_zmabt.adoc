@@ -14,10 +14,7 @@ for (int i = 0; i < sizeM; i++) {
 
 The `mmacc` instruction is shared across supported type combinations. The actual legal combination is determined by the programmed `mtype` values and the capability strings reported by `riscv,matrix-isa-caps`.
 
-For example:
-
-* `i8i8i32` indicates a signed 8-bit source combination accumulated into 32-bit destination elements.
-* `bf16bf16s` indicates a BF16 source combination accumulated into FP32 destination elements.
+Each multiply capability string follows the `<input_type_a><input_type_b><output_type_c>` naming rule defined in the programmer's model. Integer type names use `i<width>` or `u<width>`, while floating-point names use direct tokens such as `fp16`, `bf16`, `fp32`, `fp64`, `tf32`, `nvfp4`, `mxfp4`, `mxfp8`, `fp8`, `fp8e4m3`, or `fp8e5m2`.
 
 ```
 mmacc md, ms2, ms1
