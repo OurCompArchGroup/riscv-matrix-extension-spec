@@ -76,8 +76,7 @@ jobs:
             instructions.adoc \
             mem_model.adoc \
             instruction_list.adoc \
-            zmasync_appendix.adoc \
-            proposals.adoc
+            zmasync_appendix.adoc
           do
             echo "=== PROBE $f ==="
             sed "s|__TARGET__|$f|g" "$GITHUB_WORKSPACE/spec/.probe-template.adoc" > "$GITHUB_WORKSPACE/spec/.probe.adoc"

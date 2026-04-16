@@ -28,6 +28,8 @@ riscv-isa-manual/   Local reference copy of the upstream RISC-V ISA manual
 
 The main document entry point is `spec/header.adoc`.
 
+Files under `spec/proposal*.adoc` are retained as historical design notes only. They are not included in the main Zames specification build and are not part of the CI document probe/build path.
+
 ## Quick Start
 
 ```bash
