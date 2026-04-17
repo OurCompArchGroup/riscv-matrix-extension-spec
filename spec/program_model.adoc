@@ -21,8 +21,8 @@ The matrix extension introduces the following architectural state:
 2+| _Total: 8 matrix registers_ 2+|
 
 .3+| Matrix Type Registers
-| mtype0-mtype3 | 0x8-0xb | - | Type state for `tr0`-`tr3`
-| mtype4-mtype7 | 0xc-0xf | - | Type state for `acc0`-`acc3`
+| mtype0-mtype3 | 0x0-0x3 | - | Type state for `tr0`-`tr3`
+| mtype4-mtype7 | 0x4-0x7 | - | Type state for `acc0`-`acc3`
 2+| _Total: 8 matrix type registers_ 2+|
 
 .8+| CSRs
