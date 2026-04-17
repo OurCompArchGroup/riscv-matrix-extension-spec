@@ -75,6 +75,17 @@ Only the `msettype` instruction updates `mtype` state. Matrix load/store, matrix
 
 Each `mtype` register uses the least-significant four bits to hold the type code. The upper bits are reserved and shall be written as zero.
 
+.mtype register layout (illustrated for RV32)
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 4,  name: 'mtype[3:0]', attr: '[3:0]', type: 5},
+  {bits: 28, name: '0', attr: '[31:4]', type: 8}
+], config: {lanes: 1, hspace: 1000}}
+....
+
+For RV64, the same rule applies: bits `mtype[3:0]` hold the type code, and bits `mtype[XLEN-1:4]` are reserved zero.
+
 [cols="^2,^5"]
 |===
 | `mtype[3:0]` | Meaning
