@@ -112,6 +112,8 @@ Floating-point type tokens use direct names. Supported token forms include `nvfp
 
 For conversion capabilities, the capability string uses the format `<input_type><output_type>cvt`. Relevant instruction chapters define whether a given conversion capability covers one direction or both directions between the named types.
 
+Element-wise support may be advertised with standalone capability strings. `iew` indicates support for integer element-wise operations, and `few` indicates support for floating-point element-wise operations.
+
 .Device Tree Example
 [source,dts]
 ----
@@ -120,7 +122,7 @@ cpus {
         compatible = "riscv";
         riscv,isa = "rv64imafdcv";
         riscv,isa-extensions = "zames";
-        riscv,matrix-isa-caps = "i8i8i32", "bf16bf16fp32", "fp8e4m3fp8e4m3fp32";
+        riscv,matrix-isa-caps = "i8i8i32", "bf16bf16fp32", "fp8e4m3fp8e4m3fp32", "iew", "few";
     };
 };
 ----
