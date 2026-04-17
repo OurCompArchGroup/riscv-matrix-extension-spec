@@ -18,29 +18,29 @@ msettileni imm  # imm = new mtilen
 msettilen  rs1  # rs1 = new mtilen
 ```
 
-The `msettype` instruction programs the `mtype` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. It is the only instruction that modifies `mtype` state.
+The `msetcfg` instruction programs the `mcfg` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. It is the only instruction that modifies `mcfg` state.
 
-The `mtype` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
-
-```
-000 -> mtype0 (for tr0)
-001 -> mtype1 (for tr1)
-010 -> mtype2 (for tr2)
-011 -> mtype3 (for tr3)
-100 -> mtype4 (for acc0)
-101 -> mtype5 (for acc1)
-110 -> mtype6 (for acc2)
-111 -> mtype7 (for acc3)
-```
-
-`mcfg_d1` is the destination selector and chooses which `mtype` register is updated.
-
-For `msettype`, `inst[19:15]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, `inst[24:20]` is reserved zero, and the new type code is taken from `x[rs1][3:0]`.
+The `mcfg` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
 ```
-msettype  mtype0, rs1     # type state for tr0  = x[rs1][3:0]
-msettype  mtype1, rs2     # type state for tr1  = x[rs2][3:0]
-msettype  mtype5, rs1     # type state for acc1 = x[rs1][3:0]
+000 -> mcfg0 (for tr0)
+001 -> mcfg1 (for tr1)
+010 -> mcfg2 (for tr2)
+011 -> mcfg3 (for tr3)
+100 -> mcfg4 (for acc0)
+101 -> mcfg5 (for acc1)
+110 -> mcfg6 (for acc2)
+111 -> mcfg7 (for acc3)
 ```
 
-The selected type code must be one of the defined `mtype` encodings described in the programmer's model. Reserved type codes cause an illegal instruction exception.
+`mcfg_d1` is the destination selector and chooses which `mcfg` register is updated.
+
+For `msetcfg`, `inst[19:15]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, `inst[24:20]` is reserved zero, and the new configuration payload is taken from `x[rs1][7:0]`. Bits `x[rs1][3:0]` provide `type_code`, and bits `x[rs1][7:4]` provide `table_sel`.
+
+```
+msetcfg  mcfg0, rs1     # config state for tr0  = x[rs1][7:0]
+msetcfg  mcfg1, rs2     # config state for tr1  = x[rs2][7:0]
+msetcfg  mcfg5, rs1     # config state for acc1 = x[rs1][7:0]
+```
+
+The selected `table_sel` / `type_code` combination must be one of the defined `mcfg` encodings described in the programmer's model. Unsupported configurations cause an illegal instruction exception.

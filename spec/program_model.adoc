@@ -4,7 +4,7 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
-* **Matrix Type Registers**: Eight addressable architectural registers, `mtype0`-`mtype7`, that record the programmed data type of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msettype` instruction. The target selection encoding for `mtype0`-`mtype7` reuses the same 3-bit numbering as `tr0`-`acc3`.
+* **Matrix Configuration Registers**: Eight addressable architectural registers, `mcfg0`-`mcfg7`, that record the programmed configuration of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msetcfg` instruction. The target selection encoding for `mcfg0`-`mcfg7` reuses the same 3-bit numbering as `tr0`-`acc3`.
 
 * **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
@@ -20,10 +20,10 @@ The matrix extension introduces the following architectural state:
 | acc0-acc3  | 0x4-0x7 | - | Accumulation registers (ALEN bits each), store output matrix C
 2+| _Total: 8 matrix registers_ 2+|
 
-.3+| Matrix Type Registers
-| mtype0-mtype3 | 0x0-0x3 | - | Type state for `tr0`-`tr3`
-| mtype4-mtype7 | 0x4-0x7 | - | Type state for `acc0`-`acc3`
-2+| _Total: 8 matrix type registers_ 2+|
+.3+| Matrix Configuration Registers
+| mcfg0-mcfg3 | 0x0-0x3 | - | Configuration state for `tr0`-`tr3`
+| mcfg4-mcfg7 | 0x4-0x7 | - | Configuration state for `acc0`-`acc3`
+2+| _Total: 8 matrix configuration registers_ 2+|
 
 .8+| CSRs
 | mcsr      | 0x802 | URW | Matrix control and status register
@@ -52,43 +52,46 @@ The matrix extension introduces the following architectural state:
 
 include::tilereg.adoc[]
 
-=== Matrix Type Registers
+=== Matrix Configuration Registers
 
-The `mtype` architectural registers hold the programmed element type for each matrix register. `mtype0`-`mtype3` correspond to `tr0`-`tr3`, and `mtype4`-`mtype7` correspond to `acc0`-`acc3`.
+The `mcfg` architectural registers hold the programmed matrix configuration for each matrix register. `mcfg0`-`mcfg3` correspond to `tr0`-`tr3`, and `mcfg4`-`mcfg7` correspond to `acc0`-`acc3`.
 
-The 3-bit `mtype` selector encoding is shared with the matrix-register numbering:
+The 3-bit `mcfg` selector encoding is shared with the matrix-register numbering:
 
 [cols="^2,^3,^3"]
 |===
-| Selector | Matrix Register | Type Register
-| 000 | tr0 | mtype0
-| 001 | tr1 | mtype1
-| 010 | tr2 | mtype2
-| 011 | tr3 | mtype3
-| 100 | acc0 | mtype4
-| 101 | acc1 | mtype5
-| 110 | acc2 | mtype6
-| 111 | acc3 | mtype7
+| Selector | Matrix Register | Configuration Register
+| 000 | tr0 | mcfg0
+| 001 | tr1 | mcfg1
+| 010 | tr2 | mcfg2
+| 011 | tr3 | mcfg3
+| 100 | acc0 | mcfg4
+| 101 | acc1 | mcfg5
+| 110 | acc2 | mcfg6
+| 111 | acc3 | mcfg7
 |===
 
-Only the `msettype` instruction updates `mtype` state. Matrix load/store, matrix multiplication, and misc instructions validate their required operand types against the programmed `mtype` state and do not implicitly rewrite it.
+Only the `msetcfg` instruction updates `mcfg` state. Matrix load/store, matrix multiplication, and misc instructions validate their required operand configuration against the programmed `mcfg` state and do not implicitly rewrite it.
 
-Each `mtype` register uses the least-significant four bits to hold the type code. The upper bits are reserved and shall be written as zero.
+Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0]`, and bits `mcfg[7:4]` hold `table_sel[3:0]`. The upper bits are reserved and shall be written as zero.
 
-.mtype register layout (illustrated for RV32)
+.mcfg register layout (illustrated for RV32)
 [wavedrom, ,svg]
 ....
 {reg: [
-  {bits: 4,  name: 'mtype[3:0]', attr: '[3:0]', type: 5},
-  {bits: 28, name: '0', attr: '[31:4]', type: 8}
+  {bits: 4,  name: 'type_code', attr: '[3:0]', type: 5},
+  {bits: 4,  name: 'table_sel', attr: '[7:4]', type: 6},
+  {bits: 24, name: '0', attr: '[31:8]', type: 8}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-For RV64, the same rule applies: bits `mtype[3:0]` hold the type code, and bits `mtype[XLEN-1:4]` are reserved zero.
+For RV64, the same rule applies: bits `mcfg[3:0]` hold `type_code`, bits `mcfg[7:4]` hold `table_sel`, and bits `mcfg[XLEN-1:8]` are reserved zero.
+
+Encoding table `table_sel = 0` is defined below. Other encoding tables are selected by non-zero `table_sel` values and may assign different meanings to the same `type_code`.
 
 [cols="^2,^5"]
 |===
-| `mtype[3:0]` | Meaning
+| `type_code[3:0]` in table 0 | Meaning
 | 0000 | `int4`
 | 0001 | `uint4`
 | 0010 | `int8`
@@ -107,7 +110,7 @@ For RV64, the same rule applies: bits `mtype[3:0]` hold the type code, and bits 
 | 1111 | `fp2pack5`
 |===
 
-When software programs an `mtype` register, selecting a type that is not supported by the implementation raises an illegal instruction exception immediately at the `msettype` operation. The set of supported matrix operation capabilities is reported through the matrix capability description in the device tree, using the naming rules defined by the relevant instruction chapters.
+When software programs an `mcfg` register, selecting a configuration that is not supported by the implementation raises an illegal instruction exception immediately at the `msetcfg` operation. The set of supported matrix operation capabilities is reported through the matrix capability description in the device tree, using the naming rules defined by the relevant instruction chapters.
 
 === CSR Registers
 

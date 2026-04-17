@@ -12,7 +12,7 @@ for (int i = 0; i < sizeM; i++) {
 
 ==== Matrix Multiply Capability Examples
 
-The `mmacc` instruction is shared across supported type combinations. The actual legal combination is determined by the programmed `mtype` values and the capability strings reported by `riscv,matrix-isa-caps`.
+The `mmacc` instruction is shared across supported type combinations. The actual legal combination is determined by the programmed `mcfg` values and the capability strings reported by `riscv,matrix-isa-caps`.
 
 Each multiply capability string follows the `<input_type_a><input_type_b><output_type_c>` naming rule defined in the programmer's model. Integer type names use `i<width>` or `u<width>`, while floating-point names use direct tokens such as `fp16`, `bf16`, `fp32`, `fp64`, `tf32`, `nvfp4`, `mxfp4`, `mxfp8`, `fp8`, `fp8e4m3`, or `fp8e5m2`.
 
@@ -20,4 +20,4 @@ Each multiply capability string follows the `<input_type_a><input_type_b><output
 mmacc md, ms2, ms1
 ```
 
-The maximum matrix shapes depend on TLEN, TRLEN, ALEN, and the active element types selected by `mtype`.
+The maximum matrix shapes depend on TLEN, TRLEN, ALEN, and the active element types selected by `mcfg`.

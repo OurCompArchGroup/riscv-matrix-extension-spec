@@ -2,15 +2,15 @@ Matrix multiplication operations take two matrix tiles, matrixA and matrixB, fro
 
 If the accumulation register is larger than the output matrix tile(matrixC) in bits, only the lower columns are updated and the higher parts are set by zeros.
 
-This specification exposes a single architectural matrix multiply instruction, `mmacc`. The operand and accumulator types are determined by the programmed `mtype(ms1)`, `mtype(ms2)`, and `mtype(md)` state together with the matrix capability description reported by the implementation.
+This specification exposes a single architectural matrix multiply instruction, `mmacc`. The operand and accumulator types are determined by the programmed `mcfg(ms1)`, `mcfg(ms2)`, and `mcfg(md)` state together with the matrix capability description reported by the implementation.
 
 [cols="^2,^3,^3,^3"]
 |===
 | category   | instructions             | Operand Type            | Accumulator Type
-| implementation-defined | mmacc | determined by `mtype(ms1)` / `mtype(ms2)` | determined by `mtype(md)`
+| implementation-defined | mmacc | determined by `mcfg(ms1)` / `mcfg(ms2)` | determined by `mcfg(md)`
 |===
 
-If `msaten` equals 1, the output should be saturated for combinations that define saturation behavior. Otherwise, the `mmacc` operation ignores overflow and wraps around the result when wraparound semantics are defined. If the programmed `mtype` state does not match a supported matrix multiply combination, executing `mmacc` raises an illegal instruction exception.
+If `msaten` equals 1, the output should be saturated for combinations that define saturation behavior. Otherwise, the `mmacc` operation ignores overflow and wraps around the result when wraparound semantics are defined. If the programmed `mcfg` state does not match a supported matrix multiply combination, executing `mmacc` raises an illegal instruction exception.
 
 ```
 # matrix multiplication and accumulate, md = md + ms1 * ms2.

@@ -1,6 +1,6 @@
 Matrix load instructions load matrix data from memory into matrix registers, and matrix store instructions store matrix data from matrix registers back to memory.
 
-The data type of a load or store instruction is not encoded by dedicated width fields. Instead, the type is determined entirely by the programmed `mtype` state of the destination register for loads and the source register for stores.
+The data type of a load or store instruction is not encoded by dedicated width fields. Instead, the type is determined entirely by the programmed `mcfg` state of the destination register for loads and the source register for stores.
 
 The base address is held in `rs1`, and the row stride in bytes is held in `rs2`. `md` / `ms3` identifies the destination matrix register for a load and the source matrix register for a store.
 
@@ -62,7 +62,7 @@ Whole-register access with transpose mode is reserved.
 
 Executing a matrix load or store instruction will result in an illegal instruction exception under unsupported `mtilem` / `mtilek` / `mtilen` settings.
 
-Matrix load/store instructions validate the programmed `mtype` state of the accessed matrix register. A mismatch between the instruction's defined matrix class semantics and the programmed `mtype` state raises an illegal instruction exception.
+Matrix load/store instructions validate the programmed `mcfg` state of the accessed matrix register. A mismatch between the instruction's defined matrix class semantics and the programmed `mcfg` state raises an illegal instruction exception.
 
 For A/B matrix accesses, the destination register of a load and the source register of a store shall be a tile register (`tr0`-`tr3`). For C matrix accesses, the destination register of a load and the source register of a store shall be an accumulation register (`acc0`-`acc3`).
 

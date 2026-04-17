@@ -4,7 +4,7 @@ The legal matrix shapes of load/store instructions are:
 * `mlb` / `msb`: matrix B, stem:[mtilen \le TLEN / TRLEN], stem:[mtilek \le TRLEN / EW_B]
 * `mlc` / `msc`: matrix C, stem:[mtilem \le TLEN / TRLEN], stem:[mtilen \le ARLEN / EW_C]
 
-The effective element widths stem:[EW_A], stem:[EW_B], and stem:[EW_C] are determined by the programmed `mtype` state of the accessed register.
+The effective element widths stem:[EW_A], stem:[EW_B], and stem:[EW_C] are determined by the programmed `mcfg` state of the accessed register.
 
 The transposed variants `mlat` / `mlbt` / `mlct` and `msat` / `msbt` / `msct` use the same tile shapes as their non-transposed counterparts, but interpret memory layout in transpose mode.
 
@@ -14,7 +14,7 @@ Taking TLEN=512, TRLEN=128, and ALEN=512 as an example:
 
 * matrix A and B tile registers support up to 4 rows
 * matrix C accumulation registers support up to 4 rows
-* the maximum K or N dimensions depend on the programmed `mtype` element width
+* the maximum K or N dimensions depend on the programmed `mcfg` element width
 
 The memory layout and matrix register layout examples are shown below:
 

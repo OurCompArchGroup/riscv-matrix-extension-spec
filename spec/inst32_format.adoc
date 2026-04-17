@@ -30,19 +30,19 @@ The `md` / `ms1` / `ms2` fields use the same 3-bit register-index encoding:
 | 111 | acc3
 |===
 
-The `mtype` configuration family reuses this same 3-bit encoding to select `mtype0` through `mtype7`, because `mtype` and matrix registers never occupy the same field in the same instruction format.
+The `mcfg` configuration family reuses this same 3-bit encoding to select `mcfg0` through `mcfg7`, because `mcfg` and matrix registers never occupy the same field in the same instruction format.
 
 [cols="^1,1"]
 |===
-| *mtype_sel[2:0]* | *Target Type Register*
-| 000 | mtype0 (type state for tr0)
-| 001 | mtype1 (type state for tr1)
-| 010 | mtype2 (type state for tr2)
-| 011 | mtype3 (type state for tr3)
-| 100 | mtype4 (type state for acc0)
-| 101 | mtype5 (type state for acc1)
-| 110 | mtype6 (type state for acc2)
-| 111 | mtype7 (type state for acc3)
+| *mcfg_sel[2:0]* | *Target Configuration Register*
+| 000 | mcfg0 (configuration state for tr0)
+| 001 | mcfg1 (configuration state for tr1)
+| 010 | mcfg2 (configuration state for tr2)
+| 011 | mcfg3 (configuration state for tr3)
+| 100 | mcfg4 (configuration state for acc0)
+| 101 | mcfg5 (configuration state for acc1)
+| 110 | mcfg6 (configuration state for acc2)
+| 111 | mcfg7 (configuration state for acc3)
 |===
 
 ==== Configuration Instructions
@@ -84,11 +84,11 @@ This format is used by the register tile-configuration instructions.
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-===== Configuration-MTYPE Format
+===== Configuration-MCFG Format
 
-This format is used by `msettype`. The `Configuration-MTYPE` branch is separated from tile configuration so that matrix-type programming has its own dedicated encoding description.
+This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated from tile configuration so that matrix-configuration programming has its own dedicated encoding description.
 
-`mcfg_d1` selects the target `mtype` register. The selector reuses the same 3-bit numbering as `tr0`-`acc3`, and the upper two bits of the 5-bit field are reserved zero.
+`mcfg_d1` selects the target `mcfg` register. The selector reuses the same 3-bit numbering as `tr0`-`acc3`, and the upper two bits of the 5-bit field are reserved zero.
 
 [wavedrom, ,svg]
 ....
@@ -106,7 +106,9 @@ This format is used by `msettype`. The `Configuration-MTYPE` branch is separated
 
 - `inst[11:7]` is `mcfg_d1`
 - `inst[19:15]` is `rs1`
-- the low four bits of `x[rs1]` provide the new type code
+- the low eight bits of `x[rs1]` provide the new configuration payload
+- `x[rs1][3:0]` is `type_code`
+- `x[rs1][7:4]` is `table_sel`
 - `inst[24:20]` is reserved zero
 - `inst[27:26]` is reserved zero
 - `inst[25]` is `mode=1`
@@ -122,12 +124,12 @@ This format is used by `msettype`. The `Configuration-MTYPE` branch is separated
 | 0001 | 1 | msettilek
 | 0010 | 1 | msettilem
 | 0011 | 1 | msettilen
-| 0100 | 1 | msettype
+| 0100 | 1 | msetcfg
 |===
 
 ==== Load/Store Instructions
 
-The load/store instruction category uses `func3 = 001`. Types are not encoded in the instruction. They are determined by the programmed `mtype` state of the accessed matrix register.
+The load/store instruction category uses `func3 = 001`. Types are not encoded in the instruction. They are determined by the programmed `mcfg` state of the accessed matrix register.
 
 The `func4` field is partitioned as follows:
 
@@ -200,7 +202,7 @@ This format uses the same field layout as the normal load/store format, with `fu
 
 ==== Matrix Multiplication Instructions
 
-The matrix multiplication category uses `func3 = 010`. Matrix multiplication type combinations are determined by `mtype(ms1)`, `mtype(ms2)`, and `mtype(md)`. Bits `inst[25:23]`, `inst[19:18]`, and `inst[11:10]` are reserved.
+The matrix multiplication category uses `func3 = 010`. Matrix multiplication type combinations are determined by `mcfg(ms1)`, `mcfg(ms2)`, and `mcfg(md)`. Bits `inst[25:23]`, `inst[19:18]`, and `inst[11:10]` are reserved.
 
 [wavedrom, ,svg]
 ....
