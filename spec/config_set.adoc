@@ -18,7 +18,7 @@ msettileni imm  # imm = new mtilen
 msettilen  rs1  # rs1 = new mtilen
 ```
 
-The `msetcfg` instruction programs the `mcfg` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. It is the only instruction that modifies `mcfg` state.
+The `msetcfg` instruction programs the `mcfg` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. The companion `mgetcfg` instruction reads the selected `mcfg` value back into a GPR. `msetcfg` is the only instruction that modifies `mcfg` state.
 
 The `mcfg` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
@@ -37,10 +37,14 @@ The `mcfg` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
 For `msetcfg`, `inst[19:15]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, `inst[24:20]` is reserved zero, and the new configuration payload is taken from `x[rs1][7:0]`. Bits `x[rs1][3:0]` provide `type_code`, and bits `x[rs1][7:4]` provide `table_sel`.
 
+For `mgetcfg`, `inst[19:15]` holds `mcfg_sel`, `inst[11:7]` holds `rd`, `inst[24:20]` is reserved zero, and the selected `mcfg` value is zero-extended into `x[rd]`. Bits `x[rd][3:0]` return `type_code`, bits `x[rd][7:4]` return `table_sel`, and bits `x[rd][XLEN-1:8]` are written as zero.
+
 ```
 msetcfg  mcfg0, rs1     # config state for tr0  = x[rs1][7:0]
 msetcfg  mcfg1, rs2     # config state for tr1  = x[rs2][7:0]
 msetcfg  mcfg5, rs1     # config state for acc1 = x[rs1][7:0]
+mgetcfg  rd, mcfg0      # rd = zext(mcfg0)
+mgetcfg  t0, mcfg5      # t0 = zext(mcfg5)
 ```
 
 The selected `table_sel` / `type_code` combination must be one of the defined `mcfg` encodings described in the programmer's model. Unsupported configurations cause an illegal instruction exception.

@@ -84,7 +84,7 @@ This format is used by the register tile-configuration instructions.
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-===== Configuration-MCFG Format
+===== Configuration-MCFG-Write Format
 
 This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated from tile configuration so that matrix-configuration programming has its own dedicated encoding description.
 
@@ -113,6 +113,35 @@ This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated f
 - `inst[27:26]` is reserved zero
 - `inst[25]` is `mode=1`
 
+===== Configuration-MCFG-Read Format
+
+This format is used by `mgetcfg`.
+
+`mcfg_sel` selects the source `mcfg` register. The selector reuses the same 3-bit numbering as `tr0`-`acc3`, and the upper two bits of the 5-bit field are reserved zero.
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5,  name: 'rd', type: 2},
+  {bits: 3,  name: 'func3', attr: '000', type: 8},
+  {bits: 5,  name: 'mcfg_sel', type: 3},
+  {bits: 5,  name: '0', attr: '00000', type: 8},
+  {bits: 1,  name: 'mode', attr: '0', type: 8},
+  {bits: 2,  name: '0', attr: '00', type: 8},
+  {bits: 4,  name: 'func4', attr: '0101', type: 5}
+], config: {lanes: 1, hspace: 1000}}
+....
+
+- `inst[11:7]` is `rd`
+- `inst[19:15]` is `mcfg_sel`
+- `inst[24:20]` is reserved zero
+- `inst[27:26]` is reserved zero
+- `inst[25]` is `mode=0`
+- `x[rd][3:0]` receives `type_code`
+- `x[rd][7:4]` receives `table_sel`
+- `x[rd][XLEN-1:8]` is written as zero
+
 .Configuration Instructions (`func3=000`)
 [cols="^2,^2,^8"]
 |===
@@ -125,6 +154,7 @@ This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated f
 | 0010 | 1 | msettilem
 | 0011 | 1 | msettilen
 | 0100 | 1 | msetcfg
+| 0101 | 0 | mgetcfg
 |===
 
 ==== Load/Store Instructions

@@ -12,6 +12,7 @@
 | msettilem  | gpr | 00000,rs1 | 00000 | 000 | 0010
 | msettilen  | gpr | 00000,rs1 | 00000 | 000 | 0011
 | msetcfg    | gpr | 00000,rs1 | sel   | 000 | 0100
+| mgetcfg    | gpr | 00000,sel | rd    | 000 | 0101
 |===
 
 .Matrix MISC Instructions

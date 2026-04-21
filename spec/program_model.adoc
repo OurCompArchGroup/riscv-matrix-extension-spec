@@ -4,7 +4,7 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
-* **Matrix Configuration Registers**: Eight addressable architectural registers, `mcfg0`-`mcfg7`, that record the programmed configuration of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs, and are updated only by the `msetcfg` instruction. The target selection encoding for `mcfg0`-`mcfg7` reuses the same 3-bit numbering as `tr0`-`acc3`.
+* **Matrix Configuration Registers**: Eight addressable architectural registers, `mcfg0`-`mcfg7`, that record the programmed configuration of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs. They are updated by `msetcfg` and may be read back through `mgetcfg`. The target selection encoding for `mcfg0`-`mcfg7` reuses the same 3-bit numbering as `tr0`-`acc3`.
 
 * **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
 
@@ -71,7 +71,7 @@ The 3-bit `mcfg` selector encoding is shared with the matrix-register numbering:
 | 111 | acc3 | mcfg7
 |===
 
-Only the `msetcfg` instruction updates `mcfg` state. Matrix load/store, matrix multiplication, and misc instructions validate their required operand configuration against the programmed `mcfg` state and do not implicitly rewrite it.
+Only the `msetcfg` instruction updates `mcfg` state. The `mgetcfg` instruction reads a selected `mcfg` register and writes its zero-extended value to a GPR. Matrix load/store, matrix multiplication, and misc instructions validate their required operand configuration against the programmed `mcfg` state and do not implicitly rewrite it.
 
 Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0]`, and bits `mcfg[7:4]` hold `table_sel[3:0]`. The upper bits are reserved and shall be written as zero.
 
@@ -86,6 +86,8 @@ Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0
 ....
 
 For RV64, the same rule applies: bits `mcfg[3:0]` hold `type_code`, bits `mcfg[7:4]` hold `table_sel`, and bits `mcfg[XLEN-1:8]` are reserved zero.
+
+When software executes `mgetcfg`, the selected `mcfg` value is returned in XLEN form with bits `[7:4] = table_sel`, bits `[3:0] = type_code`, and all upper bits zero.
 
 Encoding table `table_sel = 0` is defined below. Other encoding tables are selected by non-zero `table_sel` values and may assign different meanings to the same `type_code`.
 
