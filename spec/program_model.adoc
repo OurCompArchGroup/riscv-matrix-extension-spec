@@ -103,13 +103,13 @@ Encoding table `table_sel = 0` is defined below. Other encoding tables are selec
 | 0110 | `mxfp4`
 | 0111 | `fp8e5m2`
 | 1000 | `fp8e4m3`
-| 1001 | `mxfp8`
-| 1010 | `fp16`
-| 1011 | `bf16`
-| 1100 | `tf32`
-| 1101 | `fp32`
-| 1110 | `fp2pack4`
-| 1111 | `fp2pack5`
+| 1001 | `fp16`
+| 1010 | `bf16`
+| 1011 | `tf32`
+| 1100 | `fp32`
+| 1101 | `fp2pack4`
+| 1110 | `fp2pack5`
+| 1111 | Reserved
 |===
 
 When software programs an `mcfg` register, selecting a configuration that is not supported by the implementation raises an illegal instruction exception immediately at the `msetcfg` operation. The set of supported matrix operation capabilities is reported through the matrix capability description in the device tree, using the naming rules defined by the relevant instruction chapters.
@@ -124,7 +124,7 @@ For matrix multiply capabilities, the capability string uses the format `<input_
 
 Integer type tokens use `i<width>` for signed integer types and `u<width>` for unsigned integer types, for example `i8`, `u8`, `i32`, or `u32`.
 
-Floating-point type tokens use direct names. Supported token forms include `nvfp4`, `mxfp4`, `mxfp8`, `fp8`, `fp8e4m3`, `fp8e5m2`, `fp16`, `bf16`, `fp32`, `fp64`, and `tf32`.
+Floating-point type tokens use direct names. Supported token forms include `nvfp4`, `mxfp4`, `fp8e4m3`, `fp8e5m2`, `fp16`, `bf16`, `fp32`, `fp64`, and `tf32`.
 
 For conversion capabilities, the capability string uses the format `<input_type><output_type>cvt`. Relevant instruction chapters define whether a given conversion capability covers one direction or both directions between the named types.
 
