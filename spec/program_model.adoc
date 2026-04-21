@@ -71,9 +71,9 @@ The 3-bit `mcfg` selector encoding is shared with the matrix-register numbering:
 | 111 | acc3 | mcfg7
 |===
 
-Only the `msetcfg` instruction updates `mcfg` state. The `mgetcfg` instruction reads a selected `mcfg` register and writes its zero-extended value to a GPR. Matrix load/store, matrix multiplication, and misc instructions validate their required operand configuration against the programmed `mcfg` state and do not implicitly rewrite it.
+Only the `msetcfg` instruction updates `mcfg` state. The `mgetcfg` instruction reads a selected `mcfg` register and copies its raw XLEN-bit contents to a GPR. Matrix load/store, matrix multiplication, and misc instructions validate their required operand configuration against the programmed `mcfg` state and do not implicitly rewrite it.
 
-Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0]`, and bits `mcfg[7:4]` hold `table_sel[3:0]`. The upper bits are reserved and shall be written as zero.
+Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0]`, and bits `mcfg[7:4]` hold `table_sel[3:0]`. Bits `mcfg[XLEN-1:8]` are architecturally ignored by hardware. Software may write and read them through `msetcfg` and `mgetcfg`, but they have no effect on matrix execution semantics.
 
 .mcfg register layout (illustrated for RV32)
 [wavedrom, ,svg]
@@ -81,13 +81,13 @@ Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0
 {reg: [
   {bits: 4,  name: 'type_code', attr: '[3:0]', type: 5},
   {bits: 4,  name: 'table_sel', attr: '[7:4]', type: 6},
-  {bits: 24, name: '0', attr: '[31:8]', type: 8}
+  {bits: 24, name: 'ignored', attr: '[31:8]', type: 8}
 ], config: {lanes: 1, hspace: 1000}}
 ....
 
-For RV64, the same rule applies: bits `mcfg[3:0]` hold `type_code`, bits `mcfg[7:4]` hold `table_sel`, and bits `mcfg[XLEN-1:8]` are reserved zero.
+For RV64, the same rule applies: bits `mcfg[3:0]` hold `type_code`, bits `mcfg[7:4]` hold `table_sel`, and bits `mcfg[XLEN-1:8]` are ignored by hardware.
 
-When software executes `mgetcfg`, the selected `mcfg` value is returned in XLEN form with bits `[7:4] = table_sel`, bits `[3:0] = type_code`, and all upper bits zero.
+When software executes `mgetcfg`, the selected `mcfg` value is returned without modification. Bits `[7:4]` carry `table_sel`, bits `[3:0]` carry `type_code`, and bits `[XLEN-1:8]` return the previously stored uninterpreted payload.
 
 Encoding table `table_sel = 0` is defined below. Other encoding tables are selected by non-zero `table_sel` values and may assign different meanings to the same `type_code`.
 

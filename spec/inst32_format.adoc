@@ -106,9 +106,10 @@ This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated f
 
 - `inst[11:7]` is `mcfg_d1`
 - `inst[19:15]` is `rs1`
-- the low eight bits of `x[rs1]` provide the new configuration payload
+- the raw XLEN-bit value of `x[rs1]` is written to the selected `mcfg`
 - `x[rs1][3:0]` is `type_code`
 - `x[rs1][7:4]` is `table_sel`
+- `x[rs1][XLEN-1:8]` is stored unchanged as uninterpreted payload
 - `inst[24:20]` is reserved zero
 - `inst[27:26]` is reserved zero
 - `inst[25]` is `mode=1`
@@ -138,9 +139,10 @@ This format is used by `mgetcfg`.
 - `inst[24:20]` is reserved zero
 - `inst[27:26]` is reserved zero
 - `inst[25]` is `mode=0`
+- `x[rd]` receives the raw XLEN-bit contents of the selected `mcfg`
 - `x[rd][3:0]` receives `type_code`
 - `x[rd][7:4]` receives `table_sel`
-- `x[rd][XLEN-1:8]` is written as zero
+- `x[rd][XLEN-1:8]` receives the stored uninterpreted payload
 
 .Configuration Instructions (`func3=000`)
 [cols="^2,^2,^8"]

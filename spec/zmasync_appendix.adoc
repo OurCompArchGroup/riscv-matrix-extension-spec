@@ -57,9 +57,11 @@ msyncregreset tok0           # Reset sync register tok0 to 0.
 
 mrelease      tok0           # Increment tok0 by 1; waits for store visibility.
 
-macquire      tok0, t0       # Block until tok0 >= t0; ensures store visibility to other units.
+macquire      tok0, t0       # Block until tok0 >= t0; ensures store visibility
+                             # to other units.
 
-mfence                        # Ensure non-matrix memory data is visible to the matrix engine.
+mfence                       # Ensure non-matrix memory data is visible to the
+                             # matrix engine.
 ```
 
 `msyncregreset` resets the specified sync register to zero, clearing any previously accumulated release count.
@@ -70,20 +72,23 @@ mfence                        # Ensure non-matrix memory data is visible to the 
 
 `mfence` is the reverse-direction companion to `macquire`. It is a single-hart, intra-core visibility barrier that guarantees memory data produced outside the matrix engine is visible to subsequent matrix-engine memory operations. `mfence` does not use a sync register and does not define any cross-hart or system-wide ordering semantics.
 
-==== Usage Example: DeepGEMM in AME with Zmasync
+==== Usage Example: GEMM in AME with Zmasync
 
-In DeepGEMM, each GEMM result is promoted from low-precision to full fp32. Asynchronous matrix operations allow the next GEMM to execute while the previous result is being promoted.
+In a GEMM pipeline, asynchronous matrix operations allow the next GEMM to execute while the previous result is being post-processed by scalar or vector execution.
 
 ```
 void async_matmul(c);  // output matrix c
 
 void promotion(c);
 
-void deepgemm_kernel() {
+void vector_init_matmul_inputs(a, b);
+
+void gemm_kernel() {
     ...
 
     tok0 = msyncregreset();
 
+    vector_init_matmul_inputs(a, b);  // vector/scalar units initialize the raw input arrays
     mfence();         // make non-matrix-produced inputs visible to the matrix engine
 
     async_matmul(c[0]);
@@ -103,13 +108,14 @@ void deepgemm_kernel() {
 }
 ```
 
-Above pseudocode gives an example of how to use Zmasync to implement DeepGEMM in AME.
+Above pseudocode gives an example of how to use Zmasync to implement GEMM in AME.
 The `async_matmul` function is a non-blocking matrix multiplication function
 implemented with asynchronous matrix store instructions,
 which retires from the pipeline without waiting for the completion.
 After asynchronous matrix store instructions in `async_matmul` function is finally completed,
 `mrelease` will increment the sync register by one.
 `macquire` blocks until the sync register value reaches or exceeds the given threshold (i.e., `sync >= threshold`), ensuring that the corresponding stores have completed before promotion begins. Note that an exact match is not required — if the sync register has advanced beyond the threshold, `macquire` still proceeds immediately. Without Zmasync, all operations would execute sequentially on the core, with no overlap between GEMM and promotion.
+`vector_init_matmul_inputs` represents scalar or vector code that initializes the raw operand arrays later consumed by matrix load or matrix multiply instructions.
 `mfence` is used before dispatching asynchronous matrix work when the matrix engine must observe memory data that was produced by scalar or vector execution earlier in the same hart.
 
 [wavedrom, ,svg]
