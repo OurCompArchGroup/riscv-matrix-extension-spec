@@ -130,6 +130,8 @@ For conversion capabilities, the capability string uses the format `<input_type>
 
 Element-wise support may be advertised with standalone capability strings. `iew` indicates support for integer element-wise operations, and `few` indicates support for floating-point element-wise operations.
 
+The conversion and element-wise naming forms above are retained by the capability model for compatibility and future extension. This simplified Zames specification does not currently define conversion instructions or element-wise matrix instructions in the main body.
+
 .Device Tree Example
 [source,dts]
 ----
@@ -138,7 +140,7 @@ cpus {
         compatible = "riscv";
         riscv,isa = "rv64imafdcv";
         riscv,isa-extensions = "zames";
-        riscv,matrix-isa-caps = "i8i8i32", "bf16bf16fp32", "fp8e4m3fp8e4m3fp32", "iew", "few";
+        riscv,matrix-isa-caps = "i8i8i32", "bf16bf16fp32", "fp8e4m3fp8e4m3fp32";
     };
 };
 ----
