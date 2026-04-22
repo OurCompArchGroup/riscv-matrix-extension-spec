@@ -120,11 +120,13 @@ When software programs an `mcfg` register, selecting a configuration that is not
 
 Matrix ISA capabilities are reported via the device tree rather than through a dedicated CSR. The `/cpus/cpu@X` node in the device tree includes a `riscv,matrix-isa-caps` property that lists the supported matrix operation capabilities.
 
-For matrix multiply capabilities, the capability string uses the format `<input_type_a><input_type_b><output_type_c>`. This specification does not enumerate every legal capability string in one global table. Instead, it defines the naming rules for each type token, and the relevant instruction chapters define which combinations are legal.
+For matrix multiply capabilities, the capability string uses the format `<input_type_a><input_type_b><output_type_c>`. This specification does not enumerate every legal capability string in one global table. Instead, it defines the naming rules for each type token, and the relevant instruction chapters define which combinations are legal. These naming rules describe how a capability is spelled if it is implemented; they do not imply that every token form is currently supported by this simplified specification.
 
 Integer type tokens use `i<width>` for signed integer types and `u<width>` for unsigned integer types, for example `i8`, `u8`, `i32`, or `u32`.
 
 Floating-point type tokens use direct names. Supported token forms include `nvfp4`, `mxfp4`, `fp8e4m3`, `fp8e5m2`, `fp16`, `bf16`, `fp32`, `fp64`, and `tf32`.
+
+The concrete set of currently programmable operand and accumulator types is determined by the defined `mcfg` encoding tables. A token form may be reserved by the capability naming scheme even when the current simplified specification does not define a corresponding `mcfg` encoding for it.
 
 For conversion capabilities, the capability string uses the format `<input_type><output_type>cvt`. Relevant instruction chapters define whether a given conversion capability covers one direction or both directions between the named types.
 
