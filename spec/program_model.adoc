@@ -6,7 +6,7 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Configuration Registers**: Eight addressable architectural registers, `mcfg0`-`mcfg7`, that record the programmed configuration of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs. They are updated by `msetcfg` and may be read back through `mgetcfg`. The target selection encoding for `mcfg0`-`mcfg7` reuses the same 3-bit numbering as `tr0`-`acc3`.
 
-* **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration, arithmetic mode control, and hardware capability reporting.
+* **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration and arithmetic mode control.
 
 * **Modified Standard CSRs**: The matrix extension modifies one standard RISC-V CSR: `mstatus`/`sstatus` adds a 2-bit MS field for matrix context status tracking (analogous to VS for vector). The Zames extension is not indicated in the `misa` Extensions field; it is reported via device tree.
 
