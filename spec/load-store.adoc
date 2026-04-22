@@ -60,7 +60,9 @@ msc.whole ms3, (rs1), rs2  # store whole C register
 
 Whole-register access with transpose mode is reserved.
 
-Executing a matrix load or store instruction will result in an illegal instruction exception under unsupported `mtilem` / `mtilek` / `mtilen` settings.
+Whole-register accesses transfer the complete architectural contents of the selected matrix register and do not depend on the programmed `mtilem` / `mtilek` / `mtilen` values.
+
+Executing a non-`.whole` matrix load or store instruction will result in an illegal instruction exception under unsupported `mtilem` / `mtilek` / `mtilen` settings.
 
 Matrix load/store instructions validate the programmed `mcfg` state of the accessed matrix register. A mismatch between the instruction's defined matrix class semantics and the programmed `mcfg` state raises an illegal instruction exception.
 

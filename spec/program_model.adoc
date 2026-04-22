@@ -147,7 +147,7 @@ cpus {
 
 ==== Matrix Tile Size Registers, mtilem/mtilek/mtilen
 
-The XLEN-bit-wide read-only `mtilem/mtilek/mtilen` CSRs can only be updated by the `msettile{m|k|n}{i}` instructions. The registers holds 3 unsigned integers specifying the tile shapes for tiled matrix.
+The XLEN-bit-wide read-only `mtilem/mtilek/mtilen` CSRs can only be updated by the `msettile{m|k|n}` and `msettile{m|k|n}i` instructions. The registers holds 3 unsigned integers specifying the tile shapes for tiled matrix.
 
 ==== Matrix Control and Status Register, mcsr
 

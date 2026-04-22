@@ -6,7 +6,7 @@ The motivation of Zmasync is to allow matrix operations to be pipelined with vec
 
 The Zmasync extension enables asynchronous execution of matrix operations within a single core. The term "asynchronous" in this context specifically refers to asynchrony between different functional units within a single core (not multi-core or multi-hart asynchrony). This allows matrix operations to overlap with other operations, such as vector or scalar computations, within the same hart.
 
-When the Zmasync extension is implemented together with the AME (Attached Matrix Extension) or its simplified variant, the behavior of matrix load/store/mma/mzero instructions changes: these instructions become non-blocking without any modification to their instruction encoding, and are committed immediately from the pipeline without waiting for completion. However, store results are not guaranteed to be visible to subsequent vector or scalar loads immediately. To ensure the visibility of the store operations, the Zmasync extension introduces a new set of synchronization instructions.
+When the Zmasync extension is implemented together with the AME (Attached Matrix Extension) or its simplified variant, the behavior of matrix load/store/`mmacc`/`mzero` instructions changes: these instructions become non-blocking without any modification to their instruction encoding, and are committed immediately from the pipeline without waiting for completion. However, store results are not guaranteed to be visible to subsequent vector or scalar loads immediately. To ensure the visibility of the store operations, the Zmasync extension introduces a new set of synchronization instructions.
 
 NOTE: The `mcsr` register and its sub-registers (e.g., `mfflags`, `msat`) reflect the results of asynchronous matrix operations only after a corresponding `macquire` instruction is executed. Reading `mcsr` or its sub-registers before `macquire` following an asynchronous matrix operation yields undefined behavior.
 
@@ -18,7 +18,7 @@ include::tokenreg.adoc[]
 
 ==== Sync Register Count CSR, msync
 
-The read-only `msync` CSR (address 0xCC7) reports the number of sync registers. The implementation provides exactly 16 sync registers.
+The read-only `msync` CSR (address 0xCC7) reports the number of implemented sync registers. Legal sync register indices are in the range `0` to `msync - 1`. Encodings that specify `sync >= msync` are reserved and raise an illegal instruction exception. In this specification, the implementation provides exactly 16 sync registers, so sync indices `16` to `31` are reserved.
 
 === Instruction Format
 

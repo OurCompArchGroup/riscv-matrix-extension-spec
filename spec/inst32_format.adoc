@@ -61,7 +61,7 @@ This format is used by `minit` and the immediate tile-configuration instructions
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 10, name: 'uimm10[9:0]', type: 4},
   {bits: 1,  name: 'mode', attr: '0', type: 8},
-  {bits: 2,  name: 'rd', attr: '00', type: 8},
+  {bits: 2,  name: '00', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
 ....
