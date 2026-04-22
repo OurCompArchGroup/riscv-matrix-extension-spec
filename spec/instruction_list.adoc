@@ -4,7 +4,7 @@
 [cols="^3,^1,^4,^4,^2,^4",options="header"]
 |===
 | Instruction | Form | Payload[24:15] | Aux[11:7] | func3 | func4
-| minit      | imm | u10[9:0]  | 00000 | 000 | 0000
+| minit      | imm | 0000000000 | 00000 | 000 | 0000
 | msettileki | imm | u10[9:0]  | 00000 | 000 | 0001
 | msettilemi | imm | u10[9:0]  | 00000 | 000 | 0010
 | msettileni | imm | u10[9:0]  | 00000 | 000 | 0011
