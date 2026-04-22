@@ -3,7 +3,7 @@
 .Matrix Configuration Instructions
 [cols="^3,^1,^4,^4,^2,^4",options="header"]
 |===
-| Instruction | Mode | Payload[24:15] | Aux[11:7] | func3 | func4
+| Instruction | Form | Payload[24:15] | Aux[11:7] | func3 | func4
 | minit      | imm | u10[9:0]  | 00000 | 000 | 0000
 | msettileki | imm | u10[9:0]  | 00000 | 000 | 0001
 | msettilemi | imm | u10[9:0]  | 00000 | 000 | 0010
@@ -12,7 +12,7 @@
 | msettilem  | gpr | 00000,rs1 | 00000 | 000 | 0010
 | msettilen  | gpr | 00000,rs1 | 00000 | 000 | 0011
 | msetcfg    | gpr | 00000,rs1 | sel   | 000 | 0100
-| mgetcfg    | gpr | 00000,sel | rd    | 000 | 0101
+| mgetcfg    | read | 00000,sel | rd    | 000 | 0101
 |===
 
 .Matrix MISC Instructions
