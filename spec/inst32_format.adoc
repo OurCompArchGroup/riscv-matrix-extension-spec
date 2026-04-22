@@ -284,6 +284,6 @@ The misc category uses `func3 = 011`. Bits `inst[25:23]`, `inst[22:20]`, `inst[1
 [cols="^2,^8"]
 |===
 | *func4* | *Instruction*
-| 0000 | mzero1r
+| 0000 | mzero
 | 0001-1111 | Reserved
 |===

@@ -4,7 +4,7 @@ The instruction does not modify the destination register's `mcfg` state. Softwar
 
 ```
 #zero 1 matrix register
-mzero1r md  
+mzero md  
 ```
 
-All other non-destination operand fields in the misc format are reserved zero for `mzero1r`.
+All other non-destination operand fields in the misc format are reserved zero for `mzero`.

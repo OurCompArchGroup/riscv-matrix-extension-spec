@@ -12,7 +12,7 @@ The current draft focuses on:
 - Tile configuration via `msettile{m|k|n}` and matrix-configuration programming via `msetcfg`
 - Four tile registers (`tr0`-`tr3`), four accumulation registers (`acc0`-`acc3`), and eight associated `mcfg` registers
 - Matrix load/store instructions organized by matrix class (`A` / `B` / `C`), direction (load / store), transpose mode, and whole-register mode
-- The `mzero1r` utility instruction
+- The `mzero` utility instruction
 - An optional `Zmasync` appendix / extension, documented separately from the Zames main-body instruction set
 
 The draft intentionally omits the broader element-wise, conversion, movement, and packing features from the original XuanTie proposal.

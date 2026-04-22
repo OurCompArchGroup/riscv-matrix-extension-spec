@@ -97,7 +97,7 @@ SLEN  = TLEN / 4
 
 ==== 与现有指令的关系
 
-* `mzero1r` 只作用于矩阵寄存器，不修改 `sa*` / `sb*`。
+* `mzero` 只作用于矩阵寄存器，不修改 `sa*` / `sb*`。
 * `minit` 应扩展为同时使 scale 状态失效。
 * 当前 whole-register load/store 仅覆盖 tile/acc 的语义，尚未定义 scale 寄存器的整体保存/恢复指令。
 
