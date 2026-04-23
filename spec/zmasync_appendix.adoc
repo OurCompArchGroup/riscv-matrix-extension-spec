@@ -152,9 +152,9 @@ After asynchronous matrix store instructions in `async_matmul` function is final
 [cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]
 |===
 .2+^.^| *Format*      |  31 28 | 27  26| 25       | 24 20 |19   15   | 14  12     |   11  7      |  6    0
-                      | *func* | *res* |  *ctrl*  | *sync* | *rs1*    |  *func3*   |  *nop*       | *opcode*
-      | msyncregreset | 1000   | 00	   |  0	      | sync  | 00000    |   100      |	00000        | major opcode
-      | mrelease  	  | 1001   | 00	   |  0	      | sync  | 00000    |   100      |	00000        | major opcode
-      | macquire	  | 1010   | 00	   |  0	      | sync  | rs1      |	 100      |	00000        | major opcode
-      | mfence        | 1011   | 00     |  0       | 00000 | 00000    |   100      | 00000        | major opcode
+                      | *func* | *res* |  *ctrl*  | *sync* | *rs1*    |  *func3*   |  *res*       | *opcode*
+      | msyncregreset | 1000   | 00	   |  0	      | sync  | 00000    |   100      |	00000        | 0101011
+      | mrelease  	  | 1001   | 00	   |  0	      | sync  | 00000    |   100      |	00000        | 0101011
+      | macquire	  | 1010   | 00	   |  0	      | sync  | rs1      |	 100      |	00000        | 0101011
+      | mfence        | 1011   | 00     |  0       | 00000 | 00000    |   100      | 00000        | 0101011
 |===
