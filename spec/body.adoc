@@ -13,6 +13,3 @@ include::instructions.adoc[]
 //include::intrinsic.adoc[]
 
 //include::inst-list.adoc[]
-
-[appendix]
-include::zmasync_appendix.adoc[]

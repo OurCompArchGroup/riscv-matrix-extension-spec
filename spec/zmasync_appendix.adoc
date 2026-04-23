@@ -146,7 +146,7 @@ After asynchronous matrix store instructions in `async_matmul` function is final
 }
 ....
 
-=== Instruction Encoding
+=== Instruction Encoding List
 
 .Matrix Asynchronous Store Synchronization Instructions (Zmasync)
 [cols="^5,^3,^2,^2,^3,^3,^2,^4,^5"]

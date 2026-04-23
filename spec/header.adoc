@@ -69,6 +69,8 @@ include::contributors.adoc[]
 include::body.adoc[]
 include::mem_model.adoc[]
 include::instruction_list.adoc[]
+[appendix]
+include::zmasync_appendix.adoc[]
 //include::inst-list.adoc[]
 //the index must precede the bibliography
 //include::index.adoc[]

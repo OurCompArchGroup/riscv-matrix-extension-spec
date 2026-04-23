@@ -1,56 +1,54 @@
-== Instruction List
+== Instruction Encoding List
 
 .Matrix Configuration Instructions
-[cols="^3,^1,^4,^4,^2,^4",options="header"]
+[cols="^3,^4,^2,^1,^4,^4,^2,^4,^5",options="header"]
 |===
-| Instruction | Form | Payload[24:15] | Aux[11:7] | func3 | func4
-| minit      | imm | 0000000000 | 00000 | 000 | 0000
-| msettileki | imm | u10[9:0]  | 00000 | 000 | 0001
-| msettilemi | imm | u10[9:0]  | 00000 | 000 | 0010
-| msettileni | imm | u10[9:0]  | 00000 | 000 | 0011
-| msettilek  | gpr | 00000,rs1 | 00000 | 000 | 0001
-| msettilem  | gpr | 00000,rs1 | 00000 | 000 | 0010
-| msettilen  | gpr | 00000,rs1 | 00000 | 000 | 0011
-| msetcfg    | gpr | 00000,rs1 | 00,sel[2:0] | 000 | 0100
-| mgetcfg    | read | 00000,00,sel[2:0] | rd    | 000 | 0101
+| Instruction | inst[31:28] | inst[27:26] | inst[25] | inst[24:20] | inst[19:15] | inst[14:12] | inst[11:7] | inst[6:0]
+| minit      | 0000 | 00 | 0 | 00000 | 00000 | 000 | 00000 | 0101011
+| msettileki | 0001 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | 0101011
+| msettilemi | 0010 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | 0101011
+| msettileni | 0011 | 00 | 0 | uimm10[9:5] | uimm10[4:0] | 000 | 00000 | 0101011
+| msettilek  | 0001 | 00 | 1 | 00000 | rs1 | 000 | 00000 | 0101011
+| msettilem  | 0010 | 00 | 1 | 00000 | rs1 | 000 | 00000 | 0101011
+| msettilen  | 0011 | 00 | 1 | 00000 | rs1 | 000 | 00000 | 0101011
+| msetcfg    | 0100 | 00 | 1 | 00000 | rs1 | 000 | 00, mcfg_d1[2:0] | 0101011
+| mgetcfg    | 0101 | 00 | 0 | 00000 | 00, mcfg_sel[2:0] | 000 | rd | 0101011
 |===
 
 .Matrix MISC Instructions
-[cols="^3,^4,^4,^2,^4",options="header"]
+[cols="^3,^4,^2,^1,^4,^4,^2,^4,^5",options="header"]
 |===
-| Instruction | Upper Fields | Lower Fields | func3 | func4
-| mzero | zeroed control fields | md | 011 | 0000
+| Instruction | inst[31:28] | inst[27:26] | inst[25] | inst[24:20] | inst[19:15] | inst[14:12] | inst[11:7] | inst[6:0]
+| mzero | 0000 | 00 | 0 | 00000 | 00000 | 011 | md | 0101011
 |===
 
 .Matrix Multiplication Instructions
-[cols="^3,^4,^4,^2,^4",options="header"]
+[cols="^3,^4,^2,^1,^4,^4,^2,^4,^5",options="header"]
 |===
-| Instruction | Source Fields | Destination | func3 | func4
-| mmacc | ms2, ms1, reserved control | md | 010 | 0000
+| Instruction | inst[31:28] | inst[27:26] | inst[25] | inst[24:20] | inst[19:15] | inst[14:12] | inst[11:7] | inst[6:0]
+| mmacc | 0000 | 00 | 0 | 00, ms2[2:0] | 00, ms1[2:0] | 010 | md | 0101011
 |===
 
 .Matrix Load/Store Instructions
-[cols="^3,^1,^1,^1,^2,^3,^3,^2,^4",options="header"]
+[cols="^3,^4,^2,^1,^4,^4,^2,^4,^5",options="header"]
 |===
-| Instruction | W | T | L/S | Kind | rs2 | rs1 | func3 | md/ms3
-| mla       | 0 | 0 | 0 | 00 | rs2 | rs1 | 001 | md
-| mlb       | 0 | 0 | 0 | 01 | rs2 | rs1 | 001 | md
-| mlc       | 0 | 0 | 0 | 10 | rs2 | rs1 | 001 | md
-| msa       | 0 | 0 | 1 | 00 | rs2 | rs1 | 001 | ms3
-| msb       | 0 | 0 | 1 | 01 | rs2 | rs1 | 001 | ms3
-| msc       | 0 | 0 | 1 | 10 | rs2 | rs1 | 001 | ms3
-| mlat      | 0 | 1 | 0 | 00 | rs2 | rs1 | 001 | md
-| mlbt      | 0 | 1 | 0 | 01 | rs2 | rs1 | 001 | md
-| mlct      | 0 | 1 | 0 | 10 | rs2 | rs1 | 001 | md
-| msat      | 0 | 1 | 1 | 00 | rs2 | rs1 | 001 | ms3
-| msbt      | 0 | 1 | 1 | 01 | rs2 | rs1 | 001 | ms3
-| msct      | 0 | 1 | 1 | 10 | rs2 | rs1 | 001 | ms3
-| mla.whole | 1 | 0 | 0 | 00 | rs2 | rs1 | 001 | md
-| mlb.whole | 1 | 0 | 0 | 01 | rs2 | rs1 | 001 | md
-| mlc.whole | 1 | 0 | 0 | 10 | rs2 | rs1 | 001 | md
-| msa.whole | 1 | 0 | 1 | 00 | rs2 | rs1 | 001 | ms3
-| msb.whole | 1 | 0 | 1 | 01 | rs2 | rs1 | 001 | ms3
-| msc.whole | 1 | 0 | 1 | 10 | rs2 | rs1 | 001 | ms3
+| Instruction | inst[31:28] | inst[27:26] | inst[25] | inst[24:20] | inst[19:15] | inst[14:12] | inst[11:7] | inst[6:0]
+| mla       | 0000 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| mlb       | 0001 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| mlc       | 0010 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| msa       | 0000 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| msb       | 0001 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| msc       | 0010 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| mlat      | 0100 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| mlbt      | 0101 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| mlct      | 0110 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| msat      | 0100 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| msbt      | 0101 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| msct      | 0110 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| mla.whole | 1000 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| mlb.whole | 1001 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| mlc.whole | 1010 | 00 | 0 | rs2 | rs1 | 001 | md  | 0101011
+| msa.whole | 1000 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| msb.whole | 1001 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
+| msc.whole | 1010 | 00 | 1 | rs2 | rs1 | 001 | ms3 | 0101011
 |===
-
-NOTE: In the load/store table, `W` denotes the whole-register mode bit, `T` denotes the transpose mode bit, and `Kind` denotes the A/B/C matrix-class selector encoded in `func4[1:0]`.
