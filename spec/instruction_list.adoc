@@ -1,7 +1,7 @@
 == Instruction Encoding List
 
 .Matrix Configuration Instructions
-[cols="^5,^3,^2,^1,^4,^4,^3,^3,^5",options="header"]
+[cols="^6,^3,^2,^1,^4,^4,^2,^3,^5",options="header"]
 |===
 | format     | 31:28 | 27:26 | 25 | 24:20       | 19:15       | 14:12 | 11:7    | 6:0
 | minit      | 0000  | 00    | 0  | 00000       | 00000       | 000   | 00000   | 0101011
@@ -12,7 +12,7 @@
 | msettilem  | 0010  | 00    | 1  | 00000       | rs1         | 000   | 00000   | 0101011
 | msettilen  | 0011  | 00    | 1  | 00000       | rs1         | 000   | 00000   | 0101011
 | msetcfg    | 0100  | 00    | 1  | 00000       | rs1         | 000   | mcfg_d1 | 0101011
-| mgetcfg    | 0101  | 00    | 0  | 00000       | mcfg_sel    | 000   | rd      | 0101011
+| mgetcfg    | 0101  | 00    | 0  | 00000       | mcfg_s1     | 000   | rd      | 0101011
 |===
 
 .Matrix MISC Instructions
