@@ -1,7 +1,7 @@
 == Instruction Encoding List
 
 .Matrix Configuration Instructions
-[cols="^10,^4,^4,^2,^10,^10,^5,^5,^5",options="header"]
+[cols="^10,^5,^5,^3,^10,^10,^5,^5,^7",options="header"]
 |===
 | format     | 31:28 | 27:26 | 25 | 24:20       | 19:15       | 14:12 | 11:7    | 6:0
 | minit      | 0000  | 00    | 0  | 00000       | 00000       | 000   | 00000   | 0101011
@@ -16,21 +16,21 @@
 |===
 
 .Matrix MISC Instructions
-[cols="^3,^3,^2,^1,^4,^4,^2,^2,^4",options="header"]
+[cols="^3,^3,^3,^2,^4,^4,^2,^2,^4",options="header"]
 |===
 | format | 31:28 | 27:26 | 25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
 | mzero  | 0000  | 00    | 0  | 00000 | 00000 | 011   | md   | 0101011
 |===
 
 .Matrix Multiplication Instructions
-[cols="^4,^3,^2,^1,^2,^2,^2,^2,^4",options="header"]
+[cols="^4,^3,^2,^2,^2,^2,^2,^2,^4",options="header"]
 |===
 | format | 31:28 | 27:26 | 25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
 | mmacc  | 0000  | 00    | 0  | ms2   | ms1   | 010   | md   | 0101011
 |===
 
 .Matrix Load/Store Instructions
-[cols="^4,^3,^2,^1,^2,^2,^2,^2,^4",options="header"]
+[cols="^4,^3,^2,^2,^2,^2,^2,^2,^4",options="header"]
 |===
 | format    | 31:28 | 27:26 | 25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
 | mla       | 0000  | 00    | 0  | rs2   | rs1   | 001   | md   | 0101011
