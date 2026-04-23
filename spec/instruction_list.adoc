@@ -1,7 +1,7 @@
 == Instruction Encoding List
 
 .Matrix Configuration Instructions
-[cols="^6,^3,^2,^1,^4,^4,^2,^3,^5",options="header"]
+[cols="^7,^3,^2,^1,^5,^5,^2,^5,^5",options="header"]
 |===
 | format     | 31:28 | 27:26 | 25 | 24:20       | 19:15       | 14:12 | 11:7    | 6:0
 | minit      | 0000  | 00    | 0  | 00000       | 00000       | 000   | 00000   | 0101011
