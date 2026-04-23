@@ -1,6 +1,6 @@
 Matrix load instructions load matrix data from memory into matrix registers, and matrix store instructions store matrix data from matrix registers back to memory.
 
-The data type of a load or store instruction is not encoded by dedicated width fields. Instead, the type is determined entirely by the programmed `mcfg` state of the destination register for loads and the source register for stores.
+The data type of a non-`.whole` load or store instruction is not encoded by dedicated width fields. Instead, the data interpretation is determined by the programmed `mcfg` state of the destination register for loads and the source register for stores. Whole-register transfers copy the complete architectural contents of the selected matrix register and do not interpret element type.
 
 The base address is held in `rs1`, and the row stride in bytes is held in `rs2`. `md` / `ms3` identifies the destination matrix register for a load and the source matrix register for a store.
 
@@ -60,13 +60,13 @@ msc.whole ms3, (rs1), rs2  # store whole C register
 
 Whole-register access with transpose mode is reserved.
 
-Whole-register accesses transfer the complete architectural contents of the selected matrix register and do not depend on the programmed `mtilem` / `mtilek` / `mtilen` values.
+Whole-register accesses are raw architectural state transfers. They are intended for operations such as context save and restore, and their behavior is defined in terms of complete register contents rather than typed matrix elements. Whole-register accesses transfer the complete architectural contents of the selected matrix register and do not depend on the programmed `mtilem` / `mtilek` / `mtilen` values.
 
 Executing a non-`.whole` matrix load or store instruction will result in an illegal instruction exception under unsupported `mtilem` / `mtilek` / `mtilen` settings.
 
-Matrix load/store instructions validate the programmed `mcfg` state of the accessed matrix register. A mismatch between the instruction's defined matrix class semantics and the programmed `mcfg` state raises an illegal instruction exception.
+Matrix load/store instructions validate the programmed `mcfg` state of the accessed matrix register according to the semantics defined for the instruction. A mismatch between the instruction's required data interpretation and the programmed `mcfg` state raises an illegal instruction exception.
 
-For A/B matrix accesses, the destination register of a load and the source register of a store shall be a tile register (`tr0`-`tr3`). For C matrix accesses, the destination register of a load and the source register of a store shall be an accumulation register (`acc0`-`acc3`).
+Matrix class legality is determined by the instruction kind and the selected register class. For A/B matrix accesses, the destination register of a load and the source register of a store shall be a tile register (`tr0`-`tr3`). For C matrix accesses, the destination register of a load and the source register of a store shall be an accumulation register (`acc0`-`acc3`). Violating this matrix-class register constraint raises an illegal instruction exception.
 
 NOTE: Whole matrix load and store instructions are primarily used for context save and restore.
 

@@ -75,7 +75,7 @@ Only the `msetcfg` instruction updates `mcfg` state. The `mgetcfg` instruction r
 
 Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0]`, and bits `mcfg[7:4]` hold `table_sel[3:0]`. Bits `mcfg[XLEN-1:8]` are architecturally ignored by hardware. Software may write and read them through `msetcfg` and `mgetcfg`, but they have no effect on matrix execution semantics.
 
-.mcfg register layout (illustrated for RV32)
+.mcfg register layout
 [wavedrom, ,svg]
 ....
 {reg: [
@@ -84,8 +84,6 @@ Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0
   {bits: 24, name: 'ignored', attr: '[31:8]', type: 8}
 ], config: {lanes: 1, hspace: 1000}}
 ....
-
-For RV64, the same rule applies: bits `mcfg[3:0]` hold `type_code`, bits `mcfg[7:4]` hold `table_sel`, and bits `mcfg[XLEN-1:8]` are ignored by hardware.
 
 When software executes `mgetcfg`, the selected `mcfg` value is returned without modification. Bits `[7:4]` carry `table_sel`, bits `[3:0]` carry `type_code`, and bits `[XLEN-1:8]` return the previously stored uninterpreted payload.
 
@@ -149,7 +147,7 @@ cpus {
 
 ==== Matrix Tile Size Registers, mtilem/mtilek/mtilen
 
-The XLEN-bit-wide read-only `mtilem/mtilek/mtilen` CSRs can only be updated by the `msettile{m|k|n}` and `msettile{m|k|n}i` instructions. The registers holds 3 unsigned integers specifying the tile shapes for tiled matrix.
+The XLEN-bit-wide `mtilem/mtilek/mtilen` CSRs are read-only through CSR access. Their architectural contents are updated by the `msettile{m|k|n}` and `msettile{m|k|n}i` instructions. These registers hold three unsigned integers specifying the configured tile shape for tiled matrix operations.
 
 ==== Matrix Control and Status Register, mcsr
 
@@ -262,7 +260,7 @@ A 2-bit matrix context status field, MS, should be added to mstatus and shadowed
 
 The MS field is located at bits [26:25] in both mstatus and sstatus registers.
 
-.mstatus register layout (RV64)
+.mstatus register layout
 [wavedrom, ,svg]
 ....
 {reg: [
@@ -315,7 +313,7 @@ An implementation can use the activity of the Initial state to influence the cho
 
 The misa CSR is a WARL read-write register reporting the ISA supported by the hart. The Extensions field encodes the presence of standard extensions, with a single bit per letter of the alphabet.
 
-.misa register layout (RV64)
+.misa register layout
 [wavedrom, ,svg]
 ....
 {reg: [
