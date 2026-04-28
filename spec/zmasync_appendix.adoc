@@ -53,11 +53,11 @@ The Zmasync instruction category uses `func3 = 100`. Bits `inst[27:26]` are rese
 ==== Reset, Release and Acquire
 
 ```
-msyncregreset tok0           # Reset sync register tok0 to 0.
+msyncregreset sync0          # Reset sync register sync0 to 0.
 
-mrelease      tok0           # Increment tok0 by 1; waits for store visibility.
+mrelease      sync0          # Increment sync0 by 1; waits for store visibility.
 
-macquire      tok0, t0       # Block until tok0 >= t0; ensures store visibility
+macquire      sync0, t0      # Block until sync0 >= t0; ensures store visibility
                              # to other units.
 
 mfence                       # Ensure non-matrix memory data is visible to the
@@ -88,7 +88,7 @@ void gemm_kernel() {
 
     num_iterations = 10;
 
-    tok0 = msyncregreset();           // tok0 = 0
+    sync0 = msyncregreset();          // sync0 = 0
 
     vector_init_matmul_inputs(a, b);  // vector/scalar units initialize
                                       // the raw input arrays
@@ -96,19 +96,19 @@ void gemm_kernel() {
                                       // visible to the matrix engine
 
     async_matmul(c[0]);               // launch the first matrix multiply
-    mrelease(tok0);                   // once async_matmul completes, tok0 += 1
+    mrelease(sync0);                  // once async_matmul completes, sync0 += 1
 
     for (i = 1; i < num_iterations; i++) {
 
         async_matmul(c[i]);
-        mrelease(tok0);
+        mrelease(sync0);
 
-        macquire(tok0, i);            // wait until the previous matrix result is complete
+        macquire(sync0, i);           // wait until the previous matrix result is complete
         promotion(c[i - 1]);          // once the previous matrix multiply
                                       // completes, promote its result.
     }
 
-    macquire(tok0, num_iterations);   // wait until the final matrix result is complete
+    macquire(sync0, num_iterations);  // wait until the final matrix result is complete
     promotion(c[num_iterations - 1]); // promote the final completed result
     ...
 }
@@ -116,9 +116,9 @@ void gemm_kernel() {
 
 Above pseudocode gives an example of how to use Zmasync to implement GEMM in AME.
 The `async_matmul` function is a non-blocking matrix multiplication function
-implemented with asynchronous matrix store instructions,
-which retires from the pipeline without waiting for the completion.
-After asynchronous matrix store instructions in `async_matmul` function is finally completed,
+implemented with asynchronous matrix operations,
+which retire from the pipeline without waiting for completion.
+After the asynchronous matrix work for a block is completed,
 `mrelease` will increment the sync register by one.
 `macquire` blocks until the sync register value reaches or exceeds the given threshold (i.e., `sync >= threshold`). In this example, it serves as the check that the previously launched matrix block has finished. Once it returns, that completed result can be consumed safely by the vector pipeline for precision promotion, while the matrix engine is free to continue processing the next block. A final `macquire` / `promotion` pair drains the tail of the pipeline after the last matrix block has been launched. Note that an exact match is not required — if the sync register has advanced beyond the threshold, `macquire` still proceeds immediately. Without Zmasync, all operations would execute sequentially on the core, with no overlap between GEMM and promotion.
 `vector_init_matmul_inputs` represents scalar or vector code that initializes the raw operand arrays later consumed by matrix load or matrix multiply instructions.

@@ -37,7 +37,7 @@ The `mcfg` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
 For `msetcfg`, `inst[19:15]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, `inst[24:20]` is reserved zero, and the selected `mcfg` register is assigned the raw XLEN-bit value of `x[rs1]`. Bits `x[rs1][3:0]` provide `type_code`, and bits `x[rs1][7:4]` provide `table_sel`. Bits `x[rs1][XLEN-1:8]` are stored unchanged and do not affect hardware behavior.
 
-For `mgetcfg`, `inst[19:15]` holds `mcfg_sel`, `inst[11:7]` holds `rd`, `inst[24:20]` is reserved zero, and the selected `mcfg` value is copied to `x[rd]` without modification. Bits `x[rd][3:0]` return `type_code`, bits `x[rd][7:4]` return `table_sel`, and bits `x[rd][XLEN-1:8]` return the stored uninterpreted payload.
+For `mgetcfg`, `inst[19:15]` holds `mcfg_s1`, `inst[11:7]` holds `rd`, `inst[24:20]` is reserved zero, and the selected `mcfg` value is copied to `x[rd]` without modification. Bits `x[rd][3:0]` return `type_code`, bits `x[rd][7:4]` return `table_sel`, and bits `x[rd][XLEN-1:8]` return the stored uninterpreted payload.
 
 ```
 msetcfg  mcfg0, rs1     # config state for tr0  = x[rs1]

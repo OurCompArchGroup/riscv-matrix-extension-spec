@@ -34,7 +34,7 @@ The `mcfg` configuration family reuses this same 3-bit encoding to select `mcfg0
 
 [cols="^1,1"]
 |===
-| *mcfg_sel[2:0]* | *Target Configuration Register*
+| *mcfg_s1[2:0]* | *Target Configuration Register*
 | 000 | mcfg0 (configuration state for tr0)
 | 001 | mcfg1 (configuration state for tr1)
 | 010 | mcfg2 (configuration state for tr2)
@@ -118,7 +118,7 @@ This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated f
 
 This format is used by `mgetcfg`.
 
-`mcfg_sel` selects the source `mcfg` register. The selector reuses the same 3-bit numbering as `tr0`-`acc3`, and the upper two bits of the 5-bit field are reserved zero.
+`mcfg_s1` selects the source `mcfg` register. The selector reuses the same 3-bit numbering as `tr0`-`acc3`, and the upper two bits of the 5-bit field are reserved zero.
 
 [wavedrom, ,svg]
 ....
@@ -126,7 +126,7 @@ This format is used by `mgetcfg`.
   {bits: 7,  name: 'opcode', attr: '0101011', type: 8},
   {bits: 5,  name: 'rd', type: 2},
   {bits: 3,  name: 'func3', attr: '000', type: 8},
-  {bits: 5,  name: 'mcfg_sel', type: 3},
+  {bits: 5,  name: 'mcfg_s1', type: 3},
   {bits: 5,  name: '0', attr: '00000', type: 8},
   {bits: 1,  name: 'mode', attr: '0', type: 8},
   {bits: 2,  name: '0', attr: '00', type: 8},
@@ -135,7 +135,7 @@ This format is used by `mgetcfg`.
 ....
 
 - `inst[11:7]` is `rd`
-- `inst[19:15]` is `mcfg_sel`
+- `inst[19:15]` is `mcfg_s1`
 - `inst[24:20]` is reserved zero
 - `inst[27:26]` is reserved zero
 - `inst[25]` is `mode=0`
