@@ -75,7 +75,7 @@ Only the `msetcfg` instruction updates `mcfg` state. The `mgetcfg` instruction r
 
 Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0]`, and bits `mcfg[7:4]` hold `table_sel[3:0]`. Bits `mcfg[XLEN-1:8]` are architecturally ignored by hardware. Software may write and read them through `msetcfg` and `mgetcfg`, but they have no effect on matrix execution semantics.
 
-The following schematic labels the high-bit field generically to show the XLEN-wide `mcfg` layout.
+For this schematic, `XLEN = 64`.
 
 .mcfg register layout
 [wavedrom, ,svg]
