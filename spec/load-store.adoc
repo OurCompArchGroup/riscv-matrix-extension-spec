@@ -2,7 +2,7 @@ Matrix load instructions load matrix data from memory into matrix registers, and
 
 The data type of a non-`.whole` load or store instruction is not encoded by dedicated width fields. Instead, the data interpretation is determined by the programmed `mcfg` state of the destination register for loads and the source register for stores. Whole-register transfers copy the complete architectural contents of the selected matrix register and do not interpret element type.
 
-The base address is held in `rs1`, and the row stride in bytes is held in `rs2`. `md` / `ms3` identifies the destination matrix register for a load and the source matrix register for a store.
+The base address is held in `rs1`. For non-`.whole` load/store instructions, the row stride in bytes is held in `rs2`. Whole-register instructions transfer a single contiguous architectural register image and do not use a stride operand; `rs2` must be `x0`. `md` / `ms3` identifies the destination matrix register for a load and the source matrix register for a store.
 
 Load/store instructions are organized by:
 
@@ -49,13 +49,14 @@ msct ms3, (rs1), rs2     # store C tile, transpose mode
 The whole-register variants are not a separate top-level instruction family. They are the same A/B/C load/store instructions with the `whole` mode bit set to 1. The assembly notation in this specification uses a `.whole` suffix to make the mode visible.
 
 ```
-mla.whole md, (rs1), rs2   # load whole A register
-mlb.whole md, (rs1), rs2   # load whole B register
-mlc.whole md, (rs1), rs2   # load whole C register
+mla.whole md, (rs1)       # load whole A register
+mlb.whole md, (rs1)       # load whole B register
+mlc.whole md, (rs1)       # load whole C register
 
-msa.whole ms3, (rs1), rs2  # store whole A register
-msb.whole ms3, (rs1), rs2  # store whole B register
-msc.whole ms3, (rs1), rs2  # store whole C register
+msa.whole ms3, (rs1)      # store whole A register
+msb.whole ms3, (rs1)      # store whole B register
+msc.whole ms3, (rs1)      # store whole C register
+
 ```
 
 Whole-register access with transpose mode is reserved.
