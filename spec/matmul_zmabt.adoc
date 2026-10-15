@@ -2,11 +2,16 @@ The function description of stem:[C = A \times B^T] is as follows:
 ```
 # A[i,k] means the element in row i and column k of ms1
 # B[j,k] means the element in row j and column k of ms2
+# For an XBitMTE native packed B combination:
+#   Kslot = TRLEN / EW_A
+#   b_base_k = kslice * Kslot
+# For every other supported combination, kslice must be zero:
+#   b_base_k = 0
 
 for (int i = 0; i < sizeM; i++) {
   for (int j = 0; j < sizeN; j++) {
     for (int k = 0; k < sizeK; k++) {
-      C[i,j] += A[i,k] * B[j,k];
+      C[i,j] += A[i,k] * B[j,b_base_k + k];
 }}}
 ```
 
@@ -14,10 +19,27 @@ for (int i = 0; i < sizeM; i++) {
 
 The `mmacc` instruction is shared across supported type combinations. The actual legal combination is determined by the programmed `mcfg` values and the capability strings reported by `riscv,matrix-isa-caps`.
 
-Each multiply capability string follows the `<input_type_a><input_type_b><output_type_c>` naming rule defined in the programmer's model. Integer type names use `i<width>` or `u<width>`, while floating-point names use direct tokens such as `fp16`, `bf16`, `fp32`, `fp64`, `tf32`, `nvfp4`, `mxfp4`, `fp8e4m3`, or `fp8e5m2`. These examples describe the naming form only; the concrete type combinations that can actually be programmed are limited by the defined `mcfg` tables and the capabilities reported by the implementation.
+Each multiply capability string follows the `<input_type_a><input_type_b><output_type_c>` naming rule defined in the programmer's model. Integer type names use `i<width>` or `u<width>`, while floating-point names use direct tokens such as `fp16`, `bf16`, `fp32`, `fp64`, `tf32`, `nvfp4`, `mxfp4`, `fp8e4m3`, or `fp8e5m2`. The experimental packed type names are `fp2pack4` and `i1pack8`; their exact representation and numerical values are defined in the programmer's model. These examples describe the naming form only; the concrete type combinations that can actually be programmed are limited by the defined `mcfg` tables and the capabilities reported by the implementation.
 
 ```
 mmacc md, ms2, ms1
+mmacc md, ms2, ms1, 3   # fourth B window, when permitted by the capability
 ```
 
 The maximum matrix shapes depend on TLEN, TRLEN, ALEN, and the active element types selected by `mcfg`.
+
+For example, with `TRLEN=512` and the experimental `i8fp2pack4i32` capability, one full-row packed B load holds four K64 windows. The following computation uses the same B register and accumulates a K256 product using four corresponding A blocks. `a0` through `a3` hold the addresses of those blocks; `a_stride` and `b_stride` are row strides in bytes. The example assumes supported full M/N dimensions, `mtilek=64`, `mcfg(tr0)=int8`, `mcfg(tr1)=fp2pack4`, and `mcfg(acc0)=int32`.
+
+```
+mlb   tr1, (b0), b_stride    # 64 raw bytes per B row; b_stride is a 64B multiple
+mla   tr0, (a0), a_stride
+mmacc acc0, tr1, tr0, 0
+mla   tr0, (a1), a_stride
+mmacc acc0, tr1, tr0, 1
+mla   tr0, (a2), a_stride
+mmacc acc0, tr1, tr0, 2
+mla   tr0, (a3), a_stride
+mmacc acc0, tr1, tr0, 3
+```
+
+This is an architectural operation sequence with symbolic GPR names; it omits the synchronization required by a particular asynchronous implementation. It illustrates reuse of one loaded B row, not parallel execution of the four products.

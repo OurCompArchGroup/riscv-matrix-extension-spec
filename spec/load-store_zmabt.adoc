@@ -1,4 +1,4 @@
-The legal matrix shapes of load/store instructions are:
+Except for the experimental native packed B full-row load, the legal matrix shapes of load/store instructions are:
 
 * `mla` / `msa`: matrix A, stem:[mtilem \le TLEN / TRLEN], stem:[mtilek \le TRLEN / EW_A]
 * `mlb` / `msb`: matrix B, stem:[mtilen \le TLEN / TRLEN], stem:[mtilek \le TRLEN / EW_B]
@@ -6,7 +6,9 @@ The legal matrix shapes of load/store instructions are:
 
 The effective element widths stem:[EW_A], stem:[EW_B], and stem:[EW_C] are determined by the programmed `mcfg` state of the accessed register.
 
-The transposed variants `mlat` / `mlbt` / `mlct` and `msat` / `msbt` / `msct` use the same tile shapes as their non-transposed counterparts, but interpret memory layout in transpose mode.
+For the experimental native packed B `mlb`, the resident shape is stem:[mtilen \times (TRLEN / EW_B)], with stem:[EW_B = 2] for `fp2pack4` and stem:[EW_B = 1] for `i1pack8`. Every row transfers `TRLEN/8` raw bytes. The examples assume a positive byte stride that is an integer multiple of the row size; this is not a new address or stride exception. `mtilek` does not determine the number of packed elements transferred. This experimental revision requires full N loads and full M/N/K-window computation; the capacity formulas do not require tail support.
+
+For types supporting them, the transposed variants `mlat` / `mlbt` / `mlct` and `msat` / `msbt` / `msct` use the same tile shapes as their non-transposed counterparts, but interpret memory layout in transpose mode. Non-`.whole` transposed accesses and typed stores of the two experimental packed B types are unsupported.
 
 The whole-register variants use the same matrix-class selection and the same register-class rules as the tile variants. They transfer the entire architectural register state selected by the instruction.
 
@@ -15,6 +17,8 @@ Taking TLEN=512, TRLEN=128, and ALEN=512 as an example:
 * matrix A and B tile registers support up to 4 rows
 * matrix C accumulation registers support up to 4 rows
 * the maximum K or N dimensions depend on the programmed `mcfg` element width
+
+As a separate experimental packed example, with `TRLEN=512`, `mtilen=128`, and B configured as `fp2pack4`, `mlb tr1, (base), stride` transfers 128 rows of 64 bytes. A stride of 256 bytes can select a K256 packed panel from a larger `[N][K]` matrix with 256-byte source rows. Each TR row holds four K64 windows for `i8fp2pack4i32` or two K128 windows for `i4fp2pack4i32`. The example assumes the corresponding experimental capability and full tile shapes are implemented.
 
 The memory layout and matrix register layout examples are shown below:
 

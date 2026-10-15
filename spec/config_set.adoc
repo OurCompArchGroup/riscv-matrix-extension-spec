@@ -4,10 +4,14 @@ The block processing of matrix multiplication requires three levels of loops to 
 
 For each iteration, most of the matrix multiplication can fully use the input tile registers. But when dealing with the tail of each input application tile's dimension, the length of each multiplication dimension like mtilem/mtiln/mtilek need to be updated to proper tail size.
 
+Tail handling requires the corresponding operation and tile shape to be supported. The first experimental `XBitMTE` native packed combinations define full M/N tiles and full K windows only; programming a smaller tile does not enable tail computation for those combinations. Their packed B load transfers a full physical row regardless of `mtilek`.
+
 A set of instructions is provided to allow rapid configuration of the values in mtile* to match application needs.
 
 
 The msettile{m|k|n}[i] instructions set the mtilem/mtilek/mtilen CSRs based on their arguments.
+
+The immediate forms encode a 10-bit unsigned operand; the GPR forms use the XLEN-bit source value. The native packed shape checks in <<xbitmte-native-multiply>> use the complete configured tile values, not just low bits that happen to match a supported shape. This extension does not add shape checks to existing ordinary operations.
 
 ```
 msettilemi imm  # imm = new mtilem
@@ -48,3 +52,5 @@ mgetcfg  t0, mcfg5      # t0 = mcfg5
 ```
 
 The selected `table_sel` / `type_code` combination must be one of the defined `mcfg` encodings described in the programmer's model. Unsupported configurations cause an illegal instruction exception.
+
+The native type encodings in <<xbitmte-native-types>> use `table_sel=0`, with type code 13 for `fp2pack4` and 15 for `i1pack8`. Under this native contract, both require `xbitmte`; when it is not enabled, configuring either type raises an illegal instruction exception before changing `mcfg`. The existing handling of other configurations and uninterpreted high bits is unchanged.

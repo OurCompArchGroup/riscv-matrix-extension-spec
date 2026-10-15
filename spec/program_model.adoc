@@ -109,10 +109,45 @@ Encoding table `table_sel = 0` is defined below. Other encoding tables are selec
 | 1100 | `fp32`
 | 1101 | `fp2pack4`
 | 1110 | `fp2pack5`
-| 1111 | Reserved
+| 1111 | `i1pack8` (experimental)
 |===
 
 When software programs an `mcfg` register, selecting a configuration that is not supported by the implementation raises an illegal instruction exception immediately at the `msetcfg` operation. The set of supported matrix operation capabilities is reported through the matrix capability description in the device tree, using the naming rules defined by the relevant instruction chapters.
+
+[[xbitmte-native-types]]
+==== Experimental Native Packed B Types
+
+The experimental `xbitmte` extension defines the native packed B types `fp2pack4` and `i1pack8` and depends on `zames`. Asynchronous use additionally requires `zmasync`. It replaces the historical load-time expansion of `fp2pack4` into signed 8-bit tile-register elements and is not binary compatible with that historical contract. It introduces no additional CSR or mode that switches between expanded and native representations.
+
+For these two types, memory and tile registers use the same packed representation. A normal packed B load copies bytes without expansion or numerical conversion. There is no alternative expanded tile-register representation for these types. Changing `mcfg` does not convert register contents; software shall arrange contents matching the newly selected type before consuming them.
+
+`fp2pack4` (table 0, type code `1101`) stores four ternary elements in each byte, with the earliest K element in bits `[1:0]`, followed by bits `[3:2]`, `[5:4]`, and `[7:6]`. Its physical element width is 2 bits; the historical `fp2` name does not specify floating-point arithmetic.
+
+[cols="^2,^5"]
+|===
+| 2-bit code | Value
+| 00 | 0
+| 01 | +1
+| 11 | -1
+| 10 | Outside the valid ternary domain; undefined numerical behavior when consumed by a matrix multiplication
+|===
+
+Hardware need not detect or trap on the `10` data code, and no multiplication result is specified when that code is consumed. Raw loads and whole-register transfers do not validate element codes.
+
+`i1pack8` (table 0, type code `1111`) stores eight binary elements in each byte, with the earliest K element in bit 0 and subsequent elements in increasing bit positions. A clear bit represents the numerical value 0 and a set bit represents the numerical value +1. The element width is 1 bit. Despite the type name, this is not a signed 1-bit two's-complement interpretation: a set bit is not -1.
+
+For byte array `row` holding one packed B row and unsigned element index `k`, the element representations are (`/` and `%` denote integer division and remainder):
+
+```
+fp2pack4_code(k) = (row[k / 4] >> (2 * (k % 4))) & 3
+i1pack8_value(k) = (row[k / 8] >> (k % 8)) & 1
+```
+
+The signed `int4` A type used with these B types stores two two's-complement elements per byte: element `2*p` occupies the low nibble of byte `p`, and element `2*p+1` occupies the high nibble. Nibble codes 8 through 15 represent -8 through -1. The signed `int8` A type uses one two's-complement byte per element. Loading either type preserves these bits without element expansion.
+
+The `fp2pack5` type code is unchanged, and this experimental contract assigns it no additional semantics. The native packed B rules in this section do not apply to `fp2pack5`.
+
+The native operations and their control legality are defined in <<xbitmte-native-multiply>>, and the packed memory format and load extent are defined in <<xbitmte-native-load>>.
 
 === CSR Registers
 
@@ -125,6 +160,21 @@ For matrix multiply capabilities, the capability string uses the format `<input_
 Integer type tokens use `i<width>` for signed integer types and `u<width>` for unsigned integer types, for example `i8`, `u8`, `i32`, or `u32`.
 
 Floating-point type tokens use direct names. Supported token forms include `nvfp4`, `mxfp4`, `fp8e4m3`, `fp8e5m2`, `fp16`, `bf16`, `fp32`, `fp64`, and `tf32`.
+
+The experimental packed type tokens `fp2pack4` and `i1pack8` use their exact type names. In particular, `i1pack8` denotes binary 0/+1 values as defined above and is not shortened to the signed-integer token `i1`.
+
+For an implementation of this experimental contract, the proposed architectural identification is the `xbitmte` entry in `riscv,isa-extensions`, in addition to the `zames` entry. This identifies the native packed register representation, normal full-row `mlb`, and `mmacc` K-slice semantics described here. It is an experimental identification scheme proposed by this specification branch, not a claim that existing device trees have been updated.
+
+This revision of `xbitmte` comprises all four native combinations, identified by the capabilities `i8fp2pack4i32`, `i4fp2pack4i32`, `i8i1pack8i32`, and `i4i1pack8i32`. An implementation shall advertise `xbitmte` only after implementing this contract for all four combinations. A type capability string alone does not prove support for the native load semantics, because historical implementations may advertise the same `fp2pack4` type combination with load-time expansion. Software shall check the experimental `xbitmte` identification as well as the required type capability; there is no representation-switching mode.
+
+An illustrative advertisement after implementing all four experimental combinations would be:
+
+[source,dts]
+----
+riscv,isa-extensions = "zames", "xbitmte";
+riscv,matrix-isa-caps = "i8fp2pack4i32", "i4fp2pack4i32",
+                        "i8i1pack8i32", "i4i1pack8i32";
+----
 
 The concrete set of currently programmable operand and accumulator types is determined by the defined `mcfg` encoding tables. A token form may be reserved by the capability naming scheme even when the current simplified specification does not define a corresponding `mcfg` encoding for it.
 

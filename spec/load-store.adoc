@@ -10,7 +10,7 @@ Load/store instructions are organized by:
 - direction: load / store
 - access mode: normal / transpose / whole
 
-The active tile shape is based on stem:[C = A \times B^T]:
+Except for the experimental native packed B full-row load defined below, the active tile shape is based on stem:[C = A \times B^T]:
 
 - A matrix tile shape: stem:[mtilem \times mtilek]
 - B matrix tile shape: stem:[mtilen \times mtilek]
@@ -29,6 +29,23 @@ msa  ms3, (rs1), rs2     # store A tile
 msb  ms3, (rs1), rs2     # store B tile
 msc  ms3, (rs1), rs2     # store C tile
 ```
+
+[[xbitmte-native-load]]
+===== Experimental Native Packed B Full-Row Load
+
+Under the experimental `XBitMTE` contract, a normal non-`.whole` `mlb` into a tile register configured as table 0 `fp2pack4` or `i1pack8` copies complete packed rows. Let `row_bytes = TRLEN / 8`. For each active B row `j`, where `0 <= j < mtilen`, it copies exactly `row_bytes` consecutive bytes from `x[rs1] + j * x[rs2]` into the corresponding complete tile-register row. The memory layout is `[N][K]`, with K elements packed in increasing order along each row. Each source byte is preserved in the register; there is no element expansion or numerical conversion.
+
+The examples use a positive row stride `x[rs2]` that is an integer multiple of `row_bytes`. This is a software input assumption, not a new address- or stride-validity check. In the `TRLEN=512` geometry, each row transfer is 64 bytes and example strides are 64, 128, 192 bytes, and so on. This permits loading a K panel from rows of a larger packed B matrix without transferring the gaps between rows. The extension leaves existing matrix address translation, alignment, memory permissions, and access-fault behavior unchanged.
+
+This experimental revision defines full N loads only: `mtilen` shall equal `ROWNUM`, and any other row count raises an illegal instruction exception. `mtilek` does not determine or shorten the memory transfer length of this packed load, and `mtilem` does not determine its row count. Software shall provide the complete `row_bytes` of accessible source memory for every loaded row.
+
+For example, with `TRLEN=512` a `fp2pack4` B row holds 256 ternary elements and an `i1pack8` B row holds 512 binary elements. Setting compute `mtilek` to 64 for an i8 A operand does not change the 64-byte load length. The `mmacc` selector chooses a K window from the loaded row without changing the B load shape or stride.
+
+This contract supports only normal `mlb` for these packed types. Their non-`.whole` `mla`, `mlat`, `mlbt`, C loads, and all non-`.whole` matrix stores are unsupported and raise an illegal instruction exception. Whole-register transfers retain their raw architectural state semantics below and are not subject to these typed load restrictions. These experimental packed load rules do not apply to `fp2pack5` or to other types.
+
+The normal B load does not transpose memory. The mathematical product is still stem:[C = A \times B^T]; software shall supply B in the `[N][K]` layout. A source matrix stored as `[K][N]` requires software layout preparation before this packed load.
+
+For a full A panel used by native packed multiplication, normal `mla` copies `ROWNUM` rows of `TRLEN/8` raw bytes. Signed `int8` uses stem:[mtilek=TRLEN/8], and signed `int4` uses stem:[mtilek=TRLEN/4], with the nibble order defined in <<xbitmte-native-types>>. There is no expansion of `int4` into bytes. The C panel continues to use normal signed `int32` `mlc`/`msc`; for M=N=128, a C row is 512 bytes. These full-panel rules do not add restrictions or exceptions to other existing non-packed loads and stores.
 
 ==== Transposed Load/Store Instructions
 
@@ -63,7 +80,7 @@ Whole-register access with transpose mode is reserved.
 
 Whole-register accesses are raw architectural state transfers. They are intended for operations such as context save and restore, and their behavior is defined in terms of complete register contents rather than typed matrix elements. Whole-register accesses transfer the complete architectural contents of the selected matrix register and do not depend on the programmed `mtilem` / `mtilek` / `mtilen` values.
 
-Executing a non-`.whole` matrix load or store instruction will result in an illegal instruction exception under unsupported `mtilem` / `mtilek` / `mtilen` settings.
+Executing a non-`.whole` matrix load or store instruction will result in an illegal instruction exception under tile-size settings unsupported by that operation. The experimental native packed B `mlb` validates its active B row count and full-row transfer constraints as defined above; its byte count is independent of `mtilek`.
 
 Matrix load/store instructions validate the programmed `mcfg` state of the accessed matrix register according to the semantics defined for the instruction. A mismatch between the instruction's required data interpretation and the programmed `mcfg` state raises an illegal instruction exception.
 

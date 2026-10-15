@@ -249,7 +249,9 @@ This format uses the same field layout as the normal load/store format, with `fu
 
 ==== Matrix Multiplication Instructions
 
-The matrix multiplication category uses `func3 = 010`. Matrix multiplication type combinations are determined by `mcfg(ms1)`, `mcfg(ms2)`, and `mcfg(md)`. Bits `inst[25:23]`, `inst[19:18]`, and `inst[11:10]` are reserved.
+The matrix multiplication category uses `func3 = 010`. Matrix multiplication type combinations are determined by `mcfg(ms1)`, `mcfg(ms2)`, and `mcfg(md)`. In this experimental native packed B revision, `inst[25:23]` encodes the unsigned 3-bit `kslice` selector. Bits `inst[19:18]` and `inst[11:10]` remain reserved zero. Bits `inst[27:26]` remain zero as in all main-body encodings.
+
+`kslice` selects a fixed K window of the packed B operand for the four native packed capability combinations defined in the matrix multiplication chapter. An out-of-range selector raises an illegal instruction exception. For all other type combinations, `kslice` must be zero; a nonzero value raises an illegal instruction exception. The assembly form `mmacc md, ms2, ms1, kslice` explicitly specifies the selector, and the three-operand form `mmacc md, ms2, ms1` is an alias for selector zero.
 
 [wavedrom, ,svg]
 ....
@@ -261,7 +263,7 @@ The matrix multiplication category uses `func3 = 010`. Matrix multiplication typ
   {bits: 3,  name: 'ms1', type: 3},
   {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 3,  name: 'ms2', type: 4},
-  {bits: 3,  name: '0', attr: '000', type: 8},
+  {bits: 3,  name: 'kslice', attr: '[2:0]', type: 4},
   {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
