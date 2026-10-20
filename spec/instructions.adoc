@@ -18,6 +18,18 @@ include::matmul_zmabt.adoc[]
 
 include::load-store.adoc[]
 
+=== Local-Vector Load and Store Instructions
+
+include::local-vector.adoc[]
+
+=== Element-Wise Instructions
+
+include::elementwise.adoc[]
+
+=== Matrix-to-Local-Vector Reduction Instructions
+
+include::reduction.adoc[]
+
 === MISC Instructions
 
 ==== Mzero Instructions

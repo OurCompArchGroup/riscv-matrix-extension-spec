@@ -2,8 +2,10 @@ The matrix extension adds 4 architectural **Tile Registers** (tr0-tr3) for input
 
 A **Tile Register** has a fixed TLEN bits of state, where each row has TRLEN bits, giving stem:[ROWNUM = TLEN / TRLEN] rows. The active tile dimensions are configured at runtime by `mtilem/mtilek/mtilen`. When used for matrix A, the active region is stem:[M \times K]; when used for matrix B, it is stem:[N \times K]. The maximum dimensions are stem:[M \le ROWNUM], stem:[N \le ROWNUM], and stem:[K \le TRLEN / EW] (EW is the element width in bits).
 
-An **Accumulation Register** has a fixed ALEN bits of state, where each row has ARLEN bits, giving the same stem:[ROWNUM] rows as tile registers. The accumulation register stores the output matrix C, with active region stem:[M \times N]. The maximum dimensions are stem:[M \le ROWNUM] and stem:[N \le ARLEN / EW].
+An **Accumulation Register** has ALEN bits of state arranged as stem:[ROWNUM \times ROWNUM] 32-bit slots, with an active C region of stem:[M \times N]. Both M and N are at most ROWNUM. The XSAI DefaultConfig uses 128 by 128 slots. Lower nominal precision does not increase the row or column capacity.
 
-The ARLEN is derived by stem:[ROWNUM \times ELEN]. The element size of accumulation registers should not be bigger than ELEN. When the output element width equals ELEN, each row of the accumulation register holds exactly ROWNUM elements, making the maximum N dimension equal to ROWNUM, same as the maximum M dimension. Operations with element width exceeding ELEN will raise an illegal instruction exception.
+Each slot contains a signed INT32 or IEEE binary32 (FP32) value. The corresponding `mcfg4`-`mcfg7` value selects a nominal C format: `int8`, `int32`, `fp16`, `bf16`, or `fp32`. The nominal format determines the arithmetic category and ordinary memory conversion; it does not pack narrower elements into the accumulator. Integer nominal formats use signed INT32 internally, and all three floating-point nominal formats use FP32 internally. A/B tile registers retain their existing raw element layout, including supported sub-byte formats.
+
+Ordinary C loads widen nominal memory elements to these slots and ordinary C stores narrow them. Whole C loads/stores instead preserve all raw 32-bit slots. Changing only `mcfg` with ordinary `msetcfg` does not modify stored bits. `msetcfg.cvt` supplies the explicit whole-accumulator conversion described in the configuration chapter.
 
 image::register.svg[register, align=center]

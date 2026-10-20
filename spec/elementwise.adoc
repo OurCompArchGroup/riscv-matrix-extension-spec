@@ -1,0 +1,59 @@
+EW instructions read and write accumulator registers. The fields `md` and `ms1`, and `src2` in accumulator mode, use the unified matrix-register numbers 4 through 7 (`acc0` through `acc3`). Tile-register numbers and nonzero upper two bits of these accumulator fields are illegal. A local-vector or GPR `src2` uses all five bits.
+
+EW operates on the active M by N region (`mtilem` by `mtilen`) and preserves every destination element outside that region. K does not select the EW region. Accumulator dimensions must satisfy the existing matrix limits. The instruction does not modify any `mcfg` value. All accumulator operands, including the destination, must have supported nominal C configurations in the same arithmetic category: `int8`/`int32` are integer; `fp16`/`bf16`/`fp32` are floating point. Mixing nominal precisions within one category is legal and retains the wide internal representation. Mixing categories is illegal; use `msetcfg.cvt` for explicit conversion. Operands are interpreted from their input values, including when destination and source registers coincide.
+
+==== Double-Source EW
+
+[source,asm]
+----
+# A = ms1; B = src2; syntax follows mmacc destination, second, first.
+mmul     acc0, acc1, acc2
+madd.row acc0, lv31, acc2
+msub.col acc0, lv1, acc2
+mmax.x   acc0, a0, acc2
+mmin     acc0, acc1, acc2
+----
+
+Each of `mmul`, `madd`, `msub`, `mmax`, and `mmin` supports the following source modes:
+
+[cols="^2,^2,^5"]
+|===
+| Suffix | `bmode` | B at output element (i,j)
+| none | 00 | `acc[src2][i,j]`
+| `.row` | 01 | `lv[src2][j]` (broadcast along each row)
+| `.col` | 10 | `lv[src2][i]` (broadcast along each column)
+| `.x` | 11 | low 32 bits of `x[src2]` (broadcast throughout the tile)
+|===
+
+The assembly form is `op md, src2, ms1`. For every active element, A is `ms1[i,j]` and the result is respectively A*B, A+B, *A-B*, max(A,B), or min(A,B). In particular, the first source printed after the destination is B, so subtraction is not `src2 - ms1`. Local-vector and GPR bits are interpreted as signed INT32 or FP32 according to the accumulator category; there is no additional type state or implicit conversion. `.row` requires N at most 128 and `.col` requires M at most 128.
+
+Integer arithmetic uses signed INT32 values. ADD/SUB/MUL produce the low 32 bits when `msaten=0`, or clip to the signed INT32 range and set sticky `msat` when `msaten=1`. MAX/MIN use signed comparison. No intermediate narrowing to the nominal `int8` format occurs.
+
+Floating-point operations use binary32 values and the corresponding RISC-V single-precision arithmetic semantics. ADD/SUB/MUL use matrix `mfrm` and accrue their defined exceptions in `mfflags`. MAX/MIN follow the RISC-V FMAX.S/FMIN.S NaN and signed-zero rules: one NaN and one number yield the number, two NaNs yield a canonical NaN, a signaling NaN raises NV, MAX(-0,+0) is +0, and MIN(-0,+0) is -0. Floating-point results remain FP32 even when the destination's nominal format is `fp16` or `bf16`.
+
+==== Single-Source EW
+
+[source,asm]
+----
+mabs  acc0, acc1
+mexp2 acc0, acc1
+mrec  acc0, acc1
+----
+
+The assembly form is `op md, ms1`; bits `inst[26:20]` must be zero. `mabs` supports both categories. Integer ABS follows the same wrap/saturation rule as integer double-source arithmetic. Thus ABS(INT32_MIN) is INT32_MIN with `msaten=0`, or INT32_MAX with sticky `msat` set when `msaten=1`. Floating-point ABS clears only the sign bit of the FP32 input; it does not round, canonicalize a NaN, or generate an arithmetic exception.
+
+`mexp2` and `mrec` require floating-point accumulator configurations and return FP32 values. They use matrix `mfrm`/`mfflags`, independently of scalar/RVV `frm`/`fflags`.
+
+===== EXP2 Reference Behavior
+
+`mexp2` adopts the existing XSAI NEMU custom Xvexp2 FP32 reference: `vfexp2_compute(src, sew=2, is_bf16=false, rm=mfrm)` in `src/isa/riscv64/instr/rvv/vfexp2.c`, as present at NEMU commit `af9d4ce51fc2087156b09f26d64a8e1cfb83332f`. This is a custom approximation reference, not an assertion that EXP2 is an approved standard RISC-V instruction. The referenced implementation uses a 128-segment quadratic approximation and its defined output rounding; this draft adds no independent ULP bound.
+
+The result for +0 or -0 is +1; +infinity gives +infinity and -infinity gives +0. NaN inputs produce canonical NaN, with NV for a signaling NaN. A subnormal input produces +1 and NX according to the reference. Finite output rounding, overflow, underflow, and NX follow that reference for each of the five valid matrix rounding modes. The reference exception results accrue into matrix `mfflags`.
+
+===== Reciprocal Estimate Reference Behavior
+
+`mrec` adopts NEMU's `f32_recip7` in `src/engine/interpreter/softfloat-fp.h` at the same reference commit. It produces a binary32 reciprocal estimate using the 7-bit lookup algorithm. The result format is FP32; the estimate does not promise a full-precision FP32 reciprocal. No Newton refinement or exact `1/x` division is part of this instruction.
+
+Signed zero yields the corresponding signed infinity and raises DZ; signed infinity yields the corresponding signed zero. NaNs produce canonical NaN, with NV for a signaling NaN. For sufficiently small subnormal inputs, the reference overflow handling selects maximum finite magnitude or infinity according to the sign and `mfrm`, and raises OF and NX. Normal approximation error alone does not raise NX. Remaining bit-level behavior and exceptions are those of the referenced `f32_recip7`, redirected to matrix rounding and exception state.
+
+Unsupported operations, reserved encodings, invalid register classes, unsupported configurations, or unsupported active dimensions raise an illegal instruction exception. Floating-point operations that use dynamic rounding reject invalid `mfrm` values according to the existing matrix rounding rules.

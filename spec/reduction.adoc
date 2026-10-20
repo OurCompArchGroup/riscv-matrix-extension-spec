@@ -1,0 +1,21 @@
+Reduction instructions consume one accumulator and write one local-vector register. The source uses the unified accumulator numbers 4 through 7; the destination uses all five bits to select `lv0` through `lv31`. No local-vector type configuration is created. The source `mcfg` selects signed INT32 or FP32 interpretation, with the same nominal C-format restrictions as EW, and remains unchanged.
+
+[source,asm]
+----
+vredadd.row lv0,  acc0, 0  # sum columns of each row, overwrite
+vredadd.col lv31, acc1, 1  # sum rows of each column, accumulate
+vredmax.row lv1,  acc2, 0  # maximum of each row, overwrite
+vredmax.col lv2,  acc3, 1  # maximum of each column, accumulate
+----
+
+The assembly form is `vredadd.{row|col} vd, ms1, acc` or `vredmax.{row|col} vd, ms1, acc`. The immediate `acc` is exactly 0 or 1. `.row` sets `axis=0`: R[i] reduces source A[i,j] over `0 <= j < N`, producing M output elements. `.col` sets `axis=1`: R[j] reduces A[i,j] over `0 <= i < M`, producing N output elements. The source region is the active M by N tile and K is ignored. Active dimensions must be supported by the accumulator, and the output length must not exceed 128.
+
+With `acc=0`, R replaces each active destination element. With `acc=1`, ADD combines R with the previous destination by addition, and MAX combines R with the previous destination by maximum, in the source arithmetic category. Elements beyond the output length are preserved in both modes. Each instruction reduces its current tile; accumulation across tiles uses explicit `acc=1` instructions.
+
+If the input length of an output is zero, *both ADD and MAX* write raw zero with `acc=0` and leave the old destination unchanged with `acc=1`. A zero output length writes no elements. Empty-input processing performs no arithmetic and raises no new arithmetic exceptions or saturation flags; it does not clear existing sticky flags.
+
+Integer ADD forms the complete mathematical signed sum, including the old destination for `acc=1`, and applies the INT32 overflow rule only once at the end of the instruction for that output. With `msaten=0`, it keeps the low 32 bits; with `msaten=1`, it clips to the signed INT32 range and sets sticky `msat` if clipping occurs. It does not saturate intermediate nodes. Integer MAX uses signed comparison and the same old-destination rule.
+
+Floating-point ADD/MAX follow the numerical principles of floating-point `mmacc`: FP32 accumulator values, matrix `mfrm`, the corresponding special-value behavior, and exceptions accrued in matrix `mfflags`. MAX uses the corresponding RISC-V floating-point maximum semantics for NaNs and signed zeros. As for `mmacc`, the summation/reduction tree and intermediate precision are not uniquely prescribed, and no additional precision or error bound is promised. The result is a raw FP32 element in the local-vector register; there is no narrowing to the source's nominal `fp16` or `bf16` format, and no persistent wider reduction buffer.
+
+Reserved operation codes, nonzero `inst[24:20]`, a source outside `acc0`-`acc3`, unsupported source configurations or dimensions, and an output length above 128 raise an illegal instruction exception. Floating-point operations that use dynamic rounding reject invalid `mfrm` values according to the existing matrix rules.

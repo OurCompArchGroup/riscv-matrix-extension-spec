@@ -2,9 +2,9 @@ The legal matrix shapes of load/store instructions are:
 
 * `mla` / `msa`: matrix A, stem:[mtilem \le TLEN / TRLEN], stem:[mtilek \le TRLEN / EW_A]
 * `mlb` / `msb`: matrix B, stem:[mtilen \le TLEN / TRLEN], stem:[mtilek \le TRLEN / EW_B]
-* `mlc` / `msc`: matrix C, stem:[mtilem \le TLEN / TRLEN], stem:[mtilen \le ARLEN / EW_C]
+* `mlc` / `msc`: matrix C, stem:[mtilem \le TLEN / TRLEN], stem:[mtilen \le ROWNUM]
 
-The effective element widths stem:[EW_A], stem:[EW_B], and stem:[EW_C] are determined by the programmed `mcfg` state of the accessed register.
+The effective memory element widths are determined by the programmed `mcfg` state. The accumulator always uses 32-bit slots, so a narrow nominal C format does not increase N.
 
 The transposed variants `mlat` / `mlbt` / `mlct` and `msat` / `msbt` / `msct` use the same tile shapes as their non-transposed counterparts, but interpret memory layout in transpose mode.
 
@@ -14,8 +14,8 @@ Taking TLEN=512, TRLEN=128, and ALEN=512 as an example:
 
 * matrix A and B tile registers support up to 4 rows
 * matrix C accumulation registers support up to 4 rows
-* the maximum K or N dimensions depend on the programmed `mcfg` element width
+* the maximum K depends on the tile-register input width, while the maximum N remains 4 for every supported nominal C format
 
-The memory layout and matrix register layout examples are shown below:
+The following figure illustrates raw tile-register memory layout. C transfers instead use the fixed 32-bit accumulator slots and nominal-width memory conversions described above:
 
 image::matrix_load_example_0.svg[alt="matrix load example", align="center"]

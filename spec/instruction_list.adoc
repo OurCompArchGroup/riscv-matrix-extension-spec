@@ -11,7 +11,8 @@
 | msettilek  | 0001  | 00    | 1  | 00000       | rs1         | 000   | 00000   | 0101011
 | msettilem  | 0010  | 00    | 1  | 00000       | rs1         | 000   | 00000   | 0101011
 | msettilen  | 0011  | 00    | 1  | 00000       | rs1         | 000   | 00000   | 0101011
-| msetcfg    | 0100  | 00    | 1  | 00000       | rs1         | 000   | mcfg_d1 | 0101011
+| msetcfg    | 0100  | 00    | 0  | 00000       | rs1         | 000   | mcfg_d1 | 0101011
+| msetcfg.cvt | 0100  | 00    | 1  | 00000       | rs1         | 000   | mcfg_d1 | 0101011
 | mgetcfg    | 0101  | 00    | 0  | 00000       | mcfg_s1     | 000   | rd      | 0101011
 |===
 
@@ -52,3 +53,62 @@
 | msb.whole | 1001  | 00    | 1  | 00000 | rs1   | 001   | ms3  | 0101011
 | msc.whole | 1010  | 00    | 1  | 00000 | rs1   | 001   | ms3  | 0101011
 |===
+
+.Local-Vector Load/Store Instructions
+[cols="^4,^3,^2,^2,^2,^2,^2,^2,^4",options="header"]
+|===
+| format | 31:28 | 27:26 | 25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
+| vl.row | 0011 | 00 | 0 | rs2 | rs1 | 001 | vd | 0101011
+| vs.row | 0011 | 00 | 1 | rs2 | rs1 | 001 | vs3 | 0101011
+| vl.col | 0111 | 00 | 0 | rs2 | rs1 | 001 | vd | 0101011
+| vs.col | 0111 | 00 | 1 | rs2 | rs1 | 001 | vs3 | 0101011
+| vl.whole | 1011 | 00 | 0 | 00000 | rs1 | 001 | vd | 0101011
+| vs.whole | 1011 | 00 | 1 | 00000 | rs1 | 001 | vs3 | 0101011
+|===
+
+.Double-Source EW Instructions
+[cols="^4,^2,^2,^2,^2,^2,^2,^2,^4",options="header"]
+|===
+| format | 31:30 | 29:27 | 26:25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
+| mmul | 00 | 000 | 00 | ms2 | ms1 | 101 | md | 0101011
+| mmul.row | 00 | 000 | 01 | vs2 | ms1 | 101 | md | 0101011
+| mmul.col | 00 | 000 | 10 | vs2 | ms1 | 101 | md | 0101011
+| mmul.x | 00 | 000 | 11 | rs2 | ms1 | 101 | md | 0101011
+| madd | 00 | 001 | 00 | ms2 | ms1 | 101 | md | 0101011
+| madd.row | 00 | 001 | 01 | vs2 | ms1 | 101 | md | 0101011
+| madd.col | 00 | 001 | 10 | vs2 | ms1 | 101 | md | 0101011
+| madd.x | 00 | 001 | 11 | rs2 | ms1 | 101 | md | 0101011
+| msub | 00 | 101 | 00 | ms2 | ms1 | 101 | md | 0101011
+| msub.row | 00 | 101 | 01 | vs2 | ms1 | 101 | md | 0101011
+| msub.col | 00 | 101 | 10 | vs2 | ms1 | 101 | md | 0101011
+| msub.x | 00 | 101 | 11 | rs2 | ms1 | 101 | md | 0101011
+| mmax | 00 | 010 | 00 | ms2 | ms1 | 101 | md | 0101011
+| mmax.row | 00 | 010 | 01 | vs2 | ms1 | 101 | md | 0101011
+| mmax.col | 00 | 010 | 10 | vs2 | ms1 | 101 | md | 0101011
+| mmax.x | 00 | 010 | 11 | rs2 | ms1 | 101 | md | 0101011
+| mmin | 00 | 110 | 00 | ms2 | ms1 | 101 | md | 0101011
+| mmin.row | 00 | 110 | 01 | vs2 | ms1 | 101 | md | 0101011
+| mmin.col | 00 | 110 | 10 | vs2 | ms1 | 101 | md | 0101011
+| mmin.x | 00 | 110 | 11 | rs2 | ms1 | 101 | md | 0101011
+|===
+
+.Single-Source EW Instructions
+[cols="^4,^2,^2,^2,^2,^2,^2,^2,^4",options="header"]
+|===
+| format | 31:30 | 29:27 | 26:25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
+| mabs | 01 | 000 | 00 | 00000 | ms1 | 101 | md | 0101011
+| mexp2 | 01 | 001 | 00 | 00000 | ms1 | 101 | md | 0101011
+| mrec | 01 | 010 | 00 | 00000 | ms1 | 101 | md | 0101011
+|===
+
+.Matrix-to-Local-Vector Reduction Instructions
+[cols="^4,^2,^2,^2,^2,^2,^2,^2,^2,^4",options="header"]
+|===
+| format | 31:30 | 29:27 | 26 | 25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
+| vredadd.row | 10 | 000 | acc | 0 | 00000 | ms1 | 101 | vd | 0101011
+| vredadd.col | 10 | 000 | acc | 1 | 00000 | ms1 | 101 | vd | 0101011
+| vredmax.row | 10 | 001 | acc | 0 | 00000 | ms1 | 101 | vd | 0101011
+| vredmax.col | 10 | 001 | acc | 1 | 00000 | ms1 | 101 | vd | 0101011
+|===
+
+In EW/Reduce rows, `md`, `ms1`, and accumulator `ms2` are unified matrix-register numbers 4 through 7; `vs2`, `vd`, and `vs3` are full 5-bit local-vector numbers. In reduction rows, `acc` is a one-bit immediate (0 or 1). All new instructions use the existing `+zames` feature; the optional Zmasync instruction encodings are unchanged.

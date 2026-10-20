@@ -2,20 +2,24 @@
 
 This repository contains the draft specification for **Zames**: the RISC-V Attached Matrix Extension Simplified proposal.
 
-The current draft is based on XuanTie Matrix Extension V0.6.0 and narrows the scope to a small matrix-multiply-oriented ISA subset for AI and ML workloads.
+The current draft is based on XuanTie Matrix Extension V0.6.0 and defines a matrix-multiply and EW/Reduce ISA for AI and ML workloads, with an XSAI EW/Reduce draft extension to the simplified instruction set.
 
 ## Scope
 
 The current draft focuses on:
 
 - A single architectural matrix multiplication instruction: `mmacc`
-- Tile configuration via `msettile{m|k|n}` and matrix-configuration programming via `msetcfg`
-- Four tile registers (`tr0`-`tr3`), four accumulation registers (`acc0`-`acc3`), and eight associated `mcfg` registers
+- Tile configuration via `msettile{m|k|n}` and matrix-configuration programming/conversion via `msetcfg` and `msetcfg.cvt`
+- Four tile registers (`tr0`-`tr3`), four accumulation registers (`acc0`-`acc3`) with INT32/FP32 internal elements, and eight associated `mcfg` registers
+- Thirty-two independent local-vector registers (`lv0`-`lv31`), each with 128 raw 32-bit elements
+- Accumulator element-wise arithmetic, local-vector/GPR broadcasts, and matrix-to-local-vector ADD/MAX reductions
 - Matrix load/store instructions organized by matrix class (`A` / `B` / `C`), direction (load / store), transpose mode, and whole-register mode
 - The `mzero` utility instruction
 - An optional `Zmasync` appendix / extension, documented separately from the Zames main-body instruction set
 
-The draft intentionally omits the broader element-wise, conversion, movement, and packing features from the original XuanTie proposal.
+The EW/Reduce draft defines the instructions and conversions described in the main specification. It does not add pure local-vector arithmetic, direct transfers to CPU RVV registers, or the broader movement and packing instruction families from the original XuanTie proposal. The existing `mmacc` capability mechanism and its supported combinations remain in force; defining EW/Reduce does not add new multiply combinations.
+
+The initial compiler interface is assembly/disassembly and C inline assembly under `+zames`, with explicit physical register names and clobbers. Intrinsics, automatic allocation of matrix/local-vector registers, new C types, and a new ABI are outside this delivery.
 
 ## Repository Layout
 

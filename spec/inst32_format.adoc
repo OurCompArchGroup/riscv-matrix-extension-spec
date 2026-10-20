@@ -1,4 +1,4 @@
-The 32-bit Zames instruction formats fit under the custom-1 (`0101011`) major opcode. The `func3` field is the only top-level instruction-category selector in the Zames main body, and it is always located at bits `inst[14:12]`. Bits `inst[27:26]` are reserved and shall be written as `00` in all Zames main-body encodings. Any bit without an explicitly defined semantic role in the formats below is reserved and shall be written as zero.
+The 32-bit Zames instruction formats fit under the custom-1 (`0101011`) major opcode. The `func3` field is the only top-level instruction-category selector in the Zames main body, and it is always located at bits `inst[14:12]`. Bits `inst[27:26]` are reserved zero in the configuration, matrix/local-vector load/store, matrix multiplication, and MISC formats. The EW/Reduce category instead assigns these bits as part of its operation and control fields. Any bit without an explicitly defined semantic role in the formats below is reserved and shall be written as zero.
 
 The assigned `func3` values in the Zames main body are as follows:
 
@@ -10,7 +10,7 @@ The assigned `func3` values in the Zames main body are as follows:
 | 010 | Matrix multiplication instructions
 | 011 | MISC instructions
 | 100 | Optional extension encoding space
-| 101 | Reserved
+| 101 | Element-wise and matrix-to-local-vector reduction instructions
 | 110 | Reserved
 | 111 | Reserved
 |===
@@ -86,7 +86,7 @@ This format is used by the register tile-configuration instructions.
 
 ===== Configuration-MCFG-Write Format
 
-This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated from tile configuration so that matrix-configuration programming has its own dedicated encoding description.
+This format is used by `msetcfg` and `msetcfg.cvt`. The `Configuration-MCFG` branch is separated from tile configuration so that matrix-configuration programming has its own dedicated encoding description.
 
 `mcfg_d1` selects the target `mcfg` register. The selector reuses the same 3-bit numbering as `tr0`-`acc3`, and the upper two bits of the 5-bit field are reserved zero.
 
@@ -98,7 +98,7 @@ This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated f
   {bits: 3,  name: 'func3', attr: '000', type: 8},
   {bits: 5,  name: 'rs1', type: 3},
   {bits: 5,  name: '0', attr: '00000', type: 8},
-  {bits: 1,  name: 'mode', attr: '1', type: 8},
+  {bits: 1,  name: 'cvt', type: 6},
   {bits: 2,  name: '0', attr: '00', type: 8},
   {bits: 4,  name: 'func4', attr: '0100', type: 5}
 ], config: {lanes: 1, hspace: 1000}}
@@ -106,13 +106,15 @@ This format is used by `msetcfg`. The `Configuration-MCFG` branch is separated f
 
 - `inst[11:7]` is `mcfg_d1`
 - `inst[19:15]` is `rs1`
-- the raw XLEN-bit value of `x[rs1]` is written to the selected `mcfg`
+- `cvt=0` changes configuration only; `cvt=1` converts the entire selected accumulator using old/new configuration before updating `mcfg`
+- the raw XLEN-bit value of `x[rs1]` becomes the selected `mcfg`
 - `x[rs1][3:0]` is `type_code`
 - `x[rs1][7:4]` is `table_sel`
 - `x[rs1][XLEN-1:8]` is stored unchanged as uninterpreted payload
 - `inst[24:20]` is reserved zero
 - `inst[27:26]` is reserved zero
-- `inst[25]` is `mode=1`
+- `inst[25]` is `cvt`: 0 for `msetcfg`, 1 for `msetcfg.cvt`
+- `cvt=1` requires `mcfg_d1` in 4 through 7; `cvt=0` permits 0 through 7
 
 ===== Configuration-MCFG-Read Format
 
@@ -147,7 +149,7 @@ This format is used by `mgetcfg`.
 .Configuration Instructions (`func3=000`)
 [cols="^2,^2,^8"]
 |===
-| *func4* | *mode (inst[25])* | *Instruction*
+| *func4* | *mode/cvt (inst[25])* | *Instruction*
 | 0000 | 0 | minit
 | 0001 | 0 | msettileki
 | 0010 | 0 | msettilemi
@@ -155,13 +157,14 @@ This format is used by `mgetcfg`.
 | 0001 | 1 | msettilek
 | 0010 | 1 | msettilem
 | 0011 | 1 | msettilen
-| 0100 | 1 | msetcfg
+| 0100 | 0 | msetcfg
+| 0100 | 1 | msetcfg.cvt
 | 0101 | 0 | mgetcfg
 |===
 
 ==== Load/Store Instructions
 
-The load/store instruction category uses `func3 = 001`. Types are not encoded in the instruction. They are determined by the programmed `mcfg` state of the accessed matrix register.
+The load/store instruction category uses `func3 = 001`. For matrix-register accesses, types are not encoded in the instruction. They are determined by the programmed `mcfg` state of the accessed matrix register.
 
 The `func4` field is partitioned as follows:
 
@@ -177,10 +180,10 @@ Matrix-kind encoding:
 | 00 | A matrix
 | 01 | B matrix
 | 10 | C matrix
-| 11 | Reserved
+| 11 | Local-vector access: `func4=0011` row, `0111` column, `1011` whole
 |===
 
-The `whole` bit is only defined for load/store instructions. Whole-register access with `transpose=1` is reserved.
+For matrix kinds 00 through 10, the `whole` bit is only defined for load/store instructions and whole-register access with `transpose=1` is reserved. Kind 11 has the separate local-vector semantics below; its column mode is not a matrix transpose.
 
 ===== Load/Store-Normal Format
 
@@ -302,3 +305,102 @@ The misc category uses `func3 = 011`. Bits `inst[25:23]`, `inst[22:20]`, `inst[1
 | 0000 | mzero
 | 0001-1111 | Reserved
 |===
+
+==== Local-Vector Load/Store Format
+
+Local-vector transfers use `func3=001`. The register field is a full 5-bit local-vector number rather than a 3-bit matrix register number.
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7, name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5, name: 'vd/vs3', type: 2},
+  {bits: 3, name: 'func3', attr: '001', type: 8},
+  {bits: 5, name: 'rs1', type: 3},
+  {bits: 5, name: 'rs2', type: 4},
+  {bits: 1, name: 'l/s', type: 6},
+  {bits: 2, name: '0', attr: '00', type: 8},
+  {bits: 4, name: 'func4', type: 5}
+], config: {lanes: 1, hspace: 1000}}
+....
+
+[cols="^2,^2,^3,^3"]
+|===
+| `func4` | `l/s` | Instruction | Effective length
+| 0011 | 0 | vl.row | N
+| 0011 | 1 | vs.row | N
+| 0111 | 0 | vl.col | M
+| 0111 | 1 | vs.col | M
+| 1011 | 0 | vl.whole | 128
+| 1011 | 1 | vs.whole | 128
+|===
+
+The `.whole` forms require `rs2=00000` and transfer contiguous 32-bit elements; other forms use `rs2` as a byte stride. `func4=1111` is reserved.
+
+==== EW/Reduce Format
+
+The EW/Reduce category uses `func3=101`. `fmt=00` selects double-source EW, `fmt=01` selects single-source EW, `fmt=10` selects reduction, and `fmt=11` is reserved. Matrix operands use the 5-bit field value 00100 through 00111 for `acc0` through `acc3`; local-vector and GPR fields use 00000 through 11111.
+
+===== Double-Source EW (`fmt=00`)
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7, name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5, name: 'md', type: 2},
+  {bits: 3, name: 'func3', attr: '101', type: 8},
+  {bits: 5, name: 'ms1', type: 3},
+  {bits: 5, name: 'src2', type: 4},
+  {bits: 2, name: 'bmode', type: 6},
+  {bits: 3, name: 'op', type: 5},
+  {bits: 2, name: 'fmt', attr: '00', type: 8}
+], config: {lanes: 1, hspace: 1000}}
+....
+
+[cols="^2,^3"]
+|===
+| `op` | Instruction
+| 000 | mmul
+| 001 | madd
+| 101 | msub
+| 010 | mmax
+| 110 | mmin
+|===
+
+`bmode=00` selects an accumulator, `01` selects row broadcast from a local vector, `10` selects column broadcast, and `11` selects broadcast of a GPR's low 32 bits. All other operation codes are reserved.
+
+===== Single-Source EW (`fmt=01`)
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7, name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5, name: 'md', type: 2},
+  {bits: 3, name: 'func3', attr: '101', type: 8},
+  {bits: 5, name: 'ms1', type: 3},
+  {bits: 7, name: '0', attr: '0000000', type: 8},
+  {bits: 3, name: 'op', type: 5},
+  {bits: 2, name: 'fmt', attr: '01', type: 8}
+], config: {lanes: 1, hspace: 1000}}
+....
+
+`op=000` is `mabs`, `001` is `mexp2`, and `010` is `mrec`; other operation codes are reserved. Bits `inst[26:20]` must be zero.
+
+===== Reduction (`fmt=10`)
+
+[wavedrom, ,svg]
+....
+{reg: [
+  {bits: 7, name: 'opcode', attr: '0101011', type: 8},
+  {bits: 5, name: 'vd', type: 2},
+  {bits: 3, name: 'func3', attr: '101', type: 8},
+  {bits: 5, name: 'ms1', type: 3},
+  {bits: 5, name: '0', attr: '00000', type: 8},
+  {bits: 1, name: 'axis', type: 6},
+  {bits: 1, name: 'acc', type: 6},
+  {bits: 3, name: 'op', type: 5},
+  {bits: 2, name: 'fmt', attr: '10', type: 8}
+], config: {lanes: 1, hspace: 1000}}
+....
+
+`op=000` is `vredadd` and `001` is `vredmax`; other operation codes are reserved. Bit 26 is the accumulation enable, bit 25 selects row (0) or column (1), and bits `inst[24:20]` must be zero.

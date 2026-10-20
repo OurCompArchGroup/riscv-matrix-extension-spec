@@ -4,6 +4,8 @@ The matrix extension introduces the following architectural state:
 
 * **Matrix Registers**: Eight two-dimensional matrix registers, divided into 4 tile registers (tr0-tr3) and 4 accumulation registers (acc0-acc3). Tile registers store input matrices A and B, with size determined by TLEN (total bits) and TRLEN (bits per row). Accumulation registers store output matrix C, with size determined by ALEN and ARLEN. Both register types share the same row count (stem:[ROWNUM = TLEN/TRLEN]).
 
+* **Local-Vector Registers**: Thirty-two registers, `lv0`-`lv31`, each holding 128 raw 32-bit elements. They are independent of CPU RVV registers and have no persistent type configuration. Their integer or FP32 interpretation is selected by the accumulator participating in EW/Reduce.
+
 * **Matrix Configuration Registers**: Eight addressable architectural registers, `mcfg0`-`mcfg7`, that record the programmed configuration of `tr0`-`tr3` and `acc0`-`acc3`. These are architectural registers, not CSRs. They are updated by `msetcfg` and may be read back through `mgetcfg`. The target selection encoding for `mcfg0`-`mcfg7` reuses the same 3-bit numbering as `tr0`-`acc3`.
 
 * **CSRs (Control and Status Registers)**: Seven CSRs that control matrix operations, including tile dimension configuration and arithmetic mode control.
@@ -19,6 +21,10 @@ The matrix extension introduces the following architectural state:
 | tr0-tr3    | 0x0-0x3 | - | Tile registers (TLEN bits each), store input matrices A and B
 | acc0-acc3  | 0x4-0x7 | - | Accumulation registers (ALEN bits each), store output matrix C
 2+| _Total: 8 matrix registers_ 2+|
+
+.2+| Local-Vector Registers
+| lv0-lv31 | 0x0-0x1f | - | Local-vector register file, 128 raw 32-bit elements per register
+2+| _Total: 32 local-vector registers_ 2+|
 
 .3+| Matrix Configuration Registers
 | mcfg0-mcfg3 | 0x0-0x3 | - | Configuration state for `tr0`-`tr3`
@@ -40,7 +46,7 @@ The matrix extension introduces the following architectural state:
 | msat      | 0x807 | URW | Fixed-point accrued saturation flag
 | mfflags   | 0x808 | URW | Float-point accrued exception flags
 | mfrm      | 0x809 | URW | Float-point rounding mode
-| msaten    | 0x80a | URW | Saturation mode enable for fp8 or integer matrix multiplication instructions
+| msaten    | 0x80a | URW | Saturation mode enable for defined integer arithmetic/narrowing and existing fp8 multiply behavior
 2+| _Total: 5 sub-field CSRs (also reflected as fields in mcsr)_ 2+|
 
 .2+| Modified Standard CSRs
@@ -71,7 +77,7 @@ The 3-bit `mcfg` selector encoding is shared with the matrix-register numbering:
 | 111 | acc3 | mcfg7
 |===
 
-Only the `msetcfg` instruction updates `mcfg` state. The `mgetcfg` instruction reads a selected `mcfg` register and copies its raw XLEN-bit contents to a GPR. Matrix load/store, matrix multiplication, and misc instructions validate their required operand configuration against the programmed `mcfg` state and do not implicitly rewrite it.
+Only `msetcfg` and its `msetcfg.cvt` variant update `mcfg` state. The `mgetcfg` instruction reads a selected `mcfg` register and copies its raw XLEN-bit contents to a GPR. Matrix load/store, matrix multiplication, EW/Reduce, and misc instructions validate their required operand configuration against the programmed `mcfg` state and do not implicitly rewrite it.
 
 Each `mcfg` register uses the least-significant four bits to hold `type_code[3:0]`, and bits `mcfg[7:4]` hold `table_sel[3:0]`. Bits `mcfg[XLEN-1:8]` are architecturally ignored by hardware. Software may write and read them through `msetcfg` and `mgetcfg`, but they have no effect on matrix execution semantics.
 
@@ -112,6 +118,8 @@ Encoding table `table_sel = 0` is defined below. Other encoding tables are selec
 | 1111 | Reserved
 |===
 
+For accumulation registers, the supported nominal C formats in table 0 are only `int8` (0010), `int32` (0100), `fp16` (1001), `bf16` (1010), and `fp32` (1100). The remaining entries describe tile-register input formats or reserved capabilities, and do not introduce unsigned, FP8, FP4, or other C formats. The meaning of a table-0 code is unchanged for tile registers.
+
 When software programs an `mcfg` register, selecting a configuration that is not supported by the implementation raises an illegal instruction exception immediately at the `msetcfg` operation. The set of supported matrix operation capabilities is reported through the matrix capability description in the device tree, using the naming rules defined by the relevant instruction chapters.
 
 === CSR Registers
@@ -132,7 +140,7 @@ For conversion capabilities, the capability string uses the format `<input_type>
 
 Element-wise support may be advertised with standalone capability strings. `iew` indicates support for integer element-wise operations, and `few` indicates support for floating-point element-wise operations.
 
-The conversion and element-wise naming forms above are retained by the capability model for compatibility and future extension. This simplified Zames specification does not currently define conversion instructions or element-wise matrix instructions in the main body.
+The main body defines accumulator conversion via `msetcfg.cvt` and integer/floating-point EW/Reduce behavior. Capability naming does not expand the legal `mcfg` encodings, the five nominal C formats, or the supported `mmacc` operand combinations.
 
 .Device Tree Example
 [source,dts]
@@ -199,7 +207,7 @@ The matrix fixed-point saturation flag(msat)  is given a separate CSR address to
 ==== Matrix Float-Point Exception Flags, mfflags
 The matrix float-point exception flags(`mfflags`) holds a five-bit read-write fields in the least-significant bits(`mfflags[4:0]`). The upper bits, `mfflags[XLEN-1:5]`, should be written as zeros.
 The matrix float-point exception flags(mfflags)  is given a separate CSR address to allow independent access, but is also reflected as a field in mcsr.
-The float matrix multiplication and float pointwise instructions update accrued exception fflags in mfflags.
+Floating-point matrix multiplication, EW/Reduce, SFU, and converting configuration/load/store operations accrue their defined exception flags in `mfflags`. The flags are sticky: a newly raised flag is ORed with the old value. `mfrm` and `mfflags` are matrix state, separate from scalar/RVV `frm` and `fflags`; matrix instructions do not use or update those scalar/RVV CSRs.
 [cols="^2,^5"]
 |===
 |  bits     |  Meaning      
@@ -207,7 +215,7 @@ The float matrix multiplication and float pointwise instructions update accrued 
 |  0        |  NX
 |  1        |  UF
 |  2        |  OF
-|  3        |  reserved for future use
+|  3        |  DZ (divide by zero)
 |  4        |  NV
 |===
 
@@ -232,7 +240,7 @@ The matrix float-point rounding mode `mfrm` is given a separate CSR address to a
 If `mfrm` is set to an invalid value (101-111), any subsequent attempt to execute a floating-point operation with a dynamic rounding mode will cause an illegal instruction exception. 
 
 ==== Matrix Saturation Mode Enable, msaten
-The matrix saturation mode `msaten` holds a single read-write least-significant bit(`msaten[0]`) that defines the saturation mode when the operation result is fp8 or integer. The upper bits, `msaten[XLEN-1:1]`, should be written as zeros.
+The matrix saturation mode `msaten` holds a single read-write least-significant bit(`msaten[0]`) that defines the saturation mode for the integer operations and narrowing conversions described by their instruction chapters, as well as existing fp8 multiply behavior. The upper bits, `msaten[XLEN-1:1]`, should be written as zeros.
 The matrix saturation mode(msaten)  is given a separate CSR address to allow independent access, but is also reflected as a field in mcsr.
 
 [cols="^2,^5"]
@@ -255,6 +263,8 @@ Conversion from all other values first applies rounding to reduce the mantissa b
         mmacc operations: ignore the overflow and wrap around the result       
         integer arithmetic operations: ignore the overflow and wrap around the result       
 
+
+Integer ADD/SUB/MUL/ABS in EW operate on signed INT32 values. With `msaten=0`, an overflowing result keeps its low 32 bits; with `msaten=1`, it clips to the signed INT32 range and sets sticky `msat` if clipping occurs. Integer reduction ADD applies this rule once to the complete sum, including the old destination when accumulating. Ordinary C stores to `int8` apply the corresponding low-8-bit or signed-INT8 clipping rule. The conversion rules for `FCVT.W.S` and `FCVT.S.W` are specified separately and are not replaced by this integer overflow rule.
 
 === Matrix Context Status in mstatus and sstatus
 
@@ -308,6 +318,8 @@ The MS field is located at bits [26:25] in both mstatus and sstatus registers.
 |=== 
 
 Attempts to execute any matrix instructions, or to access the matrix CSRs raise an illegal instruction exception when MS is set to off. If MS is set to initial or clean, executing any instructions that change the matrix state will change the ms to dirty. 
+
+Local-vector contents are part of the matrix architectural context. An instruction that changes a local-vector register also makes MS dirty under the same rules. Context save/restore must include all 32 local-vector registers, the complete wide accumulator contents, matrix configuration, and matrix CSRs as required by the existing context rules. Software must complete outstanding matrix operations before saving or switching that context, using the existing synchronization mechanism when applicable. `minit` retains its existing MS-state semantics; it does not promise to clear all matrix or local-vector contents.
 
 An implementation can use the activity of the Initial state to influence the choice of power-saving states.
 

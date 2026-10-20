@@ -1,0 +1,17 @@
+Local-vector registers are named `lv0` through `lv31`. Every register contains 128 raw 32-bit elements and has no `mcfg` or persistent arithmetic type. These registers are independent of the CPU's RVV registers. There are no pure local-vector arithmetic instructions or direct CPU-RVV/local-vector transfers in this draft.
+
+[source,asm]
+----
+vl.row   lv0, (a0), a1    # load N elements using a byte stride
+vs.row   lv0, (a0), a1    # store N elements
+vl.col   lv1, (a0), a1    # load M elements
+vs.col   lv1, (a0), a1    # store M elements
+vl.whole lv31, (a0)      # load all 128 elements, contiguously
+vs.whole lv31, (a0)      # store all 128 elements, contiguously
+----
+
+For `.row`, the effective length L is `mtilen` (N); for `.col`, L is `mtilem` (M). For each `0 <= k < L`, element k is transferred at `x[rs1] + k * x[rs2]`. Each transfer is a raw 32-bit load/store: it performs no integer or floating-point conversion and generates no arithmetic flags. A load preserves elements L through 127, and a store touches only the first L elements. A zero length performs no element accesses. A length above 128 is unsupported and raises an illegal instruction exception.
+
+The `.whole` forms ignore M, N, and K and transfer exactly 512 contiguous bytes, in element order, at `x[rs1] + 4*k` for `0 <= k < 128`. The encoded `rs2` field must be zero. The register field is a full 5-bit local-vector number in every form. Local-vector memory accesses follow the matrix memory model and existing memory-access exception rules.
+
+Local-vector contents are part of matrix context and MS dirty tracking. A `.whole` save/restore pair preserves all raw bits, independently of the arithmetic category in which those bits were last used.

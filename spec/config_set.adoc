@@ -18,7 +18,7 @@ msettileni imm  # imm = new mtilen
 msettilen  rs1  # rs1 = new mtilen
 ```
 
-The `msetcfg` instruction programs the `mcfg` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. The companion `mgetcfg` instruction reads the selected `mcfg` value back into a GPR. `msetcfg` is the only instruction that modifies `mcfg` state.
+The `msetcfg` instruction programs the `mcfg` architectural registers associated with `tr0`-`tr3` and `acc0`-`acc3`. The companion `mgetcfg` instruction reads the selected `mcfg` value back into a GPR. `msetcfg` and its `msetcfg.cvt` variant are the only instructions that modify `mcfg` state.
 
 The `mcfg` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
@@ -35,7 +35,7 @@ The `mcfg` target selector reuses the same 3-bit numbering as `tr0`-`acc3`:
 
 `mcfg_d1` is the destination selector and chooses which `mcfg` register is updated.
 
-For `msetcfg`, `inst[19:15]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, `inst[24:20]` is reserved zero, and the selected `mcfg` register is assigned the raw XLEN-bit value of `x[rs1]`. Bits `x[rs1][3:0]` provide `type_code`, and bits `x[rs1][7:4]` provide `table_sel`. Bits `x[rs1][XLEN-1:8]` are stored unchanged and do not affect hardware behavior.
+For `msetcfg`, `inst[25]` is `cvt=0`, `inst[19:15]` holds `rs1`, `inst[11:7]` holds `mcfg_d1`, `inst[24:20]` is reserved zero, and the selected `mcfg` register is assigned the raw XLEN-bit value of `x[rs1]`. Bits `x[rs1][3:0]` provide `type_code`, and bits `x[rs1][7:4]` provide `table_sel`. Bits `x[rs1][XLEN-1:8]` are stored unchanged and do not affect hardware behavior.
 
 For `mgetcfg`, `inst[19:15]` holds `mcfg_s1`, `inst[11:7]` holds `rd`, `inst[24:20]` is reserved zero, and the selected `mcfg` value is copied to `x[rd]` without modification. Bits `x[rd][3:0]` return `type_code`, bits `x[rd][7:4]` return `table_sel`, and bits `x[rd][XLEN-1:8]` return the stored uninterpreted payload.
 
@@ -45,6 +45,17 @@ msetcfg  mcfg1, rs2     # config state for tr1  = x[rs2]
 msetcfg  mcfg5, rs1     # config state for acc1 = x[rs1]
 mgetcfg  rd, mcfg0      # rd = mcfg0
 mgetcfg  t0, mcfg5      # t0 = mcfg5
+msetcfg.cvt mcfg5, rs1 # convert the whole acc1, then set mcfg5
 ```
 
 The selected `table_sel` / `type_code` combination must be one of the defined `mcfg` encodings described in the programmer's model. Unsupported configurations cause an illegal instruction exception.
+
+===== Whole-Accumulator Configuration Conversion
+
+`msetcfg` (`cvt=0`) writes only configuration and preserves every data bit. Software determines whether the old contents are valid under the new interpretation.
+
+`msetcfg.cvt` (`cvt=1`) is legal only for `mcfg4`-`mcfg7`, corresponding to `acc0`-`acc3`. The previous `mcfg` is the source configuration, and the raw XLEN-bit value in `x[rs1]` is the target configuration. Both must select supported nominal C formats (`int8`, `int32`, `fp16`, `bf16`, or `fp32`). Using a tile-register configuration or an unsupported format raises an illegal instruction exception.
+
+The instruction processes every 32-bit slot of the selected accumulator, independently of M, N, or K, and updates the configuration after conversion completes. It has no scale operand. Within the integer category, or within the floating-point category, conversion preserves the existing wide slot bits; changing nominal precision does not round or narrow them. Across categories, each FP32 slot is converted to signed INT32 with the RISC-V `FCVT.W.S` numerical rules, or each signed INT32 slot to FP32 with the `FCVT.S.W` numerical rules. These conversions use matrix `mfrm` and accrue the corresponding exceptions in matrix `mfflags`, including the RISC-V handling of invalid and out-of-range inputs. They do not use scalar `frm`/`fflags` or add quantization scaling.
+
+The new raw configuration, including ignored payload bits, is retained exactly as for ordinary `msetcfg`. Software remains responsible for the validity of the old contents; this instruction introduces no separate per-element validity state.

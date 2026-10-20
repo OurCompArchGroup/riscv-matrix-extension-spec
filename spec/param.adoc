@@ -10,9 +10,11 @@ Each hart supporting a matrix extension defines three parameters:
 The following parameters can be derived from the above fundamental parameters:
 
 . ROWNUM: The number of rows of a tile register, equals to stem:[TLEN/TRLEN], which must be a power of 2. For the matrix multiplication stem:[C += A \times B^T], the tile register stores input matrix A (stem:[M \times K]), and the accumulation register stores output matrix C (stem:[M \times N]). Since A and C share the M dimension, the accumulation register has the same row count (ROWNUM) as the tile register. For example, when TLEN=512 and TRLEN=128, ROWNUM=4, meaning both tile registers and accumulation registers have 4 rows, and the maximum M dimension is 4.
-. ARLEN: The number of bits in a single row of a single accumulation register, which defines the maximum number of bits per row of the output matrix (i.e., the maximum N dimension in bits, stem:[n \times element\_size]). stem:[ARLEN = ROWNUM \times ELEN], which must be a power of 2, and must be no greater than 2^16^.
+. ARLEN: The number of bits in a single row of a single accumulation register, which defines the storage size of each output row. For the EW/Reduce accumulator model, each row contains ROWNUM 32-bit slots, independent of the nominal memory element width. stem:[ARLEN = ROWNUM \times ELEN], which must be a power of 2, and must be no greater than 2^16^.
 . ALEN: The number of bits in a single matrix accumulation register, ALEN, which must be a power of 2, and must be no greater than 2^32^, stem:[ALEN = ARLEN \times ROWNUM].
 
+
+The EW/Reduce accumulator model uses ELEN=32 and stem:[ARLEN = ROWNUM \times 32]. Each accumulator has stem:[ROWNUM \times ROWNUM] elements. The XSAI DefaultConfig uses ROWNUM=128, so each accumulator has 128 by 128 32-bit slots (65536 bytes). An existing configuration with a different ROWNUM scales these dimensions by ROWNUM. Selecting an 8-bit or 16-bit nominal C format does not create additional columns. Each local-vector register always has 128 32-bit elements (512 bytes), independently of ROWNUM.
 
 image::parameter_explanation.svg[alt="parameter explanation", align="center"]
 
