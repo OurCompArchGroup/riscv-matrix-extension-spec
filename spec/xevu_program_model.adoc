@@ -1,0 +1,138 @@
+[[xevu-program-model]]
+=== Programmer's Model
+
+==== Vector Registers
+
+EVU has 32 registers of `EVLEN` bits. The current profile uses
+`EVLEN=4096`, or 512 bytes per register and 16 KiB total. Element zero
+occupies the low bits; memory is little-endian. Groups concatenate
+increasing register numbers; fractional LMUL uses a register's low part.
+Registers have no persistent type. Ordinary integer widths are 8/16/32 bits;
+ordinary floating-point arithmetic uses IEEE binary16/binary32. The
+low-precision conversions additionally read/write packed INT8, E4M3, E5M2,
+and E2M1 representations, with the layouts in <<xevu-low-precision>>.
+This does not add general FP8/FP4 arithmetic, BF16, FP64, or packed
+matrix-register formats. Register capacity does not specify execution width.
+
+[[xevu-configuration]]
+==== Vector Configuration
+
+`VL` counts active elements; ordinary operations use `0 <= idx < VL`.
+`VTYPE[2:0]` is VLMUL, `[5:3]` is VSEW, bit 6 is VTA, and bit 7 is
+VMA. Only VSEW=0/1/2 (SEW=8/16/32) is supported. VLMUL=000/001/010/011 selects
+LMUL=1/2/4/8; 101/110/111 selects 1/8, 1/4, 1/2; 100 is illegal.
+
+[source,text]
+----
+VLMAX = floor((EVLEN / SEW) * LMUL)
+VL = min(unsigned(AVL), VLMAX)
+----
+
+Configuration uses full unsigned 64-bit AVL before truncation: zero
+requests no elements and `UINT64_MAX` requests VLMAX. `rs1=x0` supplies
+zero; `rd=x0` discards only the returned VL. Aliased GPR inputs are read
+before writing rd. RVV's special zero-register configuration rules do
+not apply. Configuration takes effect in program order and is captured
+by each command; reconfiguration neither changes issued work nor drains it.
+
+Unsupported VSEW, VLMUL=100, zero VLMAX, or nonzero register-form VTYPE
+bits above bit 7 sets Configured=1, VILL=1, VL=0 and returns zero without
+trapping. Data operations with VILL are illegal, even at VL=0; a legal
+configuration clears VILL. Configured=0 is compatibility mode: encoded
+SEW, LMUL=1, and one full register. Otherwise EVCFG supplies configuration.
+Encoded width must remain legal for the opcode; software should match
+VSEW because the current implementation does not check equality.
+
+Integer LMUL groups must be aligned to their register count and end by
+`ev31`. Integer widening uses destination SEW and LMUL twice the source
+values, supports only 8-to-16 and 16-to-32, and cannot exceed eight registers.
+FP conversions and integer narrowing/extensions use opcode-specific
+effective register groups as defined in <<xevu-width-conversions>>.
+Reduction vs2 uses the configured group; its seed and destination each
+use one register. E0 and scalar-source forms require FP32/m1. Illegal
+width/group checks apply at VL=0. Same-width element-wise operations
+may be in-place; portable gather and widening use disjoint groups, and
+partial overlaps or other unspecified overlaps are not portable. The
+slide offset names a scalar GPR and imposes no vector-group alignment
+requirement. Slideup requires disjoint destination/source groups;
+slidedown also permits an identical destination/source group. The
+low-precision instructions require e32/m1, use one register per operand,
+and forbid destination/source overlap even though their outputs are packed.
+
+VTA=0 preserves inactive destination elements; with VTA=1, software must
+not depend on their contents, although preservation is permitted. VMA is saved
+state only: no public masked form is defined. Legal VL=0 data operations
+access no data, change no elements, and accrue no flags; an empty reduction
+does not copy its seed. E0 uses local length one when VL is nonzero,
+otherwise zero, without changing global VL. There is no EVU VSTART.
+
+[[xevu-csrs]]
+==== Control and Status Registers
+
+These ten RV64 CSRs are separate from CPU and matrix arithmetic state.
+RO means read-only; M-W/M-RW restrict writes/both accesses to M-mode.
+Unlisted bits read zero; reserved EVCFG/MEVSTATE fields are written zero.
+
+.EVU CSRs
+[cols="^2,3,7",options="header"]
+|===
+| Address | CSR (access) | Fields or meaning
+| 0x8c0 | EVCFG (R/M-W) | VL[31:0], VTYPE[39:32], Configured[40], VILL[63]
+| 0x8c1 | EFFLAGS (RW) | NX/UF/OF/DZ/NV at bits 0/1/2/3/4
+| 0x8c2 | EVXSAT (RW) | Sticky integer saturation flag at bit 0
+| 0xbc8 | MEVSTATE (M-RW) | State[1:0]: Off/Initial/Clean/Dirty=0/1/2/3; AllowU[2], AllowS[3], ErrorAck[8]
+| 0xcd0 | EVLENB (RO) | EVLEN / 8
+| 0xcd1 | EVCAP (RO) | ABI and capabilities, below
+| 0xcd2 | EVSTATUS (RO) | Busy[0], ErrorValid[1], TvalValid[2]
+| 0xcd3 | EVCAUSE (RO) | First recorded error cause in bits [3:0]
+| 0xcd4 | EVEPC (RO) | PC of the recorded failed command
+| 0xcd5 | EVTVAL (RO) | Fault address if TvalValid=1; otherwise zero
+|===
+
+M-mode EVCFG writes restore configuration with the same normalization:
+VL is requested AVL and an explicit VILL forces invalid state.
+Configured=0 restores VTYPE=0x10, VL=EVLEN/32, VILL=0. U/S writes are illegal.
+Completion ORs flags into EFFLAGS; signed integer arithmetic saturation
+sets EVXSAT. Low-precision conversion saturation instead uses EFFLAGS
+and does not set EVXSAT.
+Software writes replace the low five/one bits respectively. FP rounding
+is fixed RNE; CPU `frm` and matrix `mfrm` do not affect it. Integer
+`nclip.imm` uses fixed VXRM=0 (RNU), not RNE; no programmable EVU
+rounding-mode CSR is defined.
+
+MEVSTATE.Off disables data/configuration and context-dependent CSR access,
+including in M-mode; M-mode can still access MEVSTATE to enable EVU.
+Nonvirtual S-mode also requires AllowS and `mstateen0.C`; U-mode requires
+AllowU, `mstateen0.C`, and `sstateen0.C`. Guest access is unsupported.
+EVLENB/EVCAP may be read while Off, subject to CSR privilege and nonvirtual
+checks. State-changing instructions mark Dirty, conservatively if needed,
+reflected in `mstatus.XS`; matrix MS remains independent. Initial/Clean
+writes do not clear registers: initialize or restore before sharing a context.
+
+EVCAP[7:0]=2; bits 16/17/18 advertise 8/16/32-bit widths; bit 26 advertises
+gather-immediate, bit 27 scalar VL return, bit 28 RVV-mapped math and
+width conversions, and bit 29 low-precision conversions. These additions
+do not change ABI 2. Legacy bit 24 reads one but
+defines no additional feature, especially no matrix-data interface.
+Opcode-specific width restrictions still apply. EVCAUSE codes are
+0 none, 1 illegal operation, 2 access violation, 3 translation fault,
+4 misalignment, 5 capacity/range, 6 bus failure, 7 cancellation diagnostic;
+these are not scalar `mcause` values. ErrorAck clears the error record
+and reads zero; preserve State/AllowU/AllowS when writing it.
+
+include::xevu_memory_sync.adoc[]
+
+==== Context Management
+
+All CSRs above except EVLENB/EVCAP serialize with and drain older EVU
+work through its final memory response. Thus EVSTATUS is not a nonblocking
+poll: Busy is normally zero after the read. Obtain VL from configuration
+instructions rather than a draining CSR read.
+
+Save drains work, handles errors, and saves all 32 full registers,
+configuration, flags, and permission/status fields. Temporary e8/m1 with
+VL=EVLENB permits ordinary full-register loads/stores; drain them before
+reusing buffers or changing address spaces. Restore registers under an
+enabled temporary configuration, drain, restore EVCFG in M-mode and flags,
+then status/permissions. Error records cannot be restored by ordinary CSR
+writes; acknowledgement or context restoration does not retry failed work.

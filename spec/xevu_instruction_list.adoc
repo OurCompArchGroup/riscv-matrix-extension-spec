@@ -1,0 +1,43 @@
+
+<<<
+
+[[xevu-encoding-list]]
+=== Instruction Encoding List
+
+Each entry is `funct7:mnemonic`, with funct7 in hexadecimal and an
+implicit `xv.` mnemonic prefix. All 78 assigned encodings are listed;
+widths and operand layouts follow <<xevu-encoding>>. Source-level support
+does not imply completed whole-system validation.
+
+.EVU operation selectors
+[cols="2,9",options="header"]
+|===
+| Family | funct7:mnemonic
+| Integer | `01:add`, `02:sub`, `03:and`, `04:or`, `05:xor`, `06:mul`, `07:mac`, `20:sll`, `21:srl`, `22:sra`, `23:min`, `24:max`, `25:minu`, `26:maxu`
+| Integer reduction | `0c:reduce.sum`, `0d:reduce.max`, `0e:reduce.min`, `40:reduce.and`, `41:reduce.or`, `42:reduce.xor`
+| Floating-point | `0f:exp2`, `30:fadd`, `31:fsub`, `32:fmul`, `33:fmacc`, `34:fdiv`, `35:fmin`, `36:fmax`
+| FP reduction | `37:freduce.sum`, `43:freduce.min`, `44:freduce.max`
+| Wide/saturate | `39:wadd`, `3a:wsub`, `3b:wmul`, `3c:satadd`, `3d:satsub`
+| Memory | `10:load`, `11:store`, `52:load.e0`, `53:store.e0`
+| Permutation | `3e:slideup`, `3f:slidedown`, `47:gather`, `51:gather.imm`
+| Configuration | `45:setvli`, `46:setvl`
+| E0 arithmetic | `54:fadd.e0`, `55:fsub.e0`, `56:fmul.e0`, `57:fdiv.e0`, `58:fmax.e0`, `59:exp2.e0`
+| VRF scalar-source | `5a:fadd.scalar`, `5b:fsub.scalar`, `5c:fmul.scalar`, `5d:fmax.scalar`
+| FP math/sign | `60:fsqrt`, `61:frsqrt7`, `64:frec7`, `66:fsgnjx`
+| E0 FP math | `62:fsqrt.e0`, `63:frsqrt7.e0`, `65:frec7.e0`
+| FP/width conversion | `67:fwcvt.f.f`, `68:fncvt.f.f`, `69:fcvt.x.f`, `6a:fcvt.f.x`, `6b:nclip.imm`, `6c:zext2`, `6d:sext2`, `6e:nsrl.imm`
+| Low-precision XX8 | `70:cvt.i8.f32`, `71:cvt.e4m3.f32`, `72:cvt.e5m2.f32`, `73:cvt.f32.e4m3`
+| Low-precision MXFP | `74:cvt.mxfp8.f32`, `75:cvt.mxfp4.f32`
+| Completion | `1a:fence`
+|===
+
+Selectors 60-6e, including the three E0 forms, comprise the 15 additions
+advertised by EVCAP[28]. Selectors 70-75 are the six low-precision
+additions advertised by EVCAP[29]. `fabs` is a sign-XOR alias and does
+not add an encoding. See <<xevu-rvv-math>>, <<xevu-width-conversions>>,
+and <<xevu-low-precision>> for semantics, widths, and operand restrictions.
+
+All other selectors are reserved and illegal even at VL=0, including
+08-0b, 18-19, 38, 48-50, 5e-5f, 6f, and 76-7f. There is no public scatter
+instruction. New conversions do not reactivate the retired direct
+quantization selectors 50 or 5e.

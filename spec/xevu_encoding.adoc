@@ -1,0 +1,65 @@
+[[xevu-encoding]]
+=== Instruction Format
+
+All EVU instructions are 32-bit custom-0 instructions (`opcode=0x0b`),
+independent of Zames custom-1. Vector register indices are five bits.
+
+[cols="^1,^1,^1,^1,^1,^1",options="header"]
+|===
+| 31:25 | 24:20 | 19:15 | 14:12 | 11:7 | 6:0
+| funct7 | S2 | S1 | F3 | D | 0001011
+|===
+
+.Operand fields
+[cols="3,2,2,2,2",options="header"]
+|===
+| Family | S2 | S1 | F3 | D
+| Binary, reduction, gather | vs2 | vs1 | VSEW | vd
+| Slide | vs2 | Offset GPR | VSEW | vd
+| Unary FP math or FP/integer conversion | vs2 | 0 | VSEW | vd
+| Sign XOR | vs2 | vs1 | VSEW | vd
+| Narrowing immediate | vs2 | uimm5 | VSEW | vd
+| Integer extension | vs2 | 0 | VSEW | vd
+| Low-precision unary conversion | vs2 | 0 | 010 | vd
+| MXFP conversion | vs2 | Scale vector register | 010 | vd
+| Load/store | 0 | Base GPR | VSEW | Vector data
+| Gather immediate | vs2 | uimm5 | VSEW | vd
+| Set immediate type | VTYPE[4:0] | AVL GPR | VTYPE[7:5] | rd
+| Set register type | VTYPE GPR | AVL GPR | 111 | rd
+| Fence | 0 | 0 | 000 | 0
+|===
+
+F3=000/001/010 encodes 8/16/32 bits for ordinary integer, memory, and
+permutation forms. Ordinary floating-point forms allow 001/010; integer
+widening allows 000/001. E0 and scalar-source forms follow their ordinary
+operand layout but require F3=010 and FP32/m1. All unary forms, including
+EXP2 and unary E0 forms, require S1=0. S1 in `nclip.imm`/`nsrl.imm` is a
+five-bit unsigned immediate, not a vector or GPR dependency.
+Configuration supplies effective width as described in <<xevu-configuration>>.
+
+.Additional opcode-specific widths
+[cols="3,2,5",options="header"]
+|===
+| Instruction (prefix `xv.`) | F3 / effective SEW | Input and output
+| fsqrt / frsqrt7 / frec7 / fsgnjx | 001/010; 16/32 | Same-width FP16/FP32
+| fsqrt.e0 / frsqrt7.e0 / frec7.e0 | 010; 32/m1 | FP32 element zero only
+| fwcvt.f.f | 001; 16 | FP16 to FP32; destination EMUL=2*LMUL
+| fncvt.f.f | 001; 16 | FP32 to FP16; source EMUL=2*LMUL
+| fcvt.x.f / fcvt.f.x | 010; 32 | FP32 to signed INT32 / signed INT32 to FP32
+| nclip.imm / nsrl.imm | 000/001; 8/16 | Source width=2*SEW, destination width=SEW
+| zext2 / sext2 | 001/010; 16/32 | Source width=SEW/2, destination width=SEW
+| All six low-precision conversions | 010; 32/m1 | Logical FP32-lane count with packed byte/nibble operands as specified in <<xevu-low-precision>>
+|===
+
+For low-precision conversions, F3 and the effective configuration are
+e32/m1 even for E4M3 decoding; they do not encode the packed output width.
+The MXFP scale register contributes only its element-zero low byte, an
+UE8M0 exponent code, not a scalar GPR or an E4M3 block scale. These six
+instructions use private conversions, not standard RVV operation encodings.
+
+Unused fields are zero in the documented encoding; their nonzero values
+have no assigned semantics. There is no mask or programmable-stride field.
+Malformed encodings, illegal widths/groups, and disabled contexts remain
+illegal at VL=0; unsupported VTYPE requests instead use VILL. Unassigned
+funct7 values in <<xevu-encoding-list>> are reserved and must never issue
+data-memory requests. Fault delivery follows <<xevu-faults>>.

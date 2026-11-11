@@ -1,0 +1,39 @@
+[[xevu-execution]]
+==== Execution and Completion
+
+Scalar retirement commits a non-speculative command, not necessarily its
+completion. Retired work retains its GPR values, configuration, and
+translations and cannot be cancelled by younger branch recovery. EVU
+preserves RAW/WAR/WAW and overlapping memory dependencies in program order;
+independent work may overlap or chain. EVU register dependencies alone
+need no software fence. Completion includes final physical memory responses.
+
+[[xevu-memory-model]]
+==== Memory and Exceptions
+
+Memory operands are virtual addresses. The current integration checks the
+entire range before retirement for alignment, translation, permissions,
+and memory protection/attributes, retaining physical page mappings for
+execution. VL=0 needs no translation. Stores need write permission;
+partial-line read/modify/write may also require read permission and normal
+memory. MMIO is undefined. Drain outstanding accesses before changing
+address spaces, translations, or permissions, and apply normal platform
+translation synchronization.
+
+Coherence does not imply EVU completion or atomic vector stores. A partial
+store, including `store.e0`, may read/merge/write a whole cache line and
+lose racing CPU/matrix writes even to other bytes. Software must exclusively
+own those lines or serialize writers; it must not assume atomic masked writes.
+
+[[xevu-faults]]
+===== Faults
+
+Pre-retirement decode, enable, group, alignment, translation, or permission
+faults use the scalar exception path without the command's data side effects.
+Post-retirement failures are asynchronous: the first is recorded in
+EVCAUSE/EVEPC/EVTVAL until ErrorAck, and later errors do not overwrite it.
+EVTVAL is meaningful only with TvalValid. Failed loads/stores may leave
+partial effects; there is no rollback, per-element restart, or automatic
+retry. Do not blindly retry a failed store. After a drain, inspect and
+handle errors before acknowledgement;
+ErrorAck neither undoes stores nor clears data registers.

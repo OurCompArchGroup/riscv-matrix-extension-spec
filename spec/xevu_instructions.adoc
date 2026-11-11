@@ -1,0 +1,348 @@
+[[xevu-instructions]]
+=== Instructions
+
+Operands are written `vd, vs1, vs2`. Let src2/src1 be the required old
+source elements and acc the old destination. Ordinary subtraction and
+division compute `vs2 op vs1`. Results apply only to active elements;
+other registers are unchanged. `low` retains SEW bits, `signed` interprets
+two's complement, and `clamp` limits to the signed SEW-bit range.
+
+==== Configuration Instructions
+
+`xv.setvli rd, rs1, vtype_uimm8` and `xv.setvl rd, rs1, rs2` normalize
+configuration as in <<xevu-configuration>> and return actual VL in rd.
+The register form reads full VTYPE from x[rs2]. The returned VL is
+available to scalar dependencies without a CSR drain; completion does
+not write rd a second time.
+
+[[xevu-e0-memory]]
+==== Load and Store Instructions
+
+`xv.load vd, rs1, sew` and `xv.store vs, rs1, sew` transfer element
+`idx` at `x[rs1] + idx*(SEW/8)` for `0 <= idx < VL`. The base must be
+naturally aligned to SEW/8 bytes. Loads follow VTA; stores touch only
+active bytes. There are no indexed-memory, strided, segmented, or masked
+forms. D selects vector data for both directions; neither writes a GPR.
+
+`load.e0`/`store.e0` transfer one 32-bit word at x[rs1] using vector
+element zero when global VL is nonzero, otherwise nothing. They require
+FP32/m1 and F3=010 and leave global VL unchanged. E0 loads follow the
+local-length-one tail rule. E0 stores have the same partial-line and
+completion constraints as ordinary stores; see <<xevu-memory-model>>
+and <<xevu-fence>>.
+
+==== Arithmetic Instructions
+
+.Active-element arithmetic
+[cols="3,7",options="header"]
+|===
+| Instruction (prefix `xv.`) | Result or operation
+| add / sub / mul | low(src2 + src1) / low(src2 - src1) / low(src2 * src1)
+| mac | low(src2 * src1 + acc)
+| and / or / xor | Bitwise src2 op src1
+| sll / srl / sra | Shift src2 by unsigned(src1) AND (SEW-1); left / logical right / signed arithmetic right; retain SEW bits
+| min / max; minu / maxu | Signed minimum/maximum; unsigned minimum/maximum
+| wadd / wsub / wmul | Sign-extend inputs, add/subtract/multiply, return 2*SEW bits
+| satadd / satsub | clamp(signed(src2) + signed(src1)) / clamp(signed(src2) - signed(src1))
+| fadd / fsub / fmul / fdiv | RNE(src2 op src1), same FP format
+| fmacc | RNE(src2 * src1 + acc), fused with one final rounding
+| fmin / fmax | Floating-point minimum/maximum, subject to the review below
+| fsqrt | RNE(sqrt(src2)), same FP format
+| frsqrt7 / frec7 | RVV seven-bit reciprocal-square-root / reciprocal estimate of src2
+| fsgnjx | Magnitude bits of src2, with sign(src2) XOR sign(src1)
+|===
+
+Ordinary integer arithmetic is modular and sets no arithmetic flags;
+signed saturation sets sticky EVXSAT when clamping occurs. Widening
+produces VL results with destination width/group twice the source;
+its only widths are 8-to-16 and 16-to-32.
+
+[[xevu-floating-point]]
+===== Floating-Point Rules
+
+FP16/FP32 arithmetic uses fixed RNE and accrues EFFLAGS, independently
+of CPU/matrix flags. Ordinary add/multiply/divide handle subnormals.
+Min/max choose the numerical result for unequal finite inputs, the
+numeric operand with one NaN, and canonical quiet NaN with two NaNs.
+*Implementation review:* signed-zero ties, NaN flags, and inactive-element
+exception handling still differ or need review in RTL/reference models;
+this also applies to reductions and E0/scalar-source max.
+
+[[xevu-rvv-math]]
+===== Square Root, Estimates, and Sign XOR
+
+`xv.fsqrt vd, vs2, sew` maps to RVV `vfsqrt.v`. It computes a
+correctly rounded FP16/FP32 square root: signed zero is preserved,
++infinity is unchanged, and a negative nonzero input or signaling NaN
+returns canonical quiet NaN with NV. A quiet NaN returns canonical quiet
+NaN; inexact finite results accrue NX.
+
+`xv.frsqrt7 vd, vs2, sew` and `xv.frec7 vd, vs2, sew` map to
+`vfrsqrt7.v` and `vfrec7.v`. They use the RVV lookup-estimate and
+special-value/exception rules, not a full-precision rounded `1/sqrt(x)`
+or `1/x`. Positive finite estimates have approximately seven bits of
+precision; refinement is a software choice. Signed-zero inputs yield
+signed infinity with DZ; reciprocal-square-root of a negative nonzero
+input yields canonical quiet NaN with NV. Reciprocal estimates accept
+negative finite inputs; signaling NaNs accrue NV. Estimate overflow and
+other flags follow the corresponding RVV operation.
+
+`fsgnjx` maps to `vfsgnjx.vv`, copying all non-sign bits of src2 and
+XORing the two source sign bits. It never raises FP exceptions, even
+for signaling-NaN bit patterns. `xv.fabs vd, vs, sew` is an alias for
+`xv.fsgnjx vd, vs, vs, sew`, not a new encoding.
+
+[[xevu-exp2]]
+===== EXP2
+
+`xv.exp2` approximates `2^src2`, not the natural exponential, in FP16/FP32.
+Special cases are: +/-0 gives +1; +infinity gives +infinity; -infinity
+gives +0; quiet NaN gives canonical quiet NaN; signaling NaN additionally
+sets NV; nonzero subnormal input gives +1 and NX. Other listed special
+cases set no flags. Overflow returns
++infinity with OF/NX; tiny inexact results set UF/NX, and approximation
+or rounding inexactness contributes NX. DZ is not generated.
+*Numerical limitation:* no maximum ULP error or correctly rounded result
+is promised; bit-exact checking requires a frozen implementation profile,
+not a host `exp2` substitution.
+
+[[xevu-e0]]
+===== E0 and Scalar-Source Forms
+
+The arithmetic E0 forms are `fadd.e0`, `fsub.e0`, `fmul.e0`, `fdiv.e0`,
+`fmax.e0`, `exp2.e0`, `fsqrt.e0`, `frsqrt7.e0`, and `frec7.e0`.
+They require FP32/m1 and F3=010, read source
+element zero, and write only vd[0] when VL is nonzero; VL=0 does nothing.
+EXP2, square root, and both estimates are unary. Other elements follow
+VTA at local length one; nothing is
+broadcast and global VL is unchanged.
+
+`fadd.scalar`, `fsub.scalar`, `fmul.scalar`, and `fmax.scalar` also require
+FP32/m1 and F3=010, but compute vs2[idx] op old(vs1[0]) for every active
+element. The scalar is an EVU element, not a CPU GPR/FPR. Read it before
+any destination update, including vd=vs1; these forms do not change VL.
+
+[[xevu-width-conversions]]
+==== Width and Integer/FP Conversion Instructions
+
+Unary syntax is `xv.<operation> vd, vs2, sew`; immediate syntax is
+`xv.<operation> vd, uimm5, vs2, sew`. Widths follow
+<<xevu-encoding>>. All forms leave global VL/VTYPE unchanged.
+
+.RVV-mapped conversions
+[cols="3,3,5",options="header"]
+|===
+| Instruction (prefix `xv.`) | Saturn/RVV operation | Meaning
+| fwcvt.f.f | vfwcvt.f.f.v | FP16 to FP32, with FP NaN/exception rules
+| fncvt.f.f | vfncvt.f.f.w | FP32 to FP16 with RNE and FP exception flags
+| fcvt.x.f | vfcvt.x.f.v | FP32 to signed INT32 with RNE and RVV invalid-conversion rules
+| fcvt.f.x | vfcvt.f.x.v | Signed INT32 to FP32 with RNE; NX if inexact
+| nclip.imm | vnclip.wi | Arithmetic right shift of a signed 2*SEW-bit source, RNU rounding, then signed SEW-bit saturation
+| nsrl.imm | vnsrl.wi | Logical right shift of a 2*SEW-bit source, then keep its low SEW bits
+| zext2 / sext2 | vzext.vf2 / vsext.vf2 | Zero-/sign-extend SEW/2-bit source to SEW bits
+|===
+
+For widening, source EMUL=LMUL and destination EMUL=2*LMUL. For narrowing,
+destination EMUL=LMUL and source EMUL=2*LMUL. Extensions use destination
+EMUL=LMUL and source EMUL=LMUL/2. Each produces VL destination elements;
+EMUL must be within 1/8 through 8. Integer EMUL groups are aligned and
+must end by ev31; fractional groups occupy the low part of one register.
+Thus, for example, e16/m1 `fwcvt.f.f` reads one register and writes two,
+whereas e16/m1 `fncvt.f.f` reads two and writes one. e16/m1 `zext2`
+reads the low half of one register and writes one full register.
+
+Disjoint groups are always permitted. Narrowing may overlap only at the
+low part, with vd=vs2. Widening may overlap only with the source at the
+high end of the destination and source EMUL at least one. The same
+high-end rule applies to extension, whose source EMUL must then be at
+least one (LMUL at least two). Illegal width, alignment, range, EMUL,
+overlap, and nonzero unary S1 checks still apply at VL=0.
+
+Both narrowing shifts mask uimm5 by (2*SEW-1). `nclip.imm` rounds using
+fixed VXRM=0 (RNU: ties round upward), not nearest-even, and sets EVXSAT
+only if the rounded signed value is clamped. Shift zero performs pure
+saturation. `nsrl.imm` truncates without rounding or saturation. These
+shifts and integer extensions do not accrue EFFLAGS; `nsrl.imm` and
+extensions also leave EVXSAT unchanged. FP/integer conversions accrue
+EFFLAGS, not EVXSAT.
+
+[[xevu-low-precision]]
+==== Low-Precision Conversion Instructions
+
+These six private conversions use e32/m1, one architectural register per
+operand, and VL logical elements, with `0 <= VL <= EVLEN/32`. Each
+requires F3=010 and leaves global VL/VTYPE unchanged. No masked, E0, or
+scalar-result form is defined. They do not enable general FP8/FP4 arithmetic.
+
+.Low-precision operations
+[cols="3,5",options="header"]
+|===
+| Instruction (prefix `xv.`) | Operation
+| cvt.i8.f32 | FP32 to packed signed INT8
+| cvt.e4m3.f32 | FP32 to packed finite-only E4M3
+| cvt.e5m2.f32 | FP32 to packed E5M2
+| cvt.f32.e4m3 | Packed E4M3 to FP32
+| cvt.mxfp8.f32 | FP32 divided by UE8M0 scale, then converted to packed E4M3
+| cvt.mxfp4.f32 | FP32 divided by UE8M0 scale, then converted and packed to E2M1
+|===
+
+The first four use `xv.<operation> vd, vs2` with S1=0. MXFP syntax is
+`xv.<operation> vd, scale, vs2`, where scale is an EVU register and its
+old element-zero low byte is held for the whole command. Destination
+must differ from the data source and, for MXFP, from the scale source;
+the two sources may be the same register. Non-m1 groups, wrong widths,
+forbidden overlap, and nonzero unary S1 are illegal even at VL=0.
+
+===== Packed Register Layout
+
+FP32 input/output element idx occupies bits `[32*idx+31:32*idx]`.
+INT8/E4M3/E5M2 output byte idx occupies bits `[8*idx+7:8*idx]`;
+E4M3 decoding reads this same byte layout. FP4 output idx occupies bits
+`[4*idx+3:4*idx]`: the earlier element is in the low nibble of each byte.
+Byte-output conversions write VL bytes, FP4 writes `ceil(VL/2)` bytes,
+and E4M3 decoding writes `4*VL` bytes. An odd FP4 VL clears the unused
+high nibble of its final byte. All other destination bytes are preserved
+regardless of VTA. Legal VL=0 leaves all data and flags unchanged.
+
+For the current EVLEN=4096 profile, one e32/m1 command handles at most
+128 logical elements, producing at most 128 packed bytes or 64 FP4 bytes.
+Packed results remain in the destination VRF register; conversion does
+not store memory. Use ordinary e8 loads/stores with an explicitly
+reconfigured byte VL to transfer packed data, then restore e32/m1 before
+another conversion.
+
+===== Rounding, Formats, and Flags
+
+Rounding is fixed RNE. Only active elements contribute flags to EFFLAGS;
+none of these conversions sets EVXSAT, including INT8 saturation.
+Inexact valid conversions set NX. Tiny inexact FP results set UF/NX
+when the rounded result remains subnormal or zero (tininess after rounding).
+
+* INT8 saturates to [-128,127]. Invalid conversion sets NV: NaN maps to
+  +127, positive overflow/infinity to +127, and negative overflow/infinity
+  to -128. A valid rounded result is stored as a two's-complement byte.
+* E4M3 has exponent bias 7, three fraction bits, signed zero, subnormals
+  down to 2^-9, and maximum finite magnitude 448. It has no infinity;
+  overflow or infinity saturates to signed maximum with OF/NX. NaNs map
+  to canonical code 0x7f; signaling input NaN additionally sets NV.
+* E5M2 has exponent bias 15, two fraction bits, subnormals down to 2^-16,
+  maximum finite magnitude 57344, and infinities. RNE overflow produces
+  signed infinity with OF/NX; an input infinity is exact. Canonical NaN
+  is 0x7e, with NV for signaling input NaN.
+* E2M1 has exponent bias 1 and finite magnitudes {0, 0.5, 1, 1.5, 2, 3,
+  4, 6}, with a sign bit including signed zero. Overflow/infinity saturates
+  to signed 6 with OF/NX. A NaN input or NaN scale produces positive 6
+  (code 0x7) with NV.
+
+E4M3 decoding is exact for every finite code, preserving signed zero
+and subnormals. Codes 0x7f/0xff decode to canonical FP32 quiet NaN without
+flags; E4M3 has no separate signaling-NaN code.
+
+The MXFP scale byte is UE8M0: codes k=0..254 mean `2^(k-127)`, so code
+127 is unity; code 255 is NaN. It is not an E4M3 code, and an E4M3 scale
+must not be passed directly as this operand. Scaling adjusts the input
+exponent before target-format rounding, without an intervening rounded
+FP32 division. MXFP8 uses the E4M3 rules; NaN scale yields canonical
+E4M3 NaN, with NV only if the data input itself is a signaling NaN.
+
+==== Reduction and Permutation Instructions
+
+[[xevu-reductions]]
+===== Reductions
+
+With VL nonzero, reductions combine the seed vs1[0] with vs2[0..VL-1]
+and write only vd[0], in the same element format. Integer operators are
+sum modulo 2^SEW, signed min/max, and bitwise and/or/xor. FP operators
+are sum/min/max; min/max use <<xevu-floating-point>>. FP sum is unordered,
+not an exact sum rounded once; reproducible checking must specify the
+tree and intermediate precision. VL=0 leaves the destination unchanged,
+including not copying the seed. Other destination elements follow VTA
+with local output length one. There is no implicit CPU result or store.
+
+===== Gather and Broadcast
+
+`gather` takes unsigned same-SEW indices from vs1; `gather.imm` uses an
+unsigned uimm5 (0-31). Each active output reads vs2[index] if index is
+below VLMAX, otherwise zero. The bound is VLMAX, not VL: software must
+initialize any selected source tail. Immediate zero broadcasts vs2[0].
+Gather accesses registers, not memory, and uses disjoint destination/source
+groups for portable behavior.
+
+[[xevu-slide-review]]
+===== Slide
+
+`xv.slideup vd, rs1, vs2, sew` and `xv.slidedown vd, rs1, vs2, sew`
+take the full unsigned 64-bit offset from scalar GPR x[rs1], captured
+when the command is issued. x0 supplies offset zero. The offset is not
+masked to SEW bits and is not read from an EVU register. These forms map
+to Saturn's RVV `vslideup.vx` and `vslidedown.vx` respectively.
+
+For active idx, slideup reads vs2[idx-offset] when idx >= offset and
+preserves the old destination below offset. Slidedown reads vs2[idx+offset]
+when the mathematical sum is below VLMAX, otherwise zero; a large offset
+cannot wrap around. The bound is VLMAX, not VL, so initialize any selected
+source tail. Both operations support SEW=8/16/32, leave VL/VTYPE and
+arithmetic flags unchanged, and follow VTA beyond VL.
+
+Source and destination groups must be aligned and in range. Slideup
+requires disjoint groups even at offset zero; slidedown permits identical
+groups. The scalar offset register is not subject to LMUL alignment.
+These legality checks apply at VL=0; a legal VL=0 command changes nothing.
+
+==== Completion and Synchronization Instructions
+
+[[xevu-fence]]
+===== XV.FENCE
+
+`xv.fence` drains older computation, loads, stores, and final physical
+memory responses before later scalar consumption. Queue acceptance is
+not store completion. It returns no data and changes neither configuration
+nor matrix sync registers. Check asynchronous errors after the drain;
+a fence does not repair failures or acknowledge them. It covers the EVU
+domain, not cross-hart publication or matrix-engine completion.
+Dependencies between EVU instructions remain
+hardware-managed and do not require a fence after each operation.
+
+[[xevu-memory-sync]]
+===== Shared-Memory Handoff
+
+All boundaries require compiler memory ordering as well as the following
+same-hart synchronization; cross-hart publication uses platform protocols.
+
+[cols="3,7",options="header"]
+|===
+| Producer to consumer | Required boundary
+| CPU to EVU | Publish input before the EVU load; current dispatch drains older scalar stores.
+| EVU to CPU | XV.FENCE or another specified EVU drain before consumption.
+| Matrix to EVU | With Zmasync, corresponding mrelease and successful macquire before the EVU load.
+| EVU to matrix | XV.FENCE, then Zmasync mfence, before the matrix load.
+|===
+
+Synchronous matrix execution uses its defined store-completion boundary.
+Matrix results require an explicit store and EVU load; synchronization
+alone never transfers an accumulator into the EVU register file.
+
+[[xevu-example]]
+==== Usage Example
+
+This softmax-like sequence uses VTYPE=0x10 (e32/m1) and already-published
+input/constants. Process actual returned VL, looping for any remainder;
+production code must also handle empty input and NaNs/infinities.
+
+[source,text,options="unbreakable"]
+----
+xv.setvli      t0, count, 0x10
+xv.load        ev1, input, e32
+xv.load.e0     ev2, minus_infinity
+xv.freduce.max ev3, ev2, ev1, e32
+xv.fsub.scalar ev4, ev3, ev1
+xv.load.e0     ev5, log2_e
+xv.fmul.scalar ev4, ev5, ev4
+xv.exp2        ev6, ev4, e32
+xv.load.e0     ev7, zero
+xv.freduce.sum ev8, ev7, ev6, e32
+xv.gather.imm  ev9, 0, ev8, e32
+xv.fdiv        ev10, ev9, ev6, e32
+xv.store       ev10, output, e32
+xv.fence
+----

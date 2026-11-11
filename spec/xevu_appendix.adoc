@@ -1,0 +1,26 @@
+[[xevu]]
+== Xxsaievu: Optional External Vector Extension
+
+=== Overview
+
+The XSAI external vector unit (EVU) executes `xv.*` commands from an
+RV64 scalar hart using independent vector registers. It supports integer
+and floating-point arithmetic, reductions, register permutations,
+FP/integer and low-precision conversions, and unit-stride memory access.
+Zames, Zmasync, and `mmacc` remain unchanged;
+matrix and EVU data are exchanged through memory, not register transfers.
+The conversion instructions support VRF-based quantization sequences.
+
+`Xxsaievu` is a project-local draft, revision 0.3, using custom encodings
+and configuration/context ABI 2; it is not a ratified RISC-V extension.
+`ev0`-`ev31` denote EVU registers, separate from CPU RVV state; `ev0` is
+ordinary data, not an implicit mask. `x0`-`x31` denote scalar GPRs.
+The mnemonics are documentation notation; current software uses `.insn`.
+Execution width, lanes, banks, and queues are implementation details.
+Completion synchronization uses `xv.fence`.
+Numerical limitations are identified with their operations.
+
+include::xevu_program_model.adoc[]
+include::xevu_encoding.adoc[]
+include::xevu_instructions.adoc[]
+include::xevu_instruction_list.adoc[]

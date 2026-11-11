@@ -3,3 +3,9 @@
 This document is a matrix extension proposal for RISC-V. 
 
 The extension chooses a decoupled architecture from the vector extension for the flexibility and implementation considerations. This extension defines extra matrix registers and instructions. The instructions include matrix configuration instructions, matrix multiplication instructions (stem:[C += A \times B^T]), matrix load/store instructions, and matrix misc instructions.
+
+The optional XSAI external vector extension, described in <<xevu>>, adds
+an independent vector register file and `xv.*` computation and memory
+instructions. It retains the matrix programmer's model and instruction
+semantics; its configuration and shared-memory synchronization rules are
+defined in its own appendix.
