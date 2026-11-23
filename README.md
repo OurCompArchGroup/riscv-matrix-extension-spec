@@ -40,8 +40,8 @@ Instructions, and Instruction Encoding List.
 | B.1 Overview | `spec/xevu_appendix.adoc` | Scope, notation, draft status, and completion model |
 | B.2 Programmer's Model | `spec/xevu_program_model.adoc`, including `spec/xevu_memory_sync.adoc` | Vector registers, configuration ABI 2, ten CSRs, execution, memory and exception rules, and context management |
 | B.3 Instruction Format | `spec/xevu_encoding.adoc` | Custom-0 formats, operand fields, and encoding legality |
-| B.4 Instructions | `spec/xevu_instructions.adoc` | Arithmetic, RVV-mapped math/width conversions, packed INT8/FP8/FP4 conversions, completion, memory handoff, and a softmax-like example |
-| B.5 Instruction Encoding List | `spec/xevu_instruction_list.adoc` | All 78 assigned operation selectors and reserved selectors |
+| B.4 Instructions | `spec/xevu_instructions.adoc` | Arithmetic, RVV-mapped math/width conversions, packed INT8/UINT8/FP8/FP4/BF16 conversions, block quantization helpers, completion, memory handoff, and a softmax-like example |
+| B.5 Instruction Encoding List | `spec/xevu_instruction_list.adoc` | All 92 assigned operation selectors and reserved selectors |
 
 The appendix is a concise ISA reference: common rules are stated once,
 operation selectors are grouped by family, and backend algorithms and
@@ -49,17 +49,24 @@ implementation-review process details are omitted. Numerical limitations
 and synchronization/error constraints remain explicit.
 
 `Xxsaievu` is a project-local draft name, not a ratified extension. The appendix
-retains the current EVU custom-0 encoding and independent state. Revision 0.3
-defines scalar-GPR offsets for slideup/slidedown and removes the public WAIT
-instruction (0x19 remains illegal); completion synchronization uses FENCE.
-It retains the 15 RVV-mapped math/width encodings and six low-precision conversion
-encodings present in the implementation sources, advertised by EVCAP bits
-28/29 without changing configuration/context ABI 2. Packed conversions support
-VRF-based quantization sequences; descriptor-based quantization and direct
-matrix-data paths remain out of scope. Zames `mmacc`, TR/ACC, and the existing
-Zmasync definitions are unchanged. Unresolved implementation/numerical
-details are explicitly identified; documenting the
-new source interface does not assert completed RTL simulation acceptance.
+retains the EVU custom-0 encoding, independent registers, and configuration/context
+ABI 2. Revision 0.4 defines eighteen packed conversions and two block
+quantization helpers. It preserves all 78 previously assigned selectors,
+including the original six conversions at 0x70-0x75 and their EVCAP[29]
+meaning. The upstream block operations occupy 0x76/0x77 with EVCAP[30];
+additional raw conversions use 0x27-0x2c with EVCAP[31], additional MX
+conversions use 0x78-0x7b with EVCAP[32], and BF16 uses 0x2d/0x2e with
+EVCAP[33]. The complete list contains 92 assigned selectors.
+
+The conversion contract covers both directions, packed byte/nibble/halfword
+layout, supplied UE8M0 scales, fixed RNE, NaNs, saturation, and flags.
+The block helpers specify four absolute maxima and FP32-multiply-to-E2M1
+packing with a VRF descriptor selected by a GPR control word. They add no
+saved context state. Scalar-GPR slide offsets and FENCE completion from
+revision 0.3 remain; selector 0x19 stays illegal. Zames `mmacc`, TR/ACC,
+and Zmasync are unchanged. This document specifies software-visible behavior;
+RTL validation and implementation timing are recorded by the implementation
+projects.
 
 The normal PDF/HTML builds include this appendix in the same document as Zames
 and Zmasync. No separate EVU build target is needed.

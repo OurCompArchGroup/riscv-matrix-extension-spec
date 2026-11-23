@@ -6,12 +6,13 @@
 The XSAI external vector unit (EVU) executes `xv.*` commands from an
 RV64 scalar hart using independent vector registers. It supports integer
 and floating-point arithmetic, reductions, register permutations,
-FP/integer and low-precision conversions, and unit-stride memory access.
+FP/integer and low-precision conversions, block quantization helpers,
+and unit-stride memory access.
 Zames, Zmasync, and `mmacc` remain unchanged;
 matrix and EVU data are exchanged through memory, not register transfers.
 The conversion instructions support VRF-based quantization sequences.
 
-`Xxsaievu` is a project-local draft, revision 0.3, using custom encodings
+`Xxsaievu` is a project-local draft, revision 0.4, using custom encodings
 and configuration/context ABI 2; it is not a ratified RISC-V extension.
 `ev0`-`ev31` denote EVU registers, separate from CPU RVV state; `ev0` is
 ordinary data, not an implicit mask. `x0`-`x31` denote scalar GPRs.

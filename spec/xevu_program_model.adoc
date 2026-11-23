@@ -9,10 +9,11 @@ occupies the low bits; memory is little-endian. Groups concatenate
 increasing register numbers; fractional LMUL uses a register's low part.
 Registers have no persistent type. Ordinary integer widths are 8/16/32 bits;
 ordinary floating-point arithmetic uses IEEE binary16/binary32. The
-low-precision conversions additionally read/write packed INT8, E4M3, E5M2,
-and E2M1 representations, with the layouts in <<xevu-low-precision>>.
-This does not add general FP8/FP4 arithmetic, BF16, FP64, or packed
-matrix-register formats. Register capacity does not specify execution width.
+low-precision conversions additionally read/write packed INT8, UINT8,
+E4M3, E5M2, E2M1, and BF16 representations, with the layouts in <<xevu-low-precision>>.
+General FP8/FP4/BF16 arithmetic, FP64, and packed matrix-register
+formats are not defined by these conversions. Register capacity does not
+specify execution width.
 
 [[xevu-configuration]]
 ==== Vector Configuration
@@ -58,12 +59,15 @@ requirement. Slideup requires disjoint destination/source groups;
 slidedown also permits an identical destination/source group. The
 low-precision instructions require e32/m1, use one register per operand,
 and forbid destination/source overlap even though their outputs are packed.
+Block operations also use e32/m1 but impose the fixed lengths and operand
+roles in <<xevu-block>>; their descriptor fields are not vector group indices.
 
 VTA=0 preserves inactive destination elements; with VTA=1, software must
 not depend on their contents, although preservation is permitted. VMA is saved
 state only: no public masked form is defined. Legal VL=0 data operations
 access no data, change no elements, and accrue no flags; an empty reduction
-does not copy its seed. E0 uses local length one when VL is nonzero,
+does not copy its seed. Block operations require their specified nonzero
+VL and reject VL=0. E0 uses local length one when VL is nonzero,
 otherwise zero, without changing global VL. There is no EVU VSTART.
 
 [[xevu-csrs]]
@@ -111,8 +115,24 @@ writes do not clear registers: initialize or restore before sharing a context.
 
 EVCAP[7:0]=2; bits 16/17/18 advertise 8/16/32-bit widths; bit 26 advertises
 gather-immediate, bit 27 scalar VL return, bit 28 RVV-mapped math and
-width conversions, and bit 29 low-precision conversions. These additions
-do not change ABI 2. Legacy bit 24 reads one but
+width conversions. Bits 29-33 identify independent operation groups:
+
+.Conversion and block capabilities
+[cols="1,6,3",options="header"]
+|===
+| Bit | Required operations | funct7 selectors
+| 29 | Original six low-precision conversions | 70-75
+| 30 | Block absolute maxima and E2M1 packing | 76-77
+| 31 | Additional raw UINT8, INT8/UINT8 expansion, and E2M1/E5M2 directions | 27-2c
+| 32 | Additional MXE5M2 encoding and all three scaled FP32 reconstructions | 78-7b
+| 33 | Both FP32/BF16 conversion directions | 2d-2e
+|===
+
+A set bit promises every member of that group. A clear bit makes all
+members unsupported; advertising one group does not imply any other.
+The meaning of bit 29 is unchanged. Software must use 64-bit masks for
+EVCAP, including bits 32 and 33. These additions do not change ABI 2
+or add saved context state. Legacy bit 24 reads one but
 defines no additional feature, especially no matrix-data interface.
 Opcode-specific width restrictions still apply. EVCAUSE codes are
 0 none, 1 illegal operation, 2 access violation, 3 translation fault,

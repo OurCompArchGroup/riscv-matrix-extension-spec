@@ -22,6 +22,8 @@ independent of Zames custom-1. Vector register indices are five bits.
 | Integer extension | vs2 | 0 | VSEW | vd
 | Low-precision unary conversion | vs2 | 0 | 010 | vd
 | MXFP conversion | vs2 | Scale vector register | 010 | vd
+| Block absolute maxima | vs2 | Immediate slot 0-3 | 010 | vd
+| Block pack | vs2 | Descriptor GPR | 010 | vd
 | Load/store | 0 | Base GPR | VSEW | Vector data
 | Gather immediate | vs2 | uimm5 | VSEW | vd
 | Set immediate type | VTYPE[4:0] | AVL GPR | VTYPE[7:5] | rd
@@ -48,14 +50,17 @@ Configuration supplies effective width as described in <<xevu-configuration>>.
 | fcvt.x.f / fcvt.f.x | 010; 32 | FP32 to signed INT32 / signed INT32 to FP32
 | nclip.imm / nsrl.imm | 000/001; 8/16 | Source width=2*SEW, destination width=SEW
 | zext2 / sext2 | 001/010; 16/32 | Source width=SEW/2, destination width=SEW
-| All six low-precision conversions | 010; 32/m1 | Logical FP32-lane count with packed byte/nibble operands as specified in <<xevu-low-precision>>
+| All eighteen low-precision conversions | 010; 32/m1 | Logical value count with FP32 or packed byte/nibble/halfword operands as specified in <<xevu-low-precision>>
+| block.amax / block.pack | 010; 32/m1 | Fixed 64 / 16 FP32 source values; destinations and descriptor fields follow <<xevu-block>>
 |===
 
 For low-precision conversions, F3 and the effective configuration are
-e32/m1 even for E4M3 decoding; they do not encode the packed output width.
+e32/m1 in both directions, including BF16 and packed integer/float decoding;
+they do not encode source or destination storage width.
 The MXFP scale register contributes only its element-zero low byte, an
-UE8M0 exponent code, not a scalar GPR or an E4M3 block scale. These six
-instructions use private conversions, not standard RVV operation encodings.
+UE8M0 exponent code, not a scalar GPR or an E4M3 block scale. These eighteen
+instructions use the custom-0 encodings in this appendix. They leave global
+VL/VTYPE unchanged and do not use a scalar rounding-mode register.
 
 Unused fields are zero in the documented encoding; their nonzero values
 have no assigned semantics. There is no mask or programmable-stride field.
