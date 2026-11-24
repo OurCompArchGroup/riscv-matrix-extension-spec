@@ -30,7 +30,7 @@ does not imply completed whole-system validation.
 | BF16 conversion | `2d:cvt.bf16.f32`, `2e:cvt.f32.bf16`
 | Low-precision XX8 | `70:cvt.i8.f32`, `71:cvt.e4m3.f32`, `72:cvt.e5m2.f32`, `73:cvt.f32.e4m3`
 | Low-precision MXFP | `74:cvt.mxfp8.f32`, `75:cvt.mxfp4.f32`
-| Block operations | `76:block.amax`, `77:block.pack`
+| Block quantization | `76:block.amax`, `77:block.pack`
 | Additional MXFP conversions | `78:cvt.mxe5m2.f32`, `79:cvt.f32.mxe4m3`, `7a:cvt.f32.mxe5m2`, `7b:cvt.f32.mxfp4`
 | Completion | `1a:fence`
 |===
@@ -42,7 +42,7 @@ advertised by EVCAP[30]. The six additional raw conversions at 27-2c use
 EVCAP[31], the four additional MXFP conversions at 78-7b use EVCAP[32],
 and the two BF16 conversions at 2d-2e use EVCAP[33]. `fabs` is a sign-XOR
 alias and does not add an encoding. See <<xevu-rvv-math>>, <<xevu-width-conversions>>,
-<<xevu-low-precision>>, and <<xevu-block>> for semantics, widths, and
+<<xevu-low-precision>>, and <<xevu-block-quantization>> for semantics, widths, and
 operand restrictions.
 
 All other selectors are reserved and illegal even at VL=0, including

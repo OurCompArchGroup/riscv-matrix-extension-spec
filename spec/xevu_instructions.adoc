@@ -334,12 +334,12 @@ Consequently, FP32 0x007f8000 rounds to BF16 0x0080 (minimum normal)
 and still sets UF|NX (0x03). Testing only the stored result exponent
 would give the wrong flag. Exact subnormal conversions set no flags.
 
-[[xevu-block]]
+[[xevu-block-quantization]]
 ==== Block Quantization Helpers
 
 EVCAP[30] advertises `xv.block.amax` and `xv.block.pack`. Both require
-F3=010 and e32/m1 and leave global VL/VTYPE unchanged. Their fixed VL
-requirements apply even at VL=0. They change only the destination
+F3=010, e32/m1, and a start index of zero; they leave global VL/VTYPE
+unchanged. Their fixed VL requirements apply even at VL=0. They change only the destination
 windows specified below, preserving other bytes regardless of VTA;
 neither writes a scalar register, accesses memory, nor sets EVXSAT.
 
@@ -356,6 +356,10 @@ NaNs are omitted from the maximum; an all-NaN group produces +0.
 Absolute value maps -0 to +0 and either infinity to +infinity.
 Any signaling NaN among the 64 inputs sets NV; quiet NaNs set no flags.
 No OF, UF, DZ, or NX is generated.
+
+ifdef::backend-pdf[]
+<<<
+endif::[]
 
 ===== FP32 Multiply and E2M1 Pack
 
@@ -409,6 +413,15 @@ update. All source/destination aliases are allowed, including vd=vs2,
 vd=dreg, and vs2=dreg. Global VL=16 selects the fixed command size;
 C selects which group of 16 source words is read, including groups
 beyond the first 16 words of vs2.
+
+===== Example
+
+For example, after checking EVCAP[30], software can use VL=64 and
+`xv.block.amax ev8, 0, ev4` to obtain four maxima in ev8[0..3].
+Software computes the scales and places the descriptors in ev9.
+At VL=16, `xv.block.pack ev10, t0, ev4` with t0=0x2949 selects
+ev9[2] and source elements ev4[32..47], and updates only bytes 40..47
+of ev10 (slot 5). Use a separate store to write packed bytes to memory.
 
 ==== Reduction and Permutation Instructions
 

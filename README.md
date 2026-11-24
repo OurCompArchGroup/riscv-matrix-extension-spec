@@ -50,8 +50,9 @@ and synchronization/error constraints remain explicit.
 
 `Xxsaievu` is a project-local draft name, not a ratified extension. The appendix
 retains the EVU custom-0 encoding, independent registers, and configuration/context
-ABI 2. Revision 0.4 defines eighteen packed conversions and two block
-quantization helpers. It preserves all 78 previously assigned selectors,
+ABI 2. Revision 0.4 introduced two block quantization helpers; revision 0.5
+extends packed conversions from six to eighteen. It preserves all 80
+selectors assigned through revision 0.4,
 including the original six conversions at 0x70-0x75 and their EVCAP[29]
 meaning. The upstream block operations occupy 0x76/0x77 with EVCAP[30];
 additional raw conversions use 0x27-0x2c with EVCAP[31], additional MX

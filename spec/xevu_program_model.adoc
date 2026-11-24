@@ -57,10 +57,10 @@ partial overlaps or other unspecified overlaps are not portable. The
 slide offset names a scalar GPR and imposes no vector-group alignment
 requirement. Slideup requires disjoint destination/source groups;
 slidedown also permits an identical destination/source group. The
-low-precision instructions require e32/m1, use one register per operand,
+eighteen low-precision conversions require e32/m1, use one register per operand,
 and forbid destination/source overlap even though their outputs are packed.
 Block operations also use e32/m1 but impose the fixed lengths and operand
-roles in <<xevu-block>>; their descriptor fields are not vector group indices.
+roles in <<xevu-block-quantization>>; their descriptor fields are not vector group indices.
 
 VTA=0 preserves inactive destination elements; with VTA=1, software must
 not depend on their contents, although preservation is permitted. VMA is saved

@@ -22,8 +22,8 @@ independent of Zames custom-1. Vector register indices are five bits.
 | Integer extension | vs2 | 0 | VSEW | vd
 | Low-precision unary conversion | vs2 | 0 | 010 | vd
 | MXFP conversion | vs2 | Scale vector register | 010 | vd
-| Block absolute maxima | vs2 | Immediate slot 0-3 | 010 | vd
-| Block pack | vs2 | Descriptor GPR | 010 | vd
+| Block absolute maxima | vs2 | Quarter (0..3) | 010 | vd
+| Block FP4 pack | vs2 | Control-word GPR | 010 | vd
 | Load/store | 0 | Base GPR | VSEW | Vector data
 | Gather immediate | vs2 | uimm5 | VSEW | vd
 | Set immediate type | VTYPE[4:0] | AVL GPR | VTYPE[7:5] | rd
@@ -51,7 +51,7 @@ Configuration supplies effective width as described in <<xevu-configuration>>.
 | nclip.imm / nsrl.imm | 000/001; 8/16 | Source width=2*SEW, destination width=SEW
 | zext2 / sext2 | 001/010; 16/32 | Source width=SEW/2, destination width=SEW
 | All eighteen low-precision conversions | 010; 32/m1 | Logical value count with FP32 or packed byte/nibble/halfword operands as specified in <<xevu-low-precision>>
-| block.amax / block.pack | 010; 32/m1 | Fixed 64 / 16 FP32 source values; destinations and descriptor fields follow <<xevu-block>>
+| block.amax / block.pack | 010; 32/m1 | Fixed 64 / 16 FP32 source values; destinations and descriptor fields follow <<xevu-block-quantization>>
 |===
 
 For low-precision conversions, F3 and the effective configuration are
