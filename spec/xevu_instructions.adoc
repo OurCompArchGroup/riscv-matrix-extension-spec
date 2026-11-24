@@ -245,6 +245,56 @@ exponent before target-format rounding, without an intervening rounded
 FP32 division. MXFP8 uses the E4M3 rules; NaN scale yields canonical
 E4M3 NaN, with NV only if the data input itself is a signaling NaN.
 
+[[xevu-block-quantization]]
+===== Block Quantization Instructions
+
+EVCAP[30] advertises both instructions. Each requires e32/m1, F3=010,
+a start index of zero, and the exact VL below. Other lengths, including
+zero, are illegal. Both write an EVU register, not memory. Neither
+changes VL/VTYPE or EVXSAT.
+
+`xv.block.amax vd, q, vs2` requires VL=64 and vd distinct from vs2.
+For each block b=0..3, clear the sign bits of source elements `16*b`
+through `16*b+15` and reduce them with FP32 maximum starting at +0.
+Write the four maxima to `vd[4*q]` through `vd[4*q+3]`, preserving all
+other bytes. The immediate q must be 0..3. An all-zero or all-NaN
+block yields +0; a signaling NaN accrues NV in EFFLAGS.
+
+ifdef::backend-pdf[]
+<<<
+endif::[]
+
+`xv.block.pack vd, rs1, vs2` requires VL=16. The scalar value x[rs1]
+selects a source block, a descriptor and a destination slot; it is not
+a memory address. Descriptor bit 31 is the keep bit; bits 30:0 with a
+zero sign bit encode the FP32 scale inverse.
+
+.Block pack control word (x[rs1])
+[cols="2,5",options="header"]
+|===
+| Bits | Meaning
+| 4:0 | EVU register containing the descriptors
+| 6:5 | Source block b (0..3) in vs2
+| 10:7 | Index of a 32-bit descriptor (0..15)
+| 13:11 | Destination slot s (0..7) in the first 64 bytes of vd
+| 63:14 | Must be zero
+|===
+
+Multiply each of the 16 source elements starting at `vs2[16*b]` by the
+inverse, rounding to FP32 with RNE. If keep is
+clear, replace the rounded products with +0. Convert to E2M1 as for
+`cvt.mxfp4.f32` with unity scale (code 127). Pack the earlier element
+in each byte's low nibble. Only bytes `8*s` through `8*s+7` of vd change.
+EFFLAGS accrues both multiply and conversion flags, including multiply
+flags when keep is clear.
+
+For example, after checking EVCAP[30], software can use VL=64 and
+`xv.block.amax ev8, 0, ev4` to obtain four maxima in ev8[0..3].
+Software computes the scales and places the descriptors in ev9.
+At VL=16, `xv.block.pack ev10, t0, ev4` with t0=0x2949 selects
+ev9[2] and source elements ev4[32..47], and updates only bytes 40..47
+of ev10 (slot 5). Use a separate store to write packed bytes to memory.
+
 ==== Reduction and Permutation Instructions
 
 [[xevu-reductions]]

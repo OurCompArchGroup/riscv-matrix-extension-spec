@@ -56,7 +56,7 @@ partial overlaps or other unspecified overlaps are not portable. The
 slide offset names a scalar GPR and imposes no vector-group alignment
 requirement. Slideup requires disjoint destination/source groups;
 slidedown also permits an identical destination/source group. The
-low-precision instructions require e32/m1, use one register per operand,
+six low-precision conversions require e32/m1, use one register per operand,
 and forbid destination/source overlap even though their outputs are packed.
 
 VTA=0 preserves inactive destination elements; with VTA=1, software must
@@ -111,7 +111,9 @@ writes do not clear registers: initialize or restore before sharing a context.
 
 EVCAP[7:0]=2; bits 16/17/18 advertise 8/16/32-bit widths; bit 26 advertises
 gather-immediate, bit 27 scalar VL return, bit 28 RVV-mapped math and
-width conversions, and bit 29 low-precision conversions. These additions
+width conversions, bit 29 low-precision conversions, and bit 30 both
+instructions in <<xevu-block-quantization>>. Bit 29 alone does not imply
+block support. These additions
 do not change ABI 2. Legacy bit 24 reads one but
 defines no additional feature, especially no matrix-data interface.
 Opcode-specific width restrictions still apply. EVCAUSE codes are

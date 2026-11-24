@@ -41,7 +41,7 @@ Instructions, and Instruction Encoding List.
 | B.2 Programmer's Model | `spec/xevu_program_model.adoc`, including `spec/xevu_memory_sync.adoc` | Vector registers, configuration ABI 2, ten CSRs, execution, memory and exception rules, and context management |
 | B.3 Instruction Format | `spec/xevu_encoding.adoc` | Custom-0 formats, operand fields, and encoding legality |
 | B.4 Instructions | `spec/xevu_instructions.adoc` | Arithmetic, RVV-mapped math/width conversions, packed INT8/FP8/FP4 conversions, completion, memory handoff, and a softmax-like example |
-| B.5 Instruction Encoding List | `spec/xevu_instruction_list.adoc` | All 78 assigned operation selectors and reserved selectors |
+| B.5 Instruction Encoding List | `spec/xevu_instruction_list.adoc` | All 80 assigned operation selectors and reserved selectors |
 
 The appendix is a concise ISA reference: common rules are stated once,
 operation selectors are grouped by family, and backend algorithms and
@@ -54,9 +54,10 @@ defines scalar-GPR offsets for slideup/slidedown and removes the public WAIT
 instruction (0x19 remains illegal); completion synchronization uses FENCE.
 It retains the 15 RVV-mapped math/width encodings and six low-precision conversion
 encodings present in the implementation sources, advertised by EVCAP bits
-28/29 without changing configuration/context ABI 2. Packed conversions support
-VRF-based quantization sequences; descriptor-based quantization and direct
-matrix-data paths remain out of scope. Zames `mmacc`, TR/ACC, and the existing
+28/29 without changing configuration/context ABI 2. Revision 0.4 adds optional
+block absolute maxima and FP4 packing (EVCAP bit 30) using register-resident
+operands. Memory descriptors and direct matrix-data paths remain out of scope.
+Zames `mmacc`, TR/ACC, and the existing
 Zmasync definitions are unchanged. Unresolved implementation/numerical
 details are explicitly identified; documenting the
 new source interface does not assert completed RTL simulation acceptance.

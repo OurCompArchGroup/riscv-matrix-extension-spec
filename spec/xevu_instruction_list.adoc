@@ -5,7 +5,7 @@
 === Instruction Encoding List
 
 Each entry is `funct7:mnemonic`, with funct7 in hexadecimal and an
-implicit `xv.` mnemonic prefix. All 78 assigned encodings are listed;
+implicit `xv.` mnemonic prefix. All 80 assigned encodings are listed;
 widths and operand layouts follow <<xevu-encoding>>. Source-level support
 does not imply completed whole-system validation.
 
@@ -28,6 +28,7 @@ does not imply completed whole-system validation.
 | FP/width conversion | `67:fwcvt.f.f`, `68:fncvt.f.f`, `69:fcvt.x.f`, `6a:fcvt.f.x`, `6b:nclip.imm`, `6c:zext2`, `6d:sext2`, `6e:nsrl.imm`
 | Low-precision XX8 | `70:cvt.i8.f32`, `71:cvt.e4m3.f32`, `72:cvt.e5m2.f32`, `73:cvt.f32.e4m3`
 | Low-precision MXFP | `74:cvt.mxfp8.f32`, `75:cvt.mxfp4.f32`
+| Block quantization | `76:block.amax`, `77:block.pack`
 | Completion | `1a:fence`
 |===
 
@@ -38,6 +39,6 @@ not add an encoding. See <<xevu-rvv-math>>, <<xevu-width-conversions>>,
 and <<xevu-low-precision>> for semantics, widths, and operand restrictions.
 
 All other selectors are reserved and illegal even at VL=0, including
-08-0b, 18-19, 38, 48-50, 5e-5f, 6f, and 76-7f. There is no public scatter
+08-0b, 18-19, 38, 48-50, 5e-5f, 6f, and 78-7f. There is no public scatter
 instruction. New conversions do not reactivate the retired direct
 quantization selectors 50 or 5e.
