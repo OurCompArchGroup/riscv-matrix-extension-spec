@@ -112,6 +112,19 @@ Encoding table `table_sel = 0` is defined below. Other encoding tables are selec
 | 1111 | Reserved
 |===
 
+The experimental encoding table `table_sel = 1` selects MX data with separate E8M0 scales for blocks of 32 K elements:
+
+[cols="^2,^5"]
+|===
+| `type_code[3:0]` in table 1 | Meaning
+| 0110 | MXFP4 E2M1
+| 0111 | MXFP8 E5M2
+| 1000 | MXFP8 E4M3
+| other values | Reserved
+|===
+
+A block-scaled `mmacc` requires both source registers to select the same table 1 type and the accumulator to select FP32 from table 0. The A and B operands take scales from the corresponding A- and B-side scale registers with the same index as their tile registers. Both scale registers must have valid data covering the active rows and K blocks. An unsupported type combination or invalid or insufficient scale state raises an illegal instruction exception before computing or modifying the accumulator. Table 0 retains its existing unscaled meaning.
+
 When software programs an `mcfg` register, selecting a configuration that is not supported by the implementation raises an illegal instruction exception immediately at the `msetcfg` operation. The set of supported matrix operation capabilities is reported through the matrix capability description in the device tree, using the naming rules defined by the relevant instruction chapters.
 
 === CSR Registers

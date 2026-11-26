@@ -71,6 +71,19 @@ Matrix class legality is determined by the instruction kind and the selected reg
 
 NOTE: Whole matrix load and store instructions are primarily used for context save and restore.
 
+==== Experimental Block-Scale Loads
+
+```
+mlascale sa, (rs1), rs2   # load A-side E8M0 scales
+mlbscale sb, (rs1), rs2   # load B-side E8M0 scales
+```
+
+The destination encoding selects `sa0` through `sa3` or `sb0` through `sb3`, each paired with the tile register of the same index. `rs1` holds the base address of the row-major E8M0 array and `rs2` holds the byte stride between rows. The active row count is `mtilem` for A and `mtilen` for B. Each row has `ceil(mtilek / 32)` scale bytes; padding between rows is not part of the active shape.
+
+A successfully completed load publishes the new scales and their active shape together. The new shape replaces the previous one, even when smaller. A faulting load does not publish the new state. The published scales remain valid for repeated block-scaled `mmacc` operations until replaced or invalidated by `minit`. Whole-register tile loads and stores do not transfer this scale state.
+
+An out-of-range destination, unsupported matrix dimensions, or a stride shorter than the active row raises an illegal instruction exception. Software must wait for the load to complete before using the new scale state.
+
 ==== Examples for Load and Store Instructions
 
 include::load-store_zmabt.adoc[]

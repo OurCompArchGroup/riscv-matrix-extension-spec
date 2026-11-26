@@ -165,7 +165,7 @@ The load/store instruction category uses `func3 = 001`. Types are not encoded in
 
 The `func4` field is partitioned as follows:
 
-- `func4[3]`: `whole`
+- `func4[3]`: `whole` for A/B/C transfers; scale side for `kind=11`
 - `func4[2]`: `transpose`
 - `func4[1:0]`: matrix kind
 
@@ -177,10 +177,12 @@ Matrix-kind encoding:
 | 00 | A matrix
 | 01 | B matrix
 | 10 | C matrix
-| 11 | Reserved
+| 11 | Experimental block-scale load
 |===
 
-The `whole` bit is only defined for load/store instructions. Whole-register access with `transpose=1` is reserved.
+For A/B/C accesses (`kind=00` through `10`), `func4[3]` selects the whole-register form. Whole-register access with `transpose=1` is reserved.
+
+For `kind=11`, `func4[3]` instead selects the scale side: 0 for A and 1 for B. Both forms use `l/s=0`, `func4[2]=0`, and a byte stride in `rs2`; the whole-register `rs2=x0` constraint does not apply. The three-bit destination field must encode 0 through 3. Other `kind=11` combinations are reserved.
 
 ===== Load/Store-Normal Format
 
@@ -245,6 +247,14 @@ This format uses the same field layout as the normal load/store format, with `fu
 | 1 | 0 | 1 | 01 | msb.whole
 | 1 | 0 | 1 | 10 | msc.whole
 | 1 | 1 | 0/1 | 00-10 | Reserved
+|===
+
+.Experimental Block-Scale Loads (`func3=001`)
+[cols="^2,^2,^8"]
+|===
+| *func4* | *l/s* | *Instruction*
+| 0011 | 0 | `mlascale sa, (rs1), rs2`
+| 1011 | 0 | `mlbscale sb, (rs1), rs2`
 |===
 
 ==== Matrix Multiplication Instructions
