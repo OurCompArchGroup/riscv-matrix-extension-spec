@@ -48,6 +48,8 @@
 | mla.whole | 1000  | 00    | 0  | rs2   | rs1   | 001   | md   | 0101011
 | mlb.whole | 1001  | 00    | 0  | rs2   | rs1   | 001   | md   | 0101011
 | mlc.whole | 1010  | 00    | 0  | rs2   | rs1   | 001   | md   | 0101011
+| mlascale  | 0011  | 00    | 0  | rs2   | rs1   | 001   | sa   | 0101011
+| mlbscale  | 1011  | 00    | 0  | rs2   | rs1   | 001   | sb   | 0101011
 | msa.whole | 1000  | 00    | 1  | rs2   | rs1   | 001   | ms3  | 0101011
 | msb.whole | 1001  | 00    | 1  | rs2   | rs1   | 001   | ms3  | 0101011
 | msc.whole | 1010  | 00    | 1  | rs2   | rs1   | 001   | ms3  | 0101011

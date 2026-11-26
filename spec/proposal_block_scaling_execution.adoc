@@ -84,6 +84,51 @@ D[i][j] += sum_k ((A[i][k] * scale_A[i][k / 32]) *
 
 并允许实现以任何与之**严格等价**的内部数据流完成计算。
 
+==== 第一阶段执行与数据流
+
+MXFP8/MXFP4 使用相同的 block-scale 关联关系：
+
+* A tile 的 scale 行对应 `tr[ms1]` 的逻辑 M 行。
+* B tile 的 scale 行对应 `tr[ms2]` 的逻辑 N 行，即 `B^T` 寄存器行。
+* 每个 block 覆盖 32 个 K 元素，scale 为 E8M0。
+* E8M0=255 表示 NaN scale；任何用户 block 的 scale 为 255 时，对应输出
+  按 IEEE NaN 传播，不允许静默截断成有限指数。
+* 未使用的 tail block 不访问 scale；其数据按零处理。
+
+实现可以把 scale 提前叠加到元素指数，也可以先计算 block dot-product 再
+应用 scale；两种实现必须符合同一独立浮点 golden。归约、异常传播和最终
+FP32 舍入必须与标准 MX 元素解码一致。
+
+第一阶段实验实现冻结以下可观测数值契约：
+
+* 每个 `A[i][k]` 和 `B[k][j]` 先按对应 E8M0 scale 精确缩放。E8M0
+  只改变二进制指数，不改变元素的符号、尾数或零。
+* product 以至少足够的内部范围保留，再参与 FP32 累加；实现不得因为先计算
+  仅一侧的缩放乘积而产生架构可见的中间溢出。例如有限元素与 E8M0 的组合，
+  即使一侧中间值大于 FP32 最大有限值，只要最终一个 block 的 contribution
+  可表示，就不能仅因实现顺序不同而产生 Inf。
+* 每个 block 的 exact contribution 为
+  `sum_{k in block} exact(A_scaled * B_scaled)`。不同 block 的 contribution
+  按 K 递增顺序加入 C。
+* 每次加入 block contribution 后，按当前 `mfrm` 舍入到 FP32。第一阶段软件、
+  golden 和 RTL bring-up 固定使用 RNE；其他合法 `mfrm` 必须按
+  `program_model.adoc` 的定义实现后才可报告为支持。
+* FP32 累加遵循 IEEE 754 binary32 的 subnormal、overflow、NaN 和 signed-zero
+  规则；`mfflags` 反映架构可见的 FP32 操作异常。实现内部的精确乘积或归约树
+  不得静默改变最终的 NaN/Inf/zero 分类。
+* A 或 B 用户 block 的 E8M0 为 255 时，该 block 的 contribution 为 NaN，
+  并按 IEEE NaN 传播到输出；不得把 255 当作有限指数。
+
+该定义允许并行归约，但并行实现的每一部分必须满足与上述顺序 golden
+逐位等价，或明确由 capability 报告不同的舍入契约。仅做到“数学上近似相等”
+不满足本阶段要求。
+
+scale valid 和对应 tile register 的关联是执行的一部分，不是性能优化。
+硬件不得在 scale 缺失时消费 A/B/C 向量后再等待一个永远不会完成的输出；
+数据、scale 和 FPE 接受应形成单个逻辑 token。实现可以使用原子 join、
+预取 hold register 或事务式回滚，但架构可见结果必须等价于“先验证全部
+输入，再执行”。
+
 ==== 暂缓冻结的内容
 
 以下内容建议明确标记为 deferred，而不是在第一阶段写死：
@@ -93,6 +138,7 @@ D[i][j] += sum_k ((A[i][k] * scale_A[i][k / 32]) *
 * `FP6`
 * 所有 4-bit load 的精确编码表
 * 完整 `s_type` 枚举表
+* 除 RNE 外的 MX `mfrm` 模式
 
 这些内容一旦提前冻结，会把编码、精度语义和软件模型三件事耦合在一起。
 

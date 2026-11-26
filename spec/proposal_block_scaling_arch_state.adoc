@@ -102,3 +102,90 @@ SLEN  = TLEN / 4
 * 当前 whole-register load/store 仅覆盖 tile/acc 的语义，尚未定义 scale 寄存器的整体保存/恢复指令。
 
 第一阶段建议先不设计独立的 scale save/restore 指令，而是要求软件在上下文恢复后重新加载 scale 数据。待 block scaling 路线稳定后，再决定是否需要 whole-scale load/store。
+
+重新加载 scale 的约定不等于对异步抢占的透明恢复。写 `MS=Off` 或 Initial 不清除寄存器。
+向另一任务开放矩阵状态前，平台必须排空或隔离旧任务的在途工作，使旧 scale 失效，
+并恢复新任务自己的 `tr*` / `acc*` 或清除前任数据。若不能透明恢复，被抢占任务必须
+能在使用已丢失的状态前识别这一情况。不能满足这些条件时，不得承诺任务间 AME 隔离。
+
+==== 第一阶段实验编码
+
+为了在完整编码表收敛前打通软件、golden model、模拟器和 RTL，本提案先冻结一个
+可验证的实验子集。该子集只覆盖 MX32/E8M0，不覆盖 NVFP4、UE4M3、FP6 或
+scale save/restore。
+
+scale 寄存器与 tile 寄存器的编号绑定：
+
+[cols="^1,^1,^1"]
+|===
+| 字段值 | A scale | B scale
+| 000-011 | `sa0`-`sa3` | `sb0`-`sb3`
+|===
+
+`mlascale` / `mlbscale` 使用 load/store 格式，`func3=001`、`l/s=0`、
+`func4[1:0]=11`。该组合在普通 A/B/C load/store 中是 reserved。
+
+[cols="^2,^2,^8"]
+|===
+| `func4` | `kind` | 指令
+| 0011 | `11` | `mlascale`
+| 1011 | `11` | `mlbscale`
+| 其他 `kind=11` | `11` | reserved
+|===
+
+字段语义：
+
+* `md[1:0]` 选择 `sa0`-`sa3` 或 `sb0`-`sb3`，`md[2]` 必须为 0。
+* `rs1` 是 E8M0 scale 数组基地址。
+* `rs2` 是相邻 scale 行的字节 stride。
+* scale 数据按 `[row][scale_block]` row-major 排列，每个元素 8 bit。
+* 行数由当前 `mtilem`（`mlascale`）或 `mtilen`（`mlbscale`）决定。
+* 每行 scale block 数由 `ceil(mtilek / 32)` 决定。
+* load 完成后，目标 scale 寄存器进入 valid 状态。
+* 地址不对齐、目标 index 非 0-3、`mtilek=0` 或 `rs2` 不足以覆盖一行时，
+  抛出 illegal instruction exception。
+
+一次成功的 scale load 同时记录其活动形状
+`rows = (mlascale ? mtilem : mtilen)` 和
+`blocks = ceil(mtilek / 32)`。scale 寄存器保持 valid，并可在后续 scaled
+`mmacc` 中重复使用，直到同一寄存器被一次新的 scale load 覆盖或 `minit`
+使其 invalid。重复使用不会消耗或自动切换 scale 寄存器。
+
+新 load 完整覆盖目标寄存器的活动形状；部分形状不会与旧内容合并。
+scaled `mmacc` 要求的 `rows`/`blocks` 必须被该寄存器最近一次成功 load
+所记录的活动形状覆盖。否则不得读取旧或未初始化字节，必须抛出 illegal
+instruction exception。
+
+`mmacc` 的编码不增加操作数。是否使用 scale 由 `mcfg` 的 block-scaled
+table 和源操作数类型共同决定。CPU 在内部 AMU payload 的 reserved 区域携带
+`scale_mode`：
+
+[cols="^1,^8"]
+|===
+| `scale_mode` (`MteComputeType`) | 含义
+| 0111 | MXFP8 E4M3, block size 32
+| 1000 | MXFP8 E5M2, block size 32
+| 1010 | MXFP4 E2M1, block size 32
+|===
+
+该字段不改变 32-bit software instruction encoding；它是 CPU 生成的 AMU
+内部元数据，用于避免把 scaled 与 unscaled FP8 混淆。其 4-bit 数值与
+`MteComputeType` 一致。普通 unscaled 操作不携带 scale 元数据。
+
+CPU 产生的 150-bit AMU 负载使用现有 spare 位，不改变软件 ABI：
+
+* `AmuLsuIO[130:127]`：上述 4-bit `MteComputeType`；
+* `AmuLsuIO[126]`：`isScale`；
+* `AmuMmaIO[56:53]`：上述 4-bit `MteComputeType`；
+* 其余 spare 位必须为 0。
+
+物理 scale bank 编号、owner 和 generation 属于实现内部状态，不由软件
+payload 提供。实现不得把独立 bank toggle 顺序当作软件可见寄存器所有权。
+
+block-scaled `mmacc` 必须同时满足：
+
+* `mcfg(ms1)`、`mcfg(ms2)` 和 `mcfg(md)` 的类型组合合法；
+* `sa[ms1[1:0]]` 与 `sb[ms2[1:0]]` 都 valid；
+* 两者的活动形状覆盖当前 `mtilem`/`mtilen`/`mtilek`。
+
+任一条不满足时，不执行部分运算，抛出 illegal instruction exception。

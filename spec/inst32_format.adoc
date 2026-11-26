@@ -177,8 +177,21 @@ Matrix-kind encoding:
 | 00 | A matrix
 | 01 | B matrix
 | 10 | C matrix
-| 11 | Reserved
+| 11 | Block-scale load (`mlascale` / `mlbscale`, experimental)
 |===
+
+For `kind=11`, only synchronous load forms are currently defined. The
+`func4[3]` bit selects the A-side or B-side scale register, and
+`transpose=0`, `l/s=0`.
+
+|===
+| *func4* | *Instruction*
+| 0011 | `mlascale sa[md], (rs1), rs2`
+| 1011 | `mlbscale sb[md], (rs1), rs2`
+|===
+
+`rs1` is the E8M0 scale-array byte address and `rs2` is the byte stride
+between adjacent scale rows. All other `kind=11` combinations are reserved.
 
 The `whole` bit is only defined for load/store instructions. Whole-register access with `transpose=1` is reserved.
 
@@ -229,7 +242,10 @@ This format uses the same field layout as the normal load/store format, with `fu
 | 1 | 0 | 1 | 00 | msa.whole
 | 1 | 0 | 1 | 01 | msb.whole
 | 1 | 0 | 1 | 10 | msc.whole
+| 0 | 0 | 0 | 11 | mlascale
+| 1 | 0 | 0 | 11 | mlbscale
 | 1 | 1 | 0/1 | 00-10 | Reserved
+| 0/1 | 1 | 0/1 | 11 | Reserved
 |===
 
 ==== Matrix Multiplication Instructions

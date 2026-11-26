@@ -91,6 +91,24 @@ When software executes `mgetcfg`, the selected `mcfg` value is returned without 
 
 Encoding table `table_sel = 0` is defined below. Other encoding tables are selected by non-zero `table_sel` values and may assign different meanings to the same `type_code`.
 
+The first experimental block-scaling table is selected by `table_sel = 1`.
+It reuses `type_code = 6`, `7`, and `8` from table 0, but changes their
+interpretation to indicate that the associated matrix register is consumed as
+MX data with a separate E8M0 scale register:
+
+|===
+| `type_code[3:0]` in table 1 | Meaning
+| `0110` | MXFP4 E2M1, block size 32
+| `0111` | MXFP8 E5M2, block size 32
+| `1000` | MXFP8 E4M3, block size 32
+| other values | Reserved
+|===
+
+A scaled `mmacc` requires both source matrices to select table 1 with the same
+MX `type_code`, and the destination to select table 0 with `FP32`. Other
+combinations of table 1 are reserved and raise an illegal instruction
+exception. Table 0 retains its existing unscaled meaning.
+
 [cols="^2,^5"]
 |===
 | `type_code[3:0]` in table 0 | Meaning
